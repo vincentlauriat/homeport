@@ -8,23 +8,32 @@ from pathlib import Path
 
 import yaml
 
-CONFIG_PATH = Path(
-    os.environ.get("HOMEPORT_CONFIG", Path(__file__).resolve().parent.parent / "config" / "services.yaml")
-)
+# Résolution des répertoires, dans l'ordre : variable d'environnement, emplacement FHS
+# (/etc/homeport, /var/lib/homeport) s'il est utilisable, sinon repli développement relatif
+# au répertoire courant (./config, ./data). Chaque fichier individuel reste surchargeable.
+_ETC = Path("/etc/homeport")
+_VAR = Path("/var/lib/homeport")
 
-# Hors de l'arbre synchronisé par `deploy.sh` (qui fait `rsync --delete`) : une base ici
-# serait effacée à chaque déploiement, absente du dépôt local. Sur le Pi, l'unit systemd fixe
-# `HOMEPORT_DB_PATH=/mnt/ssd/homeport-data/history.db` ; le repli sert au développement local.
-DB_PATH = Path(
-    os.environ.get("HOMEPORT_DB_PATH", Path(__file__).resolve().parent.parent / "data" / "history.db")
-)
 
-# Écrit par le timer root `homeport-nvme.timer` (voir app/collectors/nvme.py), lu seulement.
-# Vit dans le même dossier de données que l'historique, hors de l'arbre synchronisé.
-NVME_PATH = Path(os.environ.get("HOMEPORT_NVME_PATH", DB_PATH.parent / "nvme.json"))
+def _resolve_dir(env_var: str, system: Path, dev_name: str, need_write: bool) -> Path:
+    override = os.environ.get(env_var)
+    if override:
+        return Path(override)
+    usable = system.is_dir() and (not need_write or os.access(system, os.W_OK))
+    return system if usable else Path.cwd() / dev_name
 
-# Écrit par `homeport-restic.timer` (root) — état de la sauvegarde hors machine, même motif.
-OFFSITE_PATH = Path(os.environ.get("HOMEPORT_OFFSITE_PATH", DB_PATH.parent / "restic.json"))
+
+CONFIG_DIR = _resolve_dir("HOMEPORT_CONFIG_DIR", _ETC, "config", need_write=False)
+DATA_DIR = _resolve_dir("HOMEPORT_DATA_DIR", _VAR, "data", need_write=True)
+
+CONFIG_PATH = Path(os.environ.get("HOMEPORT_CONFIG", CONFIG_DIR / "services.yaml"))
+DB_PATH = Path(os.environ.get("HOMEPORT_DB_PATH", DATA_DIR / "history.db"))
+
+# Écrit par le timer root `homeport-nvme.timer` (voir collectors/nvme.py), lu seulement.
+NVME_PATH = Path(os.environ.get("HOMEPORT_NVME_PATH", DATA_DIR / "nvme.json"))
+
+# Écrit par un timer root optionnel — état de la sauvegarde hors machine, même motif.
+OFFSITE_PATH = Path(os.environ.get("HOMEPORT_OFFSITE_PATH", DATA_DIR / "restic.json"))
 
 
 @dataclass(frozen=True)
