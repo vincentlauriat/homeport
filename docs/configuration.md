@@ -70,6 +70,27 @@ The file's contract (every field optional except `status`):
 
 `error` shows red; `pending`, a missing/unreadable file, or an overdue `ok` show amber.
 
+## Starlink
+
+Monitor a Starlink dish: a simplified card on the dashboard (state, latency, instant
+throughput, obstruction) and a full `/starlink` page — latency and throughput charts from
+the dish's own 15-minute ring buffers, the sky obstruction map, GPS, alignment, hardware
+info and alerts. When MQTT is enabled, five extra sensors are published
+(`starlink_online`, `starlink_latency`, `starlink_down`, `starlink_up`,
+`starlink_obstruction`).
+
+```yaml
+starlink:
+  enabled: true
+  address: 192.168.100.1:9200   # the dish's gRPC endpoint (default)
+```
+
+Homeport talks to the dish's local gRPC API directly — nothing leaves your network and no
+Starlink account is needed. The server must have a route to `192.168.100.1`: that's
+automatic when it sits behind the Starlink router; behind another router you may need a
+static route. Polling intervals can be tuned in `health.intervals`
+(`starlink_status: 15`, `starlink_history: 60`, `starlink_map: 300` seconds).
+
 ## Environment variables
 
 | Variable | Default | |

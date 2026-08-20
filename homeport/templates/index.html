@@ -212,6 +212,22 @@
         {%- if public_ip %} · {{ t("net.ip", ip=public_ip.ip) }}{% endif -%}
       </span>
     </div>
+    <div class="network-card {{ 'state-up' if starlink and starlink.online else ('state-down' if starlink else '') }}" data-network="starlink" {{ 'hidden' if not starlink }}>
+      <span class="health-label">🛰️ Starlink</span>
+      <a class="tile-link" href="/starlink" title="{{ t("starlink.card_link_title") }}">
+        <span class="health-value" id="sl-card-value">
+          {%- if not starlink %}—
+          {%- elif starlink.online %}{{ t("net.online_latency", latency=starlink.latency_ms) }}
+          {%- else %}{{ t("starlink.offline") }}{% endif -%}
+        </span>
+      </a>
+      <span class="health-note" id="sl-card-note">
+        {%- if starlink %}{{ t("starlink.card_note",
+              down=(starlink.downlink_bps / 1000000) | round | int,
+              up=(starlink.uplink_bps / 1000000) | round(1),
+              obstruction=(starlink.obstruction.fraction * 100) | round(2)) }}{% endif -%}
+      </span>
+    </div>
     <div class="network-card" data-network="tailscale">
       <span class="health-label">{{ t("index.peers_label") }}</span>
       <div class="peer-list" id="net-tailscale">

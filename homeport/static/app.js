@@ -192,6 +192,21 @@ function applyWan(wan) {
     : T('net.no_outage')) + ipSuffix);
 }
 
+function applyStarlink(starlink) {
+  const card = document.querySelector('[data-network="starlink"]');
+  if (!card || !starlink) return;
+  card.hidden = false;
+  card.classList.remove('state-up', 'state-down');
+  card.classList.add(starlink.online ? 'state-up' : 'state-down');
+  setText('sl-card-value', starlink.online
+    ? T('net.online_latency', { latency: starlink.latency_ms }) : T('starlink.offline'));
+  setText('sl-card-note', T('starlink.card_note', {
+    down: Math.round(starlink.downlink_bps / 1e6),
+    up: Math.round(starlink.uplink_bps / 1e5) / 10,
+    obstruction: ((starlink.obstruction || {}).fraction * 100).toFixed(2),
+  }));
+}
+
 function applyNetwork(network) {
   if (!network) return;
 
@@ -325,6 +340,7 @@ async function refresh() {
     applyNvme(data.nvme);
     window.__publicIp = data.public_ip ? data.public_ip.ip : null;
     applyWan(data.wan);
+    applyStarlink(data.starlink);
     applyNetwork(data.network);
     applyStatusFiles(data.status_files);
     applyUpdateBadge(data.update);

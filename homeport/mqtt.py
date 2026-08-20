@@ -141,6 +141,18 @@ def _undervoltage(system: dict, throttling: dict) -> bool:
     return bool((throttling.get("bits") or 0) & 0b1)
 
 
+def _starlink(status: dict | None) -> dict | None:
+    if not status:
+        return None
+    return {
+        "online": bool(status.get("online")),
+        "latency_ms": status.get("latency_ms"),
+        "downlink_mbps": round((status.get("downlink_bps") or 0) / 1e6, 1),
+        "uplink_mbps": round((status.get("uplink_bps") or 0) / 1e6, 1),
+        "obstruction_pct": round(((status.get("obstruction") or {}).get("fraction") or 0) * 100, 3),
+    }
+
+
 def build_payload(snapshot: dict) -> dict:
     """Aplatit l'état du tableau de bord en un objet plat, stable, prêt pour `value_template`.
 
@@ -219,6 +231,9 @@ def build_payload(snapshot: dict) -> dict:
             "latency_ms": (snapshot.get("wan") or {}).get("latency_ms"),
             "outages_24h": (snapshot.get("wan") or {}).get("outages_24h"),
         },
+        # Absent (None) quand le module Starlink est désactivé : la découverte n'annonce
+        # alors aucun capteur, plutôt que des entités éternellement « unknown ».
+        "starlink": _starlink(snapshot.get("starlink")),
         # L'état est retenu par le courtier : sans horodatage, rien ne distingue une valeur
         # fraîche d'un dernier message vieux de trois jours laissé par un service arrêté.
         "timestamp": system.get("timestamp"),
@@ -284,6 +299,40 @@ def build_discovery(payload: dict, hostname: str, base: str, prefix: str) -> lis
                 "device_class": "duration",
                 "state_class": "measurement",
                 "icon": "mdi:cloud-upload",
+            },
+        ))
+
+    if payload.get("starlink"):
+        starlink_sensors = [
+            ("starlink_latency", "mqttname.starlink_latency", "{{ value_json.starlink.latency_ms }}", "ms", None, "mdi:speedometer"),
+            ("starlink_down", "mqttname.starlink_down", "{{ value_json.starlink.downlink_mbps }}", "Mbit/s", "data_rate", "mdi:download"),
+            ("starlink_up", "mqttname.starlink_up", "{{ value_json.starlink.uplink_mbps }}", "Mbit/s", "data_rate", "mdi:upload"),
+            ("starlink_obstruction", "mqttname.starlink_obstruction", "{{ value_json.starlink.obstruction_pct }}", "%", None, "mdi:weather-cloudy-alert"),
+        ]
+        for key, name, template, unit, device_class, icon in starlink_sensors:
+            config = {
+                **common,
+                "name": i18n.t(name, lang),
+                "unique_id": f"{base}_{key}",
+                "value_template": template,
+                "unit_of_measurement": unit,
+                "state_class": "measurement",
+                "icon": icon,
+            }
+            if device_class:
+                config["device_class"] = device_class
+            messages.append((f"{prefix}/sensor/{base}/{key}/config", config))
+        messages.append((
+            f"{prefix}/binary_sensor/{base}/starlink_online/config",
+            {
+                **common,
+                "name": i18n.t("mqttname.starlink_online", lang),
+                "unique_id": f"{base}_starlink_online",
+                "value_template": "{{ 'ON' if value_json.starlink.online else 'OFF' }}",
+                "payload_on": "ON",
+                "payload_off": "OFF",
+                "device_class": "connectivity",
+                "icon": "mdi:satellite-uplink",
             },
         ))
 

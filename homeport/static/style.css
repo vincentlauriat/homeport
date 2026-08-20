@@ -780,6 +780,38 @@ a.n:hover { color: var(--accent); }
 .wall-state.state-warn { color: var(--warn); }
 .wall-state.state-down { color: var(--down); }
 
+/* ---------- Page /starlink (v0.3) ---------- */
+
+.sl-state {
+  display: flex; align-items: center; gap: .6rem; font-weight: 600; font-size: .95rem;
+}
+.sl-cells {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;
+  margin-top: 1rem;
+}
+.sl-cell {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: .8rem 1rem; box-shadow: var(--shadow); display: flex; flex-direction: column;
+}
+.sl-cell .t { font-size: .68rem; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); }
+.sl-cell b { margin-top: .35rem; font-size: 1.45rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.sl-cell .foot { margin-top: .3rem; color: var(--muted); font-size: .76rem; }
+
+.sl-line-alt { stroke: var(--up); }
+.sl-bottom {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem;
+  margin-top: 1rem;
+}
+.sl-map-card canvas {
+  width: 100%; max-width: 320px; aspect-ratio: 1; align-self: center;
+  image-rendering: pixelated; border-radius: 8px; background: #101420;
+}
+.sl-kv { display: flex; justify-content: space-between; gap: 1rem; padding: .3rem 0; border-bottom: 1px solid var(--border); font-size: .85rem; }
+.sl-kv:last-child { border-bottom: none; }
+.sl-kv span { color: var(--muted); }
+.sl-kv b { font-variant-numeric: tabular-nums; }
+body.v-starlink .alerts { margin-top: 1rem; }
+
 /* Badge de mise à jour disponible (pied de page) */
 .update-chip {
   color: var(--accent); text-decoration: none; border: 1px solid var(--border);
