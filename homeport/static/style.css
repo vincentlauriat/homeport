@@ -664,24 +664,29 @@ footer {
 
 .ctrl-services { padding: .3rem .55rem .55rem; }
 .ctrl-grp { margin: .55rem .35rem .15rem; font-size: .62rem; text-transform: uppercase; letter-spacing: .1em; color: var(--accent); }
-.ctrl-svc { width: 100%; border-collapse: collapse; }
+/* Géométrie de colonnes partagée entre les trois tables de groupes : sans `table-layout:
+   fixed` + largeurs fixes, chaque table calcule ses propres colonnes et la colonne
+   description ne s'aligne pas d'un groupe à l'autre. */
+.ctrl-svc { width: 100%; border-collapse: collapse; table-layout: fixed; }
 .ctrl-svc td { padding: .34rem .45rem; border-bottom: 1px solid var(--border); font-size: .78rem; vertical-align: middle; }
 .ctrl-svc tr:last-child td { border-bottom: none; }
-.ctrl-svc td.name { font-weight: 600; white-space: nowrap; }
+.ctrl-svc td.name { font-weight: 600; white-space: nowrap; width: 12rem; overflow: hidden; text-overflow: ellipsis; }
 .ctrl-svc td.name a { color: inherit; text-decoration: none; }
 .ctrl-svc td.name a:hover { color: var(--accent); }
 .cdot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: .5rem; vertical-align: 1px; }
 .cdot-up { background: var(--up); } .cdot-warn { background: var(--warn); }
 .cdot-down { background: var(--down); } .cdot-unknown { background: var(--unknown); }
-.ctrl-svc td.desc { color: var(--muted); font-size: .71rem; }
+.ctrl-svc td.desc { color: var(--muted); font-size: .71rem; padding-left: .65rem; border-left: 1px dotted var(--border); }
 .ctrl-svc td.cpu { width: 92px; }
 .ctrl-svc td.cpu .bar { height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
 .ctrl-svc td.cpu .bar i { display: block; height: 100%; width: 0; background: var(--accent); border-radius: 2px; }
 .ctrl-svc td.cpu .cpu-num { display: block; margin-top: .1rem; color: var(--muted); font-size: .62rem; font-variant-numeric: tabular-nums; }
 .ctrl-svc td.avail { color: var(--muted); font-variant-numeric: tabular-nums; text-align: right; font-size: .71rem; width: 3.6rem; }
-.ctrl-svc td.up { color: var(--muted); font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; font-size: .71rem; }
+.ctrl-svc td.up { color: var(--muted); font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; font-size: .71rem; width: 5.2rem; }
 .ctrl-row.state-down td.name { color: var(--down); }
-@media (max-width: 640px) { .ctrl-svc td.desc, .ctrl-svc td.avail { display: none; } }
+/* Sous 640px la description disparaît : rendre sa largeur au nom, sinon les colonnes
+   fixes (12rem + 92px + 5.2rem) débordent du panneau. */
+@media (max-width: 640px) { .ctrl-svc td.desc, .ctrl-svc td.avail { display: none; } .ctrl-svc td.name { width: auto; } }
 
 /* ---------- Vue B : le journal de la maison ---------- */
 
