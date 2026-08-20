@@ -597,13 +597,18 @@ footer {
 
 /* ---------- v1.0 : sélecteur de vue (commun aux trois vues candidates) ---------- */
 
+/* Rendu volontairement figé (taille, casse, graisse) : la barre est incluse dans des
+   contextes très typés (bandeau du Journal en petites capitales, tête du Mur…) et doit
+   rester identique partout — le rendu de référence est celui de /controle. */
 .view-switch {
   display: flex; gap: .15rem; margin-left: auto;
   background: var(--surface); border: 1px solid var(--border); border-radius: 999px;
-  padding: .2rem; font-size: .75rem;
+  padding: .2rem; font-size: .75rem; line-height: 1.5;
+  text-transform: none; letter-spacing: normal; font-weight: 400;
 }
 .view-switch a {
   color: var(--muted); text-decoration: none; padding: .25rem .7rem; border-radius: 999px;
+  white-space: nowrap;
 }
 .view-switch a:hover { color: var(--text); }
 .view-switch a.current { background: var(--accent); color: #fff; }

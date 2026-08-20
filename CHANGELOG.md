@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.3.2
+
+- **Uniform view switcher** — the navigation bar now renders identically on every page
+  (the Journal header leaked its small-caps styling into it).
+- **Starlink in every view** — the Control network panel gets a Starlink row (with a link
+  to the full page), the Journal "network & health" section a Starlink line, and the
+  Wall footer a Starlink summary. The three views now cover everything the classic page shows.
+
 ## v0.3.1
 
 - **Global navigation** — every page now carries the full view switcher (Classic, Control,

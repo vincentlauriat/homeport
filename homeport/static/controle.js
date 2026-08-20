@@ -130,6 +130,17 @@ function renderNetwork(data) {
       level: wan.outages_24h ? 'warn' : 'ok',
     });
   }
+  const starlink = data.starlink;
+  if (starlink) {
+    const mbps = (bps) => Math.round(bps / 1e6);
+    rows.push({
+      k: 'Starlink',
+      v: starlink.online
+        ? T('net.online_latency', { latency: starlink.latency_ms }) + ` · ↓ ${mbps(starlink.downlink_bps)} · ↑ ${mbps(starlink.uplink_bps)} Mb/s`
+        : T('starlink.offline'),
+      level: starlink.online ? 'ok' : 'down',
+    });
+  }
   const net = data.network || {};
   const peers = net.tailscale_peers || [];
   const online = peers.filter((p) => p.online);
@@ -149,6 +160,16 @@ function renderNetwork(data) {
     const link = el('a', 'ctrl-link', ' ' + T('net.inventory_link'));
     link.href = '/reseau';
     last.appendChild(link);
+  }
+  // Idem pour la ligne Starlink → sa page détaillée.
+  if (data.starlink) {
+    const rows = document.querySelectorAll('#c-network .ckv .k');
+    for (const key of rows) {
+      if (key.textContent !== 'Starlink') continue;
+      const link = el('a', 'ctrl-link', ' ' + T('starlink.detail_link'));
+      link.href = '/starlink';
+      key.parentElement.querySelector('.v').appendChild(link);
+    }
   }
 }
 
