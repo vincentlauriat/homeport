@@ -8,6 +8,7 @@ Deux routes utiles :
 from __future__ import annotations
 
 import logging
+import os
 import sqlite3
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -17,7 +18,7 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from . import __version__, actions, background, mqtt, status
+from . import __version__, actions, background, demo, mqtt, status
 from . import config as cfg
 from .collectors import (
     backups,
@@ -41,6 +42,9 @@ from .links import request_hostname
 
 BASE_DIR = Path(__file__).resolve().parent
 
+# HOMEPORT_DEMO=1 : tout le dashboard sur des données simulées (voir demo.py).
+DEMO = os.environ.get("HOMEPORT_DEMO") == "1"
+
 # Uvicorn ne configure que ses propres loggers. Sans handler sur la racine, les messages de
 # Raspberry restent invisibles : seuls les WARNING passent, via le handler de dernier recours de
 # `logging`. On perdrait donc la confirmation « connecté au courtier » — exactement ce qu'on
@@ -56,6 +60,11 @@ async def lifespan(_: FastAPI):
     Volontairement ici et pas au moment de l'import : un import du module (test, rechargement
     à chaud d'uvicorn) ne doit pas lancer de boucles de mesure.
     """
+    if DEMO:
+        log.info("mode démo : données simulées, aucun accès système")
+        yield
+        return
+
     health = cfg.load_health()
     intervals = health["intervals"]
     journal_config = health["journal"]
@@ -251,7 +260,7 @@ def _hostname(request: Request) -> str:
 
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request) -> HTMLResponse:
-    data = await status.build(_hostname(request))
+    data = await (demo.build if DEMO else status.build)(_hostname(request))
     return templates.TemplateResponse(
         request=request,
         name="index.html",
@@ -271,11 +280,13 @@ async def reseau(request: Request) -> HTMLResponse:
 
 @app.get("/api/status")
 async def api_status(request: Request) -> JSONResponse:
-    return JSONResponse(await status.build(_hostname(request)))
+    return JSONResponse(await (demo.build if DEMO else status.build)(_hostname(request)))
 
 
 @app.get("/api/history")
 async def api_history(hours: float = 24.0) -> JSONResponse:
+    if DEMO:
+        return JSONResponse(demo.history(hours))
     try:
         samples = await _to_async(history.query_range, cfg.DB_PATH, hours)
     except sqlite3.Error:
@@ -287,6 +298,8 @@ async def api_history(hours: float = 24.0) -> JSONResponse:
 
 @app.get("/api/devices")
 async def api_devices() -> JSONResponse:
+    if DEMO:
+        return JSONResponse(demo.devices())
     raw = background.snapshot().get("network")
     live = (raw.get("data") if raw else None) or {}
     online_macs = {devices.normalize_mac(n["mac"]) for n in live.get("lan_neighbors", [])}
@@ -460,6 +473,8 @@ async def vue_mur(request: Request) -> HTMLResponse:
 
 @app.get("/api/outages")
 async def api_outages(hours: float = 24.0) -> JSONResponse:
+    if DEMO:
+        return JSONResponse(demo.outages(hours))
     try:
         result = wan.outages(cfg.DB_PATH, hours=hours)
     except sqlite3.Error:
