@@ -11,9 +11,15 @@ set -euo pipefail
 REPO_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$REPO_DIR"
 
-echo "==> Pulling latest code"
-git fetch --tags origin
-git pull --ff-only origin main
+# `git pull` rewrites this very script while bash is still reading it, which silently
+# skips or corrupts the remaining lines. Stage 1 only pulls, then re-executes the freshly
+# pulled version of itself; stage 2 does the actual install/restart.
+if [ "${HOMEPORT_UPDATE_STAGE2:-}" != "1" ]; then
+  echo "==> Pulling latest code"
+  git fetch --tags origin
+  git pull --ff-only origin main
+  HOMEPORT_UPDATE_STAGE2=1 exec bash "$REPO_DIR/deploy/update.sh"
+fi
 
 echo "==> Re-running installer"
 "$REPO_DIR/deploy/install.sh"
