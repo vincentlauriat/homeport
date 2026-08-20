@@ -27,12 +27,7 @@
       {% if summary.warn %}<span class="pill pill-warn"><b id="count-warn">{{ summary.warn }}</b> {{ t("summary.word_warn") }}</span>{% endif %}
       {% if summary.down %}<span class="pill pill-down"><b id="count-down">{{ summary.down }}</b> {{ t("summary.word_down") }}</span>{% endif %}
     </div>
-    <nav class="view-switch">
-      <a href="/" class="current">{{ t("nav.classic") }}</a>
-      <a href="/controle">{{ t("nav.control") }}</a>
-      <a href="/journal">{{ t("nav.journal") }}</a>
-      <a href="/mur">{{ t("nav.wall") }}</a>
-    </nav>
+    {% set nav_current = "classic" %}{% include "_nav.html" %}
   </header>
 
   <section class="metrics" id="metrics">

@@ -17,12 +17,7 @@
   <main class="edit-page">
     <header class="edit-brand">
       <span>⚓ <span id="j-hostname">—</span> · <span id="j-date">—</span></span>
-      <nav class="view-switch">
-        <a href="/">{{ t("nav.classic") }}</a>
-        <a href="/controle">{{ t("nav.control") }}</a>
-        <a href="/journal" class="current">{{ t("nav.journal") }}</a>
-        <a href="/mur">{{ t("nav.wall") }}</a>
-      </nav>
+      {% set nav_current = "journal" %}{% include "_nav.html" %}
     </header>
 
     <h1 class="edit-verdict" id="j-verdict">…</h1>

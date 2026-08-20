@@ -18,12 +18,7 @@
     <span class="wall-clock" id="w-clock">—:—</span>
     <span class="wall-date" id="w-date">—</span>
     <span class="wall-state" id="w-state"><span class="wall-halo" id="w-halo"></span><span id="w-state-text">…</span></span>
-    <nav class="view-switch">
-      <a href="/">{{ t("nav.classic") }}</a>
-      <a href="/controle">{{ t("nav.control") }}</a>
-      <a href="/journal">{{ t("nav.journal") }}</a>
-      <a href="/mur" class="current">{{ t("nav.wall") }}</a>
-    </nav>
+    {% set nav_current = "wall" %}{% include "_nav.html" %}
   </header>
 
   <main class="wall-grid">
