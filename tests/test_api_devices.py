@@ -79,7 +79,7 @@ def test_api_devices_base_indisponible(client, monkeypatch):
     """Jamais de 500 : base morte -> inventaire vide + drapeau, le live reste."""
     http, _ = client
     monkeypatch.setattr(main.cfg, "DB_PATH", Path("/nonexistent/dir/x.db"))
-    monkeypatch.setattr(background, "snapshot", lambda: {})
+    monkeypatch.setattr(background, "snapshot", dict)
     response = http.get("/api/devices")
     assert response.status_code == 200
     assert response.json()["devices"] == []
@@ -88,7 +88,7 @@ def test_api_devices_base_indisponible(client, monkeypatch):
 
 def test_page_reseau_repond(client, monkeypatch):
     http, _ = client
-    monkeypatch.setattr(background, "snapshot", lambda: {})
+    monkeypatch.setattr(background, "snapshot", dict)
     response = http.get("/reseau")
     assert response.status_code == 200
     assert "Network" in response.text
@@ -106,7 +106,7 @@ def test_api_outages(client, monkeypatch, tmp_path):
 
 def test_page_historique_repond(client, monkeypatch):
     http, _ = client
-    monkeypatch.setattr(background, "snapshot", lambda: {})
+    monkeypatch.setattr(background, "snapshot", dict)
     response = http.get("/historique")
     assert response.status_code == 200
     assert "History" in response.text

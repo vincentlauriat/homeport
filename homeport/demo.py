@@ -11,8 +11,9 @@ from __future__ import annotations
 import math
 import time
 
-from . import i18n
 from . import config as cfg
+from . import i18n
+
 _START = 1_700_000_000  # époque fictive stable pour les séries déterministes
 
 
@@ -112,7 +113,7 @@ async def build(hostname: str) -> dict:
         "docker_available": True,
         "health": {
             "backups": [
-                {"id": "config", "name": "Config backup", "path": "/var/backups", "state": "ok",
+                {"id": "config", "name": "Config", "path": "/var/backups", "state": "ok",
                  "age_days": 0.3, "detail": "7 h ago", "file": "config-2026-08-20.tar.gz", "size_mb": 42.7},
             ],
             "backups_measured_at": now - 60,

@@ -32,8 +32,8 @@ from .collectors import (
     network,
     oui,
     public_ip,
-    sessions,
     service_history,
+    sessions,
     updates,
     wan,
     wol,
@@ -354,7 +354,7 @@ _PATCH_LIMITS = {"name": 64, "note": 500}
 
 
 @app.patch("/api/devices/{mac}")
-async def api_patch_device(mac: str, payload: dict = Body(...)) -> JSONResponse:
+async def api_patch_device(mac: str, payload: dict = Body(...)) -> JSONResponse:  # noqa: B008
     """Seul endpoint d'écriture du projet : nom, note, catégorie, acquittement d'un appareil.
 
     Pas d'authentification — assumé tant que le service n'est joignable que du LAN et de

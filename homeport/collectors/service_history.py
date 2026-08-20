@@ -63,7 +63,7 @@ def stats(path: Path, hours: float = 168.0, now: float | None = None) -> dict[st
         per_service.setdefault(service_id, []).append((ts, state))
 
     for service_id, samples in per_service.items():
-        gaps = [b[0] - a[0] for a, b in zip(samples, samples[1:])]
+        gaps = [b[0] - a[0] for a, b in zip(samples, samples[1:], strict=False)]
         step = statistics.median(gaps) if gaps else 60
         up = sum(1 for _, state in samples if state == "up")
         incidents, longest = 0, 0

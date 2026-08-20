@@ -106,7 +106,7 @@ def update_meta(path: Path, mac: str, fields: dict) -> bool:
     assignments = ", ".join(f"{key} = ?" for key in allowed)
     with sqlite3.connect(path) as conn:
         cursor = conn.execute(
-            f"UPDATE devices SET {assignments} WHERE mac = ?",  # noqa: S608 — clés filtrées par _META_FIELDS
+            f"UPDATE devices SET {assignments} WHERE mac = ?",
             (*allowed.values(), mac),
         )
         return cursor.rowcount > 0

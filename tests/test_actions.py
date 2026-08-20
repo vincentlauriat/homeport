@@ -6,7 +6,6 @@ from pathlib import Path
 
 from homeport import actions
 
-
 # --- Qui a le droit ---------------------------------------------------------------------
 
 def test_is_tailnet_ip():

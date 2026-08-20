@@ -5,14 +5,14 @@ l'écran vaut mieux qu'une 500, et se voit immédiatement en développement."""
 from __future__ import annotations
 
 import json
-from functools import lru_cache
+from functools import cache
 from pathlib import Path
 
 _DIR = Path(__file__).resolve().parent
 DEFAULT_LANG = "en"
 
 
-@lru_cache(maxsize=None)
+@cache
 def catalog(lang: str) -> dict:
     path = _DIR / f"{lang}.json"
     if not path.exists():

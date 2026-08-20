@@ -23,7 +23,7 @@ async def run(*args: str, timeout: float = 10.0) -> bytes | None:
 
     try:
         stdout, _ = await asyncio.wait_for(process.communicate(), timeout=timeout)
-    except asyncio.TimeoutError:
+    except TimeoutError:
         process.kill()
         await process.wait()
         return None

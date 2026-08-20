@@ -1,0 +1,8 @@
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+
+[tool.ruff.lint]
+# Volontairement resserré : erreurs réelles et imports, pas de style contestable.
+select = ["E", "F", "W", "I", "B", "UP"]
+ignore = ["E501"]

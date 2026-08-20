@@ -66,8 +66,8 @@ def collect(entries: list[dict]) -> list[dict]:
 
 
 def _humanize(age_days: float) -> str:
-    from .. import i18n
     from .. import config as cfg
+    from .. import i18n
     lang = cfg.load_language()
     if age_days < 1 / 24:
         return i18n.t("age.just_now", lang)

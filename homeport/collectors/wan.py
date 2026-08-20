@@ -38,7 +38,7 @@ async def _tcp_latency_ms(host: str, port: int, timeout: float) -> float | None:
     start = time.monotonic()
     try:
         _, writer = await asyncio.wait_for(asyncio.open_connection(host, port), timeout)
-    except (OSError, asyncio.TimeoutError):
+    except (TimeoutError, OSError):
         return None
     writer.close()
     try:
@@ -99,7 +99,7 @@ def outages(path: Path, hours: float = 24.0, now: float | None = None) -> list[d
         ).fetchall()
     if not rows:
         return []
-    gaps = [b[0] - a[0] for a, b in zip(rows, rows[1:])]
+    gaps = [b[0] - a[0] for a, b in zip(rows, rows[1:], strict=False)]
     step = statistics.median(gaps) if gaps else 60
     result, start, count = [], None, 0
     for ts, online in rows:
@@ -142,7 +142,7 @@ def summarize(path: Path, hours: float = 24.0, now: float | None = None) -> dict
     if current_start is not None:
         outages.append((current_start, current_count))
 
-    gaps = [b[0] - a[0] for a, b in zip(rows, rows[1:])]
+    gaps = [b[0] - a[0] for a, b in zip(rows, rows[1:], strict=False)]
     step = statistics.median(gaps) if gaps else 60
     latencies = [lat for _, online, lat in rows if online and lat is not None]
 

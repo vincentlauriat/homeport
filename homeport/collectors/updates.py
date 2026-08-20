@@ -11,7 +11,6 @@ issu de listes vieilles de trois semaines est un chiffre qui ment.
 from __future__ import annotations
 
 import asyncio
-import re
 import time
 from pathlib import Path
 
@@ -147,7 +146,7 @@ async def docker_images() -> dict:
         return {"available": False, "outdated": 0, "checked": 0, "images": []}
 
     local: dict[str, str | None] = {}
-    for reference, response in zip(images, details):
+    for reference, response in zip(images, details, strict=True):
         if isinstance(response, Exception) or response.status_code != 200:
             local[reference] = None
             continue
@@ -160,7 +159,7 @@ async def docker_images() -> dict:
             *(_remote_digest(client, ref) if local[ref] else _noop() for ref in images)
         )
 
-    for reference, remote in zip(images, remotes):
+    for reference, remote in zip(images, remotes, strict=True):
         current = local[reference]
         if current is None:
             state = "local"          # image construite sur place, pas de registre

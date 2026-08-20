@@ -38,6 +38,7 @@ def test_demo_devices_et_outages():
 
 def test_endpoints_en_mode_demo(monkeypatch):
     from fastapi.testclient import TestClient
+
     from homeport import main
     monkeypatch.setattr(main, "DEMO", True)
     client = TestClient(main.app)

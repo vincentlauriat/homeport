@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import asyncio
 import time
-from typing import Awaitable, Callable
+from collections.abc import Awaitable, Callable
 
 _results: dict[str, dict] = {}
 _tasks: list[asyncio.Task] = []

@@ -196,7 +196,7 @@
         {%- else %}{{ t("wan.offline_f") }}{% endif -%}
       </span>
       <span class="health-note" id="wan-note">
-        {%- if wan and wan.outages_24h %}{{ t("net.outages_detail_many", count=wan.outages_24h) }} · {{ t("index.outage_last", count=wan.last_outage_minutes) }}
+        {%- if wan and wan.outages_24h %}{{ t("net.outages_detail_one" if wan.outages_24h == 1 else "net.outages_detail_many", count=wan.outages_24h) }} · {{ t("index.outage_last", count=wan.last_outage_minutes) }}
         {%- elif wan %}{{ t("net.no_outage") }}{% endif -%}
         {%- if public_ip %} · {{ t("net.ip", ip=public_ip.ip) }}{% endif -%}
       </span>

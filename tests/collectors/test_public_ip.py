@@ -1,5 +1,4 @@
 """IP publique : relevée une fois par heure, historisée seulement quand elle change."""
-import asyncio
 import sqlite3
 from pathlib import Path
 

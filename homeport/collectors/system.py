@@ -26,8 +26,8 @@ def hostname() -> str:
 
 
 def _unit(key: str) -> str:
-    from .. import i18n
     from .. import config as cfg
+    from .. import i18n
     return i18n.t(key, cfg.load_language())
 
 

@@ -105,7 +105,7 @@ async def _snapshot() -> dict:
         asyncio.gather(*(_probe_service(s) for s in services)),
     )
 
-    probe_by_id = {s.id: state for s, state in zip(services, probe_results)}
+    probe_by_id = {s.id: state for s, state in zip(services, probe_results, strict=True)}
 
     # Calculés une fois pour tout l'instantané : `_extra_info()` s'en sert pour quelques
     # tuiles seulement, mais lire les crontabs ou relire le résultat de fond une fois par

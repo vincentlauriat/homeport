@@ -8,7 +8,6 @@ import pytest
 
 from homeport.collectors import wan
 
-
 # --- Mesure ------------------------------------------------------------------------------
 
 def test_measure_en_ligne(monkeypatch):
