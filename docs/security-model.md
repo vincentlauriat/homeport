@@ -28,8 +28,9 @@ compromised Homeport process can therefore restart your declared services, and n
 
 ## Outbound traffic
 
-One call: the public IP check (`api.ipify.org`, hourly). Set `intervals: {public_ip: 0}` to
-remove it. No telemetry, no update checks, no CDN — all assets are served locally.
+Two calls, both disablable: the public IP check (`api.ipify.org`, hourly —
+`intervals: {public_ip: 0}`) and the update check (GitHub Releases API, daily —
+`intervals: {update_check: 0}`). No telemetry, no CDN — all assets are served locally.
 
 ## Reporting
 

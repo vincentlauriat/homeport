@@ -6,10 +6,11 @@ import asyncio
 import sqlite3
 import time
 
-from . import background, i18n
+from . import __version__, background, i18n
 from . import config as cfg
 from .collectors import cron, devices, docker_api, nvme, oui, probes, system, wan
 from .collectors import systemd as systemd_collector
+from .collectors import updates as updates_collector
 from .links import build_url
 
 # États possibles, du meilleur au pire.
@@ -172,6 +173,9 @@ async def _snapshot() -> dict:
         "nvme": nvme.collect(cfg.NVME_PATH),
         "wan": _wan_summary(),
         "public_ip": (background.snapshot().get("public_ip") or {}).get("data"),
+        "update": updates_collector.update_summary(
+            __version__, (background.snapshot().get("update_check") or {}).get("data")
+        ),
     }
 
 

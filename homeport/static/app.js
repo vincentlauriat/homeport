@@ -283,6 +283,24 @@ async function refreshHistory() {
   }
 }
 
+
+function applyUpdateBadge(update) {
+  let chip = document.getElementById('update-chip');
+  if (!update || !update.available) { if (chip) chip.hidden = true; return; }
+  if (!chip) {
+    chip = document.createElement('a');
+    chip.id = 'update-chip';
+    chip.className = 'update-chip';
+    chip.href = 'https://github.com/vincentlauriat/homeport/releases';
+    chip.target = '_blank';
+    chip.rel = 'noopener';
+    const footer = document.querySelector('footer');
+    if (footer) footer.appendChild(chip); else return;
+  }
+  chip.hidden = false;
+  chip.textContent = T('update.available', { latest: update.latest });
+}
+
 async function refresh() {
   const stamp = document.getElementById('refreshed');
   try {
@@ -297,6 +315,7 @@ async function refresh() {
     window.__publicIp = data.public_ip ? data.public_ip.ip : null;
     applyWan(data.wan);
     applyNetwork(data.network);
+    applyUpdateBadge(data.update);
     const time = new Date().toLocaleTimeString('fr-FR');
     if (stamp) stamp.textContent = T('common.refreshed_at', { time });
   } catch (error) {

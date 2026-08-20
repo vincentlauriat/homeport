@@ -105,6 +105,7 @@ async def lifespan(_: FastAPI):
             "service_states": (_record_service_states, intervals["service_states"]),
             "availability": (_availability_stats, intervals["availability"]),
             "public_ip": (_track_public_ip, intervals["public_ip"]),
+            "update_check": (updates.latest_release, intervals["update_check"]),
         }
     )
     # L'état publié sur MQTT est celui du tableau de bord, lu par le même chemin (donc via le

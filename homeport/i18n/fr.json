@@ -236,5 +236,6 @@
   "svc.open": "Ouvrir ↗",
   "reseau.search_placeholder": "nom, IP, MAC, fabricant…",
   "hist.legend": "Les bandes rouges marquent les coupures Internet constatées (sonde 60 s). Un point de mesure toutes les 5 minutes, rétention 7 jours.",
-  "hist.ssd_temp": "Température SSD"
+  "hist.ssd_temp": "Température SSD",
+  "update.available": "v{latest} disponible ↗"
 }

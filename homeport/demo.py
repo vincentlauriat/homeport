@@ -145,6 +145,7 @@ async def build(hostname: str) -> dict:
         "wan": {"online": True, "latency_ms": round(_wave(now, 120, 18.0, 32.0), 1),
                 "outages_24h": 1, "last_outage_ts": now - 6 * 3600, "last_outage_minutes": 4},
         "public_ip": {"ip": "203.0.113.42", "changed_ts": now - 12 * 86400},
+        "update": {"current": "0.1.0", "latest": None, "available": False},
     }
 
 

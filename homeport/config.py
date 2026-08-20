@@ -125,6 +125,7 @@ DEFAULT_INTERVALS = {
     "service_states": 60,
     "availability": 300,
     "public_ip": 3600,
+    "update_check": 86400,
 }
 DEFAULT_HISTORY_RETENTION_DAYS = 7
 DEFAULT_LANGUAGE = "en"

@@ -53,13 +53,32 @@ window.RaspViews = (() => {
     return Math.round(Math.min(...dated.map((b) => b.age_days)) * 24);
   };
 
+  const updateBadge = (update) => {
+    let chip = document.getElementById('update-chip');
+    if (!update || !update.available) { if (chip) chip.hidden = true; return; }
+    if (!chip) {
+      chip = document.createElement('a');
+      chip.id = 'update-chip';
+      chip.className = 'update-chip';
+      chip.href = 'https://github.com/vincentlauriat/homeport/releases';
+      chip.target = '_blank';
+      chip.rel = 'noopener';
+      const footer = document.querySelector('footer');
+      if (footer) footer.appendChild(chip); else return;
+    }
+    chip.hidden = false;
+    chip.textContent = T('update.available', { latest: update.latest });
+  };
+
   const startPolling = (render, renderHistory) => {
     const stamp = document.getElementById('refreshed');
     const refresh = async () => {
       try {
         const response = await fetch('/api/status', { cache: 'no-store' });
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        render(await response.json());
+        const data = await response.json();
+        render(data);
+        updateBadge(data.update);
         if (stamp) stamp.textContent = T('common.refreshed_at', { time: new Date().toLocaleTimeString() });
       } catch (error) {
         if (stamp) stamp.textContent = T('common.offline_kept', { error: error.message });

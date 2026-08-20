@@ -236,5 +236,6 @@
   "svc.open": "Open ↗",
   "reseau.search_placeholder": "name, IP, MAC, vendor…",
   "hist.legend": "Red bands mark observed Internet outages (60 s probe). One sample every 5 minutes, 7-day retention.",
-  "hist.ssd_temp": "SSD temperature"
+  "hist.ssd_temp": "SSD temperature",
+  "update.available": "v{latest} available ↗"
 }

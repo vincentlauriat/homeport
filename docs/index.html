@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Homeport</title>
+  <meta name="description" content="A home server dashboard that reads what your machine already knows — and presents it well.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚓</text></svg>">
+  <style>
+    :root {
+      --bg: #131518; --surface: #1c1f23; --border: #2b2f34; --text: #e8e6e1;
+      --muted: #94948d; --accent: #e2705a; --up: #4caf6a; --warn: #d9a441;
+    }
+    * { box-sizing: border-box; margin: 0; }
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+      line-height: 1.6;
+    }
+    a { color: var(--accent); }
+    .wrap { max-width: 62rem; margin: 0 auto; padding: 0 1.4rem; }
+
+    .hero { padding: 5rem 0 3.5rem; text-align: center; }
+    .hero .anchor { font-size: 3.4rem; line-height: 1; display: block; }
+    .hero h1 { font-size: clamp(2.4rem, 6vw, 3.4rem); letter-spacing: -.02em; margin-top: .6rem; }
+    .hero p.tag { color: var(--muted); font-size: 1.15rem; max-width: 36rem; margin: .8rem auto 0; text-wrap: balance; }
+    .hero .cta { margin-top: 2rem; display: flex; gap: .8rem; justify-content: center; flex-wrap: wrap; }
+    .btn {
+      display: inline-block; padding: .65rem 1.4rem; border-radius: 10px; text-decoration: none;
+      font-weight: 600; border: 1px solid var(--border);
+    }
+    .btn-primary { background: var(--accent); color: #fff; border-color: transparent; }
+    .btn-primary:hover { filter: brightness(1.08); }
+    .btn-ghost { color: var(--text); }
+    .btn-ghost:hover { border-color: var(--accent); }
+    .install {
+      margin: 2.2rem auto 0; max-width: 34rem; background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 1rem 1.2rem; text-align: left; overflow-x: auto;
+    }
+    .install code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: .85rem; color: var(--text); white-space: pre; display: block; }
+    .install code .c { color: var(--muted); }
+
+    .shots { padding: 2rem 0 1rem; }
+    .shots .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr)); gap: 1rem; }
+    .shot { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+    .shot img { display: block; width: 100%; height: auto; }
+    .shot figcaption { padding: .7rem 1rem; font-size: .85rem; color: var(--muted); }
+    .shot figcaption b { color: var(--text); }
+
+    h2.section {
+      margin: 3.5rem 0 1.2rem; font-size: .8rem; text-transform: uppercase;
+      letter-spacing: .14em; color: var(--muted);
+    }
+    .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 1rem; }
+    .feat { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 1.1rem 1.3rem; }
+    .feat h3 { font-size: 1rem; }
+    .feat p { color: var(--muted); font-size: .9rem; margin-top: .3rem; }
+    .feat .em { color: var(--up); }
+
+    .quiet { color: var(--muted); max-width: 46rem; }
+    .quiet b { color: var(--text); }
+
+    footer { margin-top: 4rem; padding: 1.6rem 0 2.4rem; border-top: 1px solid var(--border); color: var(--muted); font-size: .85rem; }
+    footer .wrap { display: flex; gap: 1.4rem; flex-wrap: wrap; }
+    footer .right { margin-left: auto; }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .hero > * { animation: rise .5s ease-out both; }
+      .hero h1 { animation-delay: .05s; } .hero .tag { animation-delay: .1s; }
+      .hero .cta { animation-delay: .15s; } .hero .install { animation-delay: .2s; }
+      @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; } }
+    }
+  </style>
+</head>
+<body>
+  <section class="hero wrap">
+    <span class="anchor">⚓</span>
+    <h1>Homeport</h1>
+    <p class="tag">A home server dashboard that reads what your machine already knows — and presents it well.</p>
+    <div class="cta">
+      <a class="btn btn-primary" href="https://github.com/vincentlauriat/homeport">View on GitHub</a>
+      <a class="btn btn-ghost" href="https://github.com/vincentlauriat/homeport#try-it-in-30-seconds-demo-mode">Try the demo</a>
+    </div>
+    <div class="install">
+      <code><span class="c"># Debian / Ubuntu / Raspberry Pi OS</span>
+git clone https://github.com/vincentlauriat/homeport
+cd homeport &amp;&amp; sudo ./deploy/install.sh</code>
+    </div>
+  </section>
+
+  <section class="shots wrap">
+    <div class="grid">
+      <figure class="shot"><img src="screenshots/classic.png" alt="Classic view" loading="lazy">
+        <figcaption><b>Classic</b> — server-rendered cards with drill-down details, logs and restart buttons</figcaption></figure>
+      <figure class="shot"><img src="screenshots/control.png" alt="Control view" loading="lazy">
+        <figcaption><b>Control</b> — dense command center: pills, machine bars, service table</figcaption></figure>
+      <figure class="shot"><img src="screenshots/journal.png" alt="Journal view" loading="lazy">
+        <figcaption><b>Journal</b> — a verdict, a narrative, and only what needs attention</figcaption></figure>
+      <figure class="shot"><img src="screenshots/wall.png" alt="Wall view" loading="lazy">
+        <figcaption><b>Wall</b> — giant numbers readable from across the room, for a wall tablet</figcaption></figure>
+    </div>
+  </section>
+
+  <div class="wrap">
+    <h2 class="section">What it watches</h2>
+    <div class="features">
+      <div class="feat"><h3>Services, honestly</h3>
+        <p>Each service combines Docker state, systemd state and a live probe. When they disagree — a container that runs but no longer answers — it shows as <span class="em">degraded</span>, exactly what <code>docker ps</code> hides.</p></div>
+      <div class="feat"><h3>The machine</h3>
+        <p>CPU, memory, temperatures, SSD wear, power incidents, journal errors, pending updates, backup freshness — with 7 days of history and Internet outages overlaid.</p></div>
+      <div class="feat"><h3>The network around it</h3>
+        <p>LAN inventory with real names (yours → mDNS → vendor), new-device detection, Tailscale peers, latency and outage tracking, Wake-on-LAN.</p></div>
+      <div class="feat"><h3>Nothing to babysit</h3>
+        <p>One Python service, one SQLite file, one YAML config re-read on every request. No agents, no external database, no JavaScript framework. English and French.</p></div>
+    </div>
+
+    <h2 class="section">Designed for a home, secured like one</h2>
+    <p class="quiet">The LAN is strictly <b>read-only</b>. Actions require a <b>Tailscale-verified identity</b>, and
+    restarts go through exact-command sudo rules — never through the Docker socket, which Homeport only reaches
+    read-only via a proxy. Outbound traffic: two optional calls (public IP, update check), both disablable.
+    No telemetry. <a href="https://github.com/vincentlauriat/homeport/blob/main/docs/security-model.md">Read the security model</a>.</p>
+  </div>
+
+  <footer>
+    <div class="wrap">
+      <span>⚓ Homeport · MIT license</span>
+      <a href="https://github.com/vincentlauriat/homeport/blob/main/docs/getting-started.md">Getting started</a>
+      <a href="https://github.com/vincentlauriat/homeport/blob/main/docs/configuration.md">Configuration</a>
+      <span class="right">Made for the home rack under the stairs.</span>
+    </div>
+  </footer>
+</body>
+</html>

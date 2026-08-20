@@ -11,6 +11,7 @@ issu de listes vieilles de trois semaines est un chiffre qui ment.
 from __future__ import annotations
 
 import asyncio
+import json
 import time
 from pathlib import Path
 
@@ -181,3 +182,41 @@ async def docker_images() -> dict:
 
 async def _noop() -> None:
     return None
+
+
+# --- Nouvelle version de Homeport (GitHub Releases) -------------------------------------
+# Le « système de mise à jour » côté dashboard : un contrôle quotidien opt-out
+# (`intervals: {update_check: 0}` le coupe), qui compare la version locale au dernier tag
+# publié. La mise à jour elle-même reste un geste volontaire : `sudo ./deploy/update.sh`.
+
+RELEASES_URL = "https://api.github.com/repos/vincentlauriat/homeport/releases/latest"
+
+
+def parse_latest_release(payload: str) -> str | None:
+    """`tag_name` du JSON de l'API GitHub, sans le préfixe `v`. None si illisible."""
+    try:
+        tag = json.loads(payload).get("tag_name") or ""
+    except (json.JSONDecodeError, AttributeError):
+        return None
+    return tag.lstrip("v") or None
+
+
+def update_summary(current: str, latest: str | None) -> dict:
+    return {
+        "current": current,
+        "latest": latest,
+        "available": latest is not None and latest != current,
+    }
+
+
+async def latest_release() -> str | None:
+    """Interroge l'API GitHub — seul autre appel sortant de Homeport avec l'IP publique,
+    tous deux désactivables. Échec silencieux : pas de réseau = pas de badge."""
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            response = await client.get(RELEASES_URL, headers={"Accept": "application/vnd.github+json"})
+        if response.status_code != 200:
+            return None
+        return parse_latest_release(response.text)
+    except httpx.HTTPError:
+        return None

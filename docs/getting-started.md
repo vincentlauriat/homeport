@@ -34,6 +34,19 @@ the page, done. Full reference: [configuration.md](configuration.md).
 | Home Assistant | Enable the `mqtt:` section; credentials in `/etc/homeport/mqtt.env` (`HOMEPORT_MQTT_USERNAME=`, `HOMEPORT_MQTT_PASSWORD=`, root-only). Entities appear via MQTT discovery |
 | French UI | `language: fr` at the top of the config |
 
+## Update
+
+The dashboard checks GitHub Releases once a day and shows a small "vX.Y.Z available ↗"
+badge in the footer when a newer version exists (disable with
+`health: {intervals: {update_check: 0}}`). Updating is one command on the server:
+
+```bash
+sudo ./deploy/update.sh
+```
+
+It fast-forwards the clone, reinstalls dependencies, restarts the service — and never
+touches `/etc/homeport` or your data.
+
 ## Demo mode
 
 `HOMEPORT_DEMO=1` replaces every collector with realistic simulated data — no system access,
