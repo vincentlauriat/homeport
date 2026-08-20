@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.3.0
+
+- **Starlink module** — talks to the dish's gRPC API (192.168.100.1:9200) with a minimal
+  protobuf wire codec, no grpcio: simplified card on the dashboard (state, latency,
+  throughput, obstruction) and a full `/starlink` page with latency/throughput charts from
+  the dish's 15-minute ring buffers, the sky obstruction map, GPS, alignment and alerts.
+- New MQTT sensors when the module is enabled: `starlink_online`, `starlink_latency`,
+  `starlink_down`, `starlink_up`, `starlink_obstruction`.
+- Opt-in via a top-level `starlink:` section in `services.yaml` (`enabled: true`).
+- New dependency: `h2` (HTTP/2 cleartext, prior knowledge).
+
 ## v0.2.0
 
 - **Status files** — bridge any privileged job (offsite backup, replication…) to the

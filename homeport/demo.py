@@ -146,10 +146,46 @@ async def build(hostname: str) -> dict:
                 "outages_24h": 1, "last_outage_ts": now - 6 * 3600, "last_outage_minutes": 4},
         "public_ip": {"ip": "203.0.113.42", "changed_ts": now - 12 * 86400},
         "update": {"current": "0.1.0", "latest": None, "available": False},
+        "starlink": _starlink_status(now),
         "status_files": [
             {"id": "offsite", "name": "Offsite backup", "status": "ok", "message": "",
              "age_hours": 11.0, "stale": False, "level": "up"},
         ],
+    }
+
+
+def _starlink_status(now: float) -> dict:
+    return {
+        "online": True, "outage_cause": None, "latency_ms": round(_wave(now, 90, 18.0, 34.0), 1),
+        "drop_rate": 0.001, "downlink_bps": round(_wave(now, 45, 2e6, 8.5e7)),
+        "uplink_bps": round(_wave(now, 60, 1e6, 1.4e7)),
+        "hardware": "rev2_proto3", "software": "2026.08.12.demo", "country": "FR",
+        "uptime_s": 44000, "eth_speed_mbps": 1000, "snr_above_noise_floor": True,
+        "software_update_state": None,
+        "gps": {"valid": True, "sats": 21},
+        "obstruction": {"fraction": 0.0002, "currently": False, "time_obstructed": 0.0002,
+                        "valid_s": 43000, "avg_prolonged_s": 0.0},
+        "alignment": {"tilt_deg": 19.6, "azimuth_deg": 33.8, "elevation_deg": 66.8},
+        "alerts": [],
+    }
+
+
+def starlink() -> dict:
+    now = time.time()
+    n = 900
+    return {
+        "enabled": True,
+        "status": _starlink_status(now),
+        "history": {
+            "latency_ms": [round(_wave(_START + i, 90, 18.0, 34.0) + _wave(_START + i, 7, 0, 3), 1) for i in range(n)],
+            "downlink_bps": [round(_wave(_START + i, 45, 2e6, 8.5e7)) for i in range(n)],
+            "uplink_bps": [round(_wave(_START + i, 60, 1e6, 1.4e7)) for i in range(n)],
+            "drop_rate": [0.0] * n,
+        },
+        "map": {"rows": 41, "cols": 41,
+                 "snr": [(-1.0 if (r - 20) ** 2 + (c - 20) ** 2 > 400 else
+                          round(max(0.0, 1.0 - ((r - 20) ** 2 + (c - 20) ** 2) / 900), 3))
+                         for r in range(41) for c in range(41)]},
     }
 
 

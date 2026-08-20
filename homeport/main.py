@@ -34,6 +34,7 @@ from .collectors import (
     public_ip,
     service_history,
     sessions,
+    starlink,
     updates,
     wan,
     wol,
@@ -106,6 +107,11 @@ async def lifespan(_: FastAPI):
             "availability": (_availability_stats, intervals["availability"]),
             "public_ip": (_track_public_ip, intervals["public_ip"]),
             "update_check": (updates.latest_release, intervals["update_check"]),
+            **({
+                "starlink_status": (lambda: starlink.fetch_status(cfg.load_starlink()), intervals["starlink_status"]),
+                "starlink_history": (lambda: starlink.fetch_history(cfg.load_starlink()), intervals["starlink_history"]),
+                "starlink_map": (lambda: starlink.fetch_map(cfg.load_starlink()), intervals["starlink_map"]),
+            } if cfg.load_starlink()["enabled"] else {}),
         }
     )
     # L'état publié sur MQTT est celui du tableau de bord, lu par le même chemin (donc via le
@@ -481,6 +487,35 @@ async def vue_mur(request: Request) -> HTMLResponse:
     return templates.TemplateResponse(
         request=request, name="mur.html", context={"version": __version__, **_i18n_context()}
     )
+
+
+@app.get("/starlink", response_class=HTMLResponse)
+async def vue_starlink(request: Request) -> HTMLResponse:
+    """Page complète de l'antenne Starlink — même pattern coquille + JS que /reseau."""
+    return templates.TemplateResponse(
+        request=request, name="starlink.html", context={"version": __version__, **_i18n_context()}
+    )
+
+
+@app.get("/api/starlink")
+async def api_starlink() -> JSONResponse:
+    if DEMO:
+        return JSONResponse(demo.starlink())
+    settings = cfg.load_starlink()
+    if not settings["enabled"]:
+        return JSONResponse({"enabled": False, "status": None, "history": None, "map": None})
+    snapshot = background.snapshot()
+
+    def data(key):
+        entry = snapshot.get(key)
+        return entry.get("data") if entry else None
+
+    return JSONResponse({
+        "enabled": True,
+        "status": data("starlink_status"),
+        "history": data("starlink_history"),
+        "map": data("starlink_map"),
+    })
 
 
 @app.get("/api/outages")

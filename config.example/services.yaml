@@ -106,6 +106,15 @@ actions:
   admin: ~   # e.g. you@example.com (your Tailscale login)
 
 # ---------------------------------------------------------------------------
+# starlink: — Starlink dish monitoring (card on the dashboard + full /starlink page).
+# Requires a route to the dish's management address: 192.168.100.1 is only reachable
+# when the server sits behind the Starlink router (or has a static route to it).
+# Off by default — no traffic to the dish unless you opt in.
+# starlink:
+#   enabled: true
+#   address: 192.168.100.1:9200
+
+# ---------------------------------------------------------------------------
 # mqtt: — publish the dashboard state to Home Assistant via MQTT discovery.
 # Credentials come from HOMEPORT_MQTT_USERNAME / HOMEPORT_MQTT_PASSWORD
 # (systemd loads them from /etc/homeport/mqtt.env, root-only), never from this file.

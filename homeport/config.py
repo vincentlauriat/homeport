@@ -126,6 +126,9 @@ DEFAULT_INTERVALS = {
     "availability": 300,
     "public_ip": 3600,
     "update_check": 86400,
+    "starlink_status": 15,
+    "starlink_history": 60,
+    "starlink_map": 300,
 }
 DEFAULT_HISTORY_RETENTION_DAYS = 7
 DEFAULT_LANGUAGE = "en"
@@ -174,6 +177,16 @@ DEFAULT_MQTT = {
     "discovery_prefix": "homeassistant",
     "interval": 60,
 }
+
+
+DEFAULT_STARLINK = {"enabled": False, "address": "192.168.100.1:9200"}
+
+
+def load_starlink(path: Path | None = None) -> dict:
+    """Section `starlink:` — le module antenne est optionnel et coupé par défaut :
+    tout le monde n'a pas un dish, et l'API n'est joignable que depuis son LAN."""
+    source = path or CONFIG_PATH
+    return {**DEFAULT_STARLINK, **(_read_yaml(source).get("starlink") or {})}
 
 
 def load_mqtt(path: Path | None = None) -> dict:

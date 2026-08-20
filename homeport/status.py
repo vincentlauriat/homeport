@@ -173,6 +173,8 @@ async def _snapshot() -> dict:
         "nvme": nvme.collect(cfg.NVME_PATH),
         "wan": _wan_summary(),
         "public_ip": (background.snapshot().get("public_ip") or {}).get("data"),
+        "starlink": (background.snapshot().get("starlink_status") or {}).get("data")
+        if cfg.load_starlink()["enabled"] else None,
         "status_files": [statusfile.collect(e) for e in cfg.load_health()["status_files"]],
         "update": updates_collector.update_summary(
             __version__, (background.snapshot().get("update_check") or {}).get("data")
