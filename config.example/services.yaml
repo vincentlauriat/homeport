@@ -1,0 +1,113 @@
+# Homeport configuration — single file, four sections: groups, health, actions, mqtt.
+# Copy this directory to /etc/homeport (the installer does it) and edit to match your server.
+# The file is re-read on every request: edit, refresh the page, done. No restart needed.
+
+# ---------------------------------------------------------------------------
+# groups: — the services shown on the dashboard, in display order.
+#
+# Each service combines up to three sources of truth; when they disagree the
+# service shows as "degraded" (e.g. a container that runs but no longer answers):
+#   docker:   container name — state read from the Docker API (see docs/configuration.md
+#             for the read-only socket proxy setup)
+#   systemd:  unit name — state read from systemctl
+#   probe:    a liveness check Homeport performs itself:
+#             {type: tcp, port: N} or {type: http, port: N, path: /, scheme: http}
+# Optional fields:
+#   icon:        any emoji, shown next to the name
+#   description: one line under the name
+#   link:        {port: N, path: /, scheme: http} — makes the tile clickable, the
+#                hostname adapts to how YOU reached the dashboard (LAN or VPN)
+#   restartable: true — allow the authenticated admin to restart it from the
+#                dashboard (requires the sudoers rules, see docs/security-model.md)
+groups:
+  - name: Home automation
+    services:
+      - id: homeassistant
+        name: Home Assistant
+        icon: "🏠"
+        description: Automations, zones and devices
+        docker: homeassistant
+        probe: {type: http, port: 8123, path: /manifest.json}
+        link: {port: 8123}
+        restartable: true
+
+      - id: mosquitto
+        name: Mosquitto
+        icon: "📡"
+        description: MQTT broker
+        docker: mosquitto
+        probe: {type: tcp, port: 1883}
+
+  - name: Infrastructure
+    services:
+      - id: docker
+        name: Docker Engine
+        icon: "🐳"
+        description: Container runtime
+        systemd: docker.service
+
+      - id: ssh
+        name: SSH
+        icon: "🔑"
+        description: Remote access
+        systemd: ssh.service
+        probe: {type: tcp, port: 22}
+
+      - id: tailscale
+        name: Tailscale
+        icon: "🔐"
+        description: Private network (VPN)
+        systemd: tailscaled.service
+
+      - id: auto-updates
+        name: Automatic updates
+        icon: "🛡️"
+        description: unattended-upgrades — security patches applied nightly
+        systemd: apt-daily-upgrade.timer
+
+# ---------------------------------------------------------------------------
+# health: — machine health monitoring.
+health:
+  # Local backup directories to watch: the newest file matching `pattern` must be
+  # younger than `warn_after_days`, otherwise the dashboard raises an alert.
+  backups:
+    - id: config
+      name: Config backup
+      path: /var/backups/homeserver
+      pattern: "*.tar.gz"
+      warn_after_days: 2
+
+  # journal: errors counted over the last 24 h; `ignore` silences known-noisy units.
+  journal:
+    since: "24 hours ago"
+    ignore: []
+
+  # How often each background measurement runs, in seconds. 0 disables a job —
+  # e.g. `public_ip: 0` removes Homeport's only outbound call (api.ipify.org).
+  intervals:
+    network: 60
+    wan: 60
+    public_ip: 3600
+
+  history:
+    retention_days: 7
+
+# ---------------------------------------------------------------------------
+# actions: — who may restart services and send Wake-on-LAN from the dashboard.
+# The LAN is strictly read-only. Actions require BOTH: the request arrives over
+# Tailscale AND `tailscale whois` maps it to this identity. Leave empty (~) to
+# disable all actions — safe default.
+actions:
+  admin: ~   # e.g. you@example.com (your Tailscale login)
+
+# ---------------------------------------------------------------------------
+# mqtt: — publish the dashboard state to Home Assistant via MQTT discovery.
+# Credentials come from HOMEPORT_MQTT_USERNAME / HOMEPORT_MQTT_PASSWORD
+# (systemd loads them from /etc/homeport/mqtt.env, root-only), never from this file.
+mqtt:
+  enabled: false
+  host: 127.0.0.1
+  port: 1883
+  base_topic: homeport
+  discovery_prefix: homeassistant
+  interval: 60

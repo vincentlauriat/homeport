@@ -34,6 +34,15 @@ NVME_PATH = Path(os.environ.get("HOMEPORT_NVME_PATH", DATA_DIR / "nvme.json"))
 
 
 
+def _read_yaml(source: Path) -> dict:
+    """Fichier absent = config vide : Homeport démarre sain sans aucune configuration
+    (dashboard vide), plutôt que d'échouer avant même de pouvoir aider."""
+    try:
+        return yaml.safe_load(source.read_text(encoding="utf-8")) or {}
+    except FileNotFoundError:
+        return {}
+
+
 @dataclass(frozen=True)
 class Link:
     scheme: str = "http"
@@ -90,7 +99,7 @@ def load_groups(path: Path | None = None) -> list[Group]:
     """Lit le YAML et le convertit en objets. Relu à chaque appel : éditer le fichier
     et rafraîchir la page suffit, aucun redémarrage nécessaire."""
     source = path or CONFIG_PATH
-    data = yaml.safe_load(source.read_text(encoding="utf-8")) or {}
+    data = _read_yaml(source)
     return [
         Group(name=g["name"], services=[_service_from_dict(s) for s in g.get("services", [])])
         for g in data.get("groups", [])
@@ -124,7 +133,7 @@ def load_health(path: Path | None = None) -> dict:
     """Section `health:` du même fichier : sauvegardes surveillées, filtres du journal,
     cadence des mesures de fond."""
     source = path or CONFIG_PATH
-    data = yaml.safe_load(source.read_text(encoding="utf-8")) or {}
+    data = _read_yaml(source)
     health = data.get("health") or {}
     history = health.get("history") or {}
     return {
@@ -140,7 +149,7 @@ def load_actions(path: Path | None = None) -> dict:
     """Section `actions:` du même fichier — l'identité Tailscale admin autorisée à agir.
     `admin: None` désactive toutes les actions : sûr par défaut."""
     source = path or CONFIG_PATH
-    data = yaml.safe_load(source.read_text(encoding="utf-8")) or {}
+    data = _read_yaml(source)
     section = data.get("actions") or {}
     return {"admin": section.get("admin")}
 
@@ -163,5 +172,5 @@ def load_mqtt(path: Path | None = None) -> dict:
     `/etc/homeport/mqtt.env` (root, 600, hors dépôt).
     """
     source = path or CONFIG_PATH
-    data = yaml.safe_load(source.read_text(encoding="utf-8")) or {}
+    data = _read_yaml(source)
     return {**DEFAULT_MQTT, **(data.get("mqtt") or {})}
