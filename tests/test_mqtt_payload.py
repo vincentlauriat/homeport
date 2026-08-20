@@ -20,16 +20,14 @@ def test_payload_sans_inventaire():
 
 
 def test_payload_sauvegarde_hors_site():
-    snapshot = {"summary": {}, "system": {}, "health": {},
-                "offsite": {"age_hours": 6.5, "verified_ok": True, "snapshots": 12}}
+    snapshot = {"summary": {}, "system": {}, "health": {}}
     payload = mqtt.build_payload(snapshot)
-    assert payload["offsite"]["age_hours"] == 6.5
-    assert payload["offsite"]["verified_ok"] is True
+    assert "offsite" not in payload
 
 
 def test_payload_sans_hors_site():
     payload = mqtt.build_payload({"summary": {}, "system": {}, "health": {}})
-    assert payload["offsite"]["age_hours"] is None
+    assert "offsite" not in payload
 
 
 def test_payload_usure_ssd_et_ip_publique():

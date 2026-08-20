@@ -51,14 +51,6 @@ function renderAttention(data) {
   for (const alert of ((data.health || {}).alerts || [])) {
     cards.push({ level: alert.level, title: alert.text });
   }
-  const off = data.offsite;
-  if (off && off.status !== 'ok') {
-    cards.push({
-      level: off.status === 'error' ? 'down' : 'warn',
-      title: off.status === 'error' ? 'Sauvegarde hors-site en erreur' : 'Sauvegarde hors-site en attente',
-      note: off.message || '',
-    });
-  }
 
   container.hidden = cards.length === 0;
   container.replaceChildren(...cards.map((card) => {

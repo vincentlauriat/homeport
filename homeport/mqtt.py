@@ -54,7 +54,6 @@ SENSORS: list[tuple[str, str, str, str | None, str | None, str | None, str | Non
     ("docker_outdated", "Images Docker obsolètes", "{{ value_json.updates.docker_outdated }}", None, None, "measurement", "mdi:docker"),
     ("journal_errors", "Erreurs du journal (24 h)", "{{ value_json.journal.errors }}", None, None, "measurement", "mdi:text-box-search"),
     ("new_devices", "Nouveaux appareils réseau", "{{ value_json.network.new_devices }}", None, None, "measurement", "mdi:lan-pending"),
-    ("offsite_age", "Âge de la sauvegarde hors-site", "{{ value_json.offsite.age_hours }}", "h", "duration", "measurement", "mdi:cloud-upload"),
     ("wan_latency", "Latence Internet", "{{ value_json.wan.latency_ms }}", "ms", None, "measurement", "mdi:speedometer"),
     ("wan_outages", "Coupures Internet (24 h)", "{{ value_json.wan.outages_24h }}", None, None, "measurement", "mdi:wan"),
     ("ssd_wear", "Usure SSD", "{{ value_json.system.ssd_wear_pct }}", "%", None, "measurement", "mdi:harddisk"),
@@ -212,11 +211,6 @@ def build_payload(snapshot: dict) -> dict:
             "online": (snapshot.get("wan") or {}).get("online"),
             "latency_ms": (snapshot.get("wan") or {}).get("latency_ms"),
             "outages_24h": (snapshot.get("wan") or {}).get("outages_24h"),
-        },
-        "offsite": {
-            "age_hours": (snapshot.get("offsite") or {}).get("age_hours"),
-            "verified_ok": (snapshot.get("offsite") or {}).get("verified_ok"),
-            "snapshots": (snapshot.get("offsite") or {}).get("snapshots"),
         },
         # L'état est retenu par le courtier : sans horodatage, rien ne distingue une valeur
         # fraîche d'un dernier message vieux de trois jours laissé par un service arrêté.

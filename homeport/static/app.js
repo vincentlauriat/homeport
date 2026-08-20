@@ -177,28 +177,6 @@ function applyNvme(nvme) {
   if (parts.length) setText('m-wear-note', parts.join(' · '));
 }
 
-function applyOffsite(offsite) {
-  // Même contrat que la carte NVMe : le refresh met à jour les valeurs, le rendu initial
-  // (présence de la carte, classe d'état) vient du serveur.
-  const card = document.querySelector('[data-health="offsite"]');
-  if (!card || !offsite) return;
-  card.hidden = false;
-  card.classList.remove('state-up', 'state-warn', 'state-down');
-  if (offsite.status === 'ok' && offsite.age_hours !== null && offsite.age_hours < 48) {
-    card.classList.add('state-up');
-  } else if (offsite.status === 'error') {
-    card.classList.add('state-down');
-  } else {
-    card.classList.add('state-warn');
-  }
-  setText('offsite-value', offsite.age_hours !== null && offsite.age_hours !== undefined
-    ? `il y a ${offsite.age_hours} h` : 'en attente');
-  const note = offsite.snapshots
-    ? `${offsite.snapshots} snapshot(s) sur offsite${offsite.verified_ok ? ' · restauration vérifiée' : ''}`
-    : (offsite.message || '');
-  setText('offsite-note', note);
-}
-
 function applyWan(wan) {
   const card = document.querySelector('[data-network="wan"]');
   if (!card || !wan) return;
@@ -316,7 +294,6 @@ async function refresh() {
     applySummary(data.summary);
     applyHealth({ ...data.health, _undervoltage: data.system.undervoltage });
     applyNvme(data.nvme);
-    applyOffsite(data.offsite);
     window.__publicIp = data.public_ip ? data.public_ip.ip : null;
     applyWan(data.wan);
     applyNetwork(data.network);

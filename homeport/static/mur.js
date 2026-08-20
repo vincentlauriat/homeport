@@ -59,13 +59,11 @@ function render(data) {
   }
 
   const age = backupAge(data.health);
-  const off = data.offsite;
-  const offNote = off ? (off.status === 'ok' ? 'hors-site ✓' : off.status === 'error' ? 'hors-site en erreur' : 'hors-site en attente') : '';
   const backups = ((data.health || {}).backups || []);
   const marks = backups.map((b) => `${b.name} ${b.state === 'ok' ? '✓' : '✗'}`).join(' · ');
   setCell('w-backup', age === null ? '—' : `${age}`, age === null ? '' : 'h',
-    [marks, offNote].filter(Boolean).join(' · '),
-    age !== null && age < 30 && (!off || off.status === 'ok') ? 'ok' : 'warn');
+    marks,
+    age !== null && age < 30 ? 'ok' : 'warn');
 
   const apt = (data.health || {}).apt;
   if (apt) {

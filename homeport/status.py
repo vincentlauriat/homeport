@@ -8,7 +8,7 @@ import time
 
 from . import background
 from . import config as cfg
-from .collectors import cron, devices, docker_api, nvme, offsite, oui, probes, system, wan
+from .collectors import cron, devices, docker_api, nvme, oui, probes, system, wan
 from .collectors import systemd as systemd_collector
 from .links import build_url
 
@@ -168,7 +168,6 @@ async def _snapshot() -> dict:
         "network": network_data,
         # Lecture d'un simple fichier JSON (écrit par le timer root), rapide : hors boucle de fond.
         "nvme": nvme.collect(cfg.NVME_PATH),
-        "offsite": offsite.collect(cfg.OFFSITE_PATH),
         "wan": _wan_summary(),
         "public_ip": (background.snapshot().get("public_ip") or {}).get("data"),
     }

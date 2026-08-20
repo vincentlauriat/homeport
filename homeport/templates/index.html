@@ -112,20 +112,6 @@
     </div>
     {% endfor %}
 
-    <div class="health-card {{ 'state-up' if offsite and offsite.status == 'ok' and offsite.age_hours is not none and offsite.age_hours < 48 else ('state-down' if offsite and offsite.status == 'error' else ('state-warn' if offsite else '')) }}"
-         data-health="offsite" {{ 'hidden' if not offsite }}>
-      <span class="health-label">Sauvegarde — hors-site</span>
-      <span class="health-value" id="offsite-value">
-        {%- if not offsite %}—
-        {%- elif offsite.age_hours is not none %}il y a {{ offsite.age_hours }} h
-        {%- else %}en attente{% endif -%}
-      </span>
-      <span class="health-note" id="offsite-note">
-        {%- if offsite and offsite.snapshots %}{{ offsite.snapshots }} snapshot(s) sur offsite
-          {%- if offsite.verified_ok %} · restauration vérifiée{% endif %}
-        {%- elif offsite %}{{ offsite.message }}{% endif -%}
-      </span>
-    </div>
 
     <div class="health-card {{ 'state-warn' if health.apt and health.apt.security else ('state-up' if health.apt and not health.apt.total else '') }}"
          data-health="apt">

@@ -32,8 +32,6 @@ DB_PATH = Path(os.environ.get("HOMEPORT_DB_PATH", DATA_DIR / "history.db"))
 # Écrit par le timer root `homeport-nvme.timer` (voir collectors/nvme.py), lu seulement.
 NVME_PATH = Path(os.environ.get("HOMEPORT_NVME_PATH", DATA_DIR / "nvme.json"))
 
-# Écrit par un timer root optionnel — état de la sauvegarde hors machine, même motif.
-OFFSITE_PATH = Path(os.environ.get("HOMEPORT_OFFSITE_PATH", DATA_DIR / "restic.json"))
 
 
 @dataclass(frozen=True)

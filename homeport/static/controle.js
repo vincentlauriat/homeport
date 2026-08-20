@@ -82,14 +82,6 @@ function renderHealth(data) {
       level: backup.state === 'never' ? 'down' : backup.state === 'warn' ? 'warn' : 'ok',
     });
   }
-  const off = data.offsite;
-  if (off) {
-    rows.push({
-      k: 'Hors-site (offsite)',
-      v: off.status === 'ok' && off.age_hours !== null ? `il y a ${off.age_hours} h` : off.status === 'error' ? 'erreur' : 'en attente',
-      level: off.status === 'ok' && off.age_hours !== null && off.age_hours < 48 ? 'ok' : off.status === 'error' ? 'down' : 'warn',
-    });
-  }
   if (h.apt) {
     rows.push({
       k: 'Paquets APT',
