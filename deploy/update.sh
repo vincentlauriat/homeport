@@ -18,4 +18,8 @@ git pull --ff-only origin main
 echo "==> Re-running installer"
 "$REPO_DIR/deploy/install.sh"
 
+echo "==> Restarting service"
+systemctl restart homeport
+sleep 2
+
 echo "==> Done — $(curl -fsS http://localhost/healthz 2>/dev/null || echo 'check the service: systemctl status homeport')"
