@@ -130,6 +130,8 @@
   "wall.power": "power {state}",
   "wall.power_undervoltage": "power: under-voltage",
   "wall.public_ip": "public IP {ip}",
+  "wall.starlink": "Starlink {latency} ms · ↓ {down} Mb/s",
+  "starlink.detail_link": "details ↗",
   "wall.ssd": "SSD {temp} °C",
   "wall.ssd_wear": "wear {pct} %",
   "wall.peak": "peak {pct} %",

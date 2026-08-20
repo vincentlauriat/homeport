@@ -96,6 +96,16 @@ function renderQuiet(data) {
       level: wan.online ? 'ok' : '',
     });
   }
+  const starlink = data.starlink;
+  if (starlink) {
+    rows.push({
+      k: 'Starlink',
+      v: starlink.online
+        ? `${starlink.latency_ms} ms · ↓ ${Math.round(starlink.downlink_bps / 1e6)} Mb/s`
+        : T('starlink.offline'),
+      level: starlink.online ? 'ok' : '',
+    });
+  }
   const peers = ((data.network || {}).tailscale_peers || []);
   const online = peers.filter((p) => p.online).length;
   rows.push({ k: T('net.tailscale'), v: T('net.peers_online', { count: online }), level: online ? 'ok' : '' });

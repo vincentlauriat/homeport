@@ -90,6 +90,11 @@ function render(data) {
   setText('wf-power', sys.undervoltage ? T('wall.power_undervoltage')
     : power && power.available ? T('wall.power', { state: T(power.healthy ? 'health.power_ok' : 'health.power_incident') }) : '');
   setText('wf-ip', data.public_ip ? T('wall.public_ip', { ip: data.public_ip.ip }) : '');
+  const starlink = data.starlink;
+  setText('wf-starlink', !starlink ? ''
+    : starlink.online
+      ? T('wall.starlink', { latency: starlink.latency_ms, down: Math.round(starlink.downlink_bps / 1e6) })
+      : `Starlink — ${T('starlink.offline')}`);
 
   // Le pied CPU de la cellule sparkline vient du statut, la courbe de /api/history.
   const cpuFoot = document.querySelector('#w-cpu .foot');

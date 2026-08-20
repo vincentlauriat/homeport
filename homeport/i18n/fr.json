@@ -130,6 +130,8 @@
   "wall.power": "alimentation {state}",
   "wall.power_undervoltage": "alimentation : sous-tension",
   "wall.public_ip": "IP publique {ip}",
+  "wall.starlink": "Starlink {latency} ms · ↓ {down} Mb/s",
+  "starlink.detail_link": "détail ↗",
   "wall.ssd": "SSD {temp} °C",
   "wall.ssd_wear": "usure {pct} %",
   "wall.peak": "pic {pct} %",
