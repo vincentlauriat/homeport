@@ -77,6 +77,11 @@ health:
       pattern: "*.tar.gz"
       warn_after_days: 2
 
+  # Status files: any privileged job can report to the dashboard by writing a small JSON
+  # (see docs/configuration.md#status-files). Uncomment to declare one:
+  # status_files:
+  #   - {id: offsite, name: Offsite backup, path: /var/lib/homeport/offsite.json, warn_after_hours: 48}
+
   # journal: errors counted over the last 24 h; `ignore` silences known-noisy units.
   journal:
     since: "24 hours ago"

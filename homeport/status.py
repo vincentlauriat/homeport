@@ -8,7 +8,7 @@ import time
 
 from . import __version__, background, i18n
 from . import config as cfg
-from .collectors import cron, devices, docker_api, nvme, oui, probes, system, wan
+from .collectors import cron, devices, docker_api, nvme, oui, probes, statusfile, system, wan
 from .collectors import systemd as systemd_collector
 from .collectors import updates as updates_collector
 from .links import build_url
@@ -173,6 +173,7 @@ async def _snapshot() -> dict:
         "nvme": nvme.collect(cfg.NVME_PATH),
         "wan": _wan_summary(),
         "public_ip": (background.snapshot().get("public_ip") or {}).get("data"),
+        "status_files": [statusfile.collect(e) for e in cfg.load_health()["status_files"]],
         "update": updates_collector.update_summary(
             __version__, (background.snapshot().get("update_check") or {}).get("data")
         ),
@@ -216,6 +217,11 @@ def _health() -> dict:
             alerts.append({"level": "down", "text": i18n.t("alert.throttle_now", lang, label=label)})
         for label in throttling["since_boot"]:
             alerts.append({"level": "warn", "text": i18n.t("alert.throttle_boot", lang, label=label)})
+    for sf in [statusfile.collect(e) for e in cfg.load_health()["status_files"]]:
+        if sf["level"] != "up":
+            text = sf["message"] or (i18n.t("statusfile.stale", lang) if sf["stale"] else sf["status"])
+            alerts.append({"level": sf["level"] if sf["level"] == "down" else "warn",
+                           "text": f"{sf['name']} : {text}" if lang == "fr" else f"{sf['name']}: {text}"})
     if images and images.get("outdated"):
         names = ", ".join(i["image"] for i in images["images"] if i["state"] == "outdated")
         alerts.append({"level": "warn", "text": i18n.t("alert.images", lang, names=names)})

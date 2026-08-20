@@ -149,6 +149,7 @@ def load_health(path: Path | None = None) -> dict:
     return {
         "backups": health.get("backups", []),
         "disks": health.get("disks") or ["/"],
+        "status_files": health.get("status_files") or [],
         "journal": health.get("journal", {}) or {},
         "updates": health.get("updates", {}) or {},
         "intervals": {**DEFAULT_INTERVALS, **(health.get("intervals") or {})},

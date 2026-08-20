@@ -43,3 +43,22 @@ def test_payload_sans_nvme_ni_ip():
     payload = mqtt.build_payload({"summary": {}, "system": {}, "health": {}})
     assert payload["system"]["ssd_wear_pct"] is None
     assert payload["public_ip"] is None
+
+
+def test_payload_et_decouverte_des_fichiers_detat():
+    from homeport import mqtt
+    snapshot = {
+        "summary": {"up": 1, "warn": 0, "down": 0},
+        "health": {"alerts": [], "backups": [], "apt": None, "images": None, "journal": None},
+        "system": {"hostname": "h", "uptime": {"seconds": 1}, "load": {"percent": 1.0},
+                    "memory": {"percent": 1.0}, "temperature_c": 40.0,
+                    "storage_temperature_c": None, "undervoltage": False, "disks": []},
+        "wan": None, "network": {"new_devices": {"count": 0, "names": []}},
+        "nvme": None, "public_ip": None,
+        "status_files": [{"id": "offsite", "name": "Hors-site", "status": "ok",
+                          "message": "", "age_hours": 11.0, "stale": False, "level": "up"}],
+    }
+    payload = mqtt.build_payload(snapshot)
+    assert payload["status_files"]["offsite"]["age_hours"] == 11.0
+    messages = mqtt.build_discovery(payload, "h", base="raspweb", prefix="homeassistant")
+    assert any(c.get("unique_id") == "raspweb_offsite_age" for _, c in messages)

@@ -284,6 +284,17 @@ async function refreshHistory() {
 }
 
 
+function applyStatusFiles(files) {
+  for (const sf of files || []) {
+    const card = document.querySelector(`[data-health="sf-${sf.id}"]`);
+    if (!card) continue;
+    card.className = `health-card state-${sf.level === 'up' ? 'up' : sf.level === 'down' ? 'down' : 'warn'}`;
+    card.querySelector('.health-value').textContent = sf.age_hours !== null && sf.age_hours !== undefined
+      ? T('common.ago_hours', { count: sf.age_hours }) : T('common.pending');
+    card.querySelector('.health-note').textContent = sf.message || '';
+  }
+}
+
 function applyUpdateBadge(update) {
   let chip = document.getElementById('update-chip');
   if (!update || !update.available) { if (chip) chip.hidden = true; return; }
@@ -315,6 +326,7 @@ async function refresh() {
     window.__publicIp = data.public_ip ? data.public_ip.ip : null;
     applyWan(data.wan);
     applyNetwork(data.network);
+    applyStatusFiles(data.status_files);
     applyUpdateBadge(data.update);
     const time = new Date().toLocaleTimeString('fr-FR');
     if (stamp) stamp.textContent = T('common.refreshed_at', { time });

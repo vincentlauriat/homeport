@@ -111,6 +111,17 @@
     </div>
     {% endfor %}
 
+    {% for sf in status_files %}
+    <div class="health-card state-{{ 'up' if sf.level == 'up' else ('down' if sf.level == 'down' else 'warn') }}"
+         data-health="sf-{{ sf.id }}">
+      <span class="health-label">{{ sf.name }}</span>
+      <span class="health-value">
+        {%- if sf.age_hours is not none %}{{ t("common.ago_hours", count=sf.age_hours) }}
+        {%- else %}{{ t("common.pending") }}{% endif -%}
+      </span>
+      <span class="health-note">{{ sf.message }}</span>
+    </div>
+    {% endfor %}
 
     <div class="health-card {{ 'state-warn' if health.apt and health.apt.security else ('state-up' if health.apt and not health.apt.total else '') }}"
          data-health="apt">
