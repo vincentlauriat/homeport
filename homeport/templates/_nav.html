@@ -1,0 +1,11 @@
+{# Barre de navigation commune : chaque template pose `nav_current` avant l'include. #}
+{# L'entrée Starlink ne s'affiche que si le module est actif (starlink_enabled). #}
+<nav class="view-switch">
+  <a href="/" {{ 'class=current' if nav_current == 'classic' }}>{{ t("nav.classic") }}</a>
+  <a href="/controle" {{ 'class=current' if nav_current == 'control' }}>{{ t("nav.control") }}</a>
+  <a href="/journal" {{ 'class=current' if nav_current == 'journal' }}>{{ t("nav.journal") }}</a>
+  <a href="/mur" {{ 'class=current' if nav_current == 'wall' }}>{{ t("nav.wall") }}</a>
+  <a href="/reseau" {{ 'class=current' if nav_current == 'network' }}>{{ t("nav.network") }}</a>
+  <a href="/historique" {{ 'class=current' if nav_current == 'history' }}>{{ t("nav.history") }}</a>
+  {% if starlink_enabled %}<a href="/starlink" {{ 'class=current' if nav_current == 'starlink' }}>Starlink</a>{% endif %}
+</nav>

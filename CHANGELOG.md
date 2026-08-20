@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.3.1
+
+- **Global navigation** — every page now carries the full view switcher (Classic, Control,
+  Journal, Wall, Network, History, and Starlink when the module is enabled): the network,
+  history and Starlink pages were only reachable through small in-card links, and had no
+  obvious way back home.
+
 ## v0.3.0
 
 - **Starlink module** — talks to the dish's gRPC API (192.168.100.1:9200) with a minimal

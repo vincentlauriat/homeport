@@ -27,12 +27,7 @@
       <div class="cpill" id="p-alerts"><b>—</b><span>{{ t("pill.alerts") }}</span></div>
       <div class="cpill" id="p-apt"><b>—</b><span>{{ t("pill.security_updates") }}</span></div>
     </div>
-    <nav class="view-switch">
-      <a href="/">{{ t("nav.classic") }}</a>
-      <a href="/controle" class="current">{{ t("nav.control") }}</a>
-      <a href="/journal">{{ t("nav.journal") }}</a>
-      <a href="/mur">{{ t("nav.wall") }}</a>
-    </nav>
+    {% set nav_current = "control" %}{% include "_nav.html" %}
   </header>
 
   <main class="ctrl-cols">

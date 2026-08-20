@@ -259,12 +259,14 @@ templates = Jinja2Templates(directory=BASE_DIR / "templates")
 
 
 def _i18n_context() -> dict:
-    """Contexte de rendu commun : `t` pour Jinja, le catalogue sérialisé pour le JS."""
+    """Contexte de rendu commun : `t` pour Jinja, le catalogue sérialisé pour le JS,
+    et le flag Starlink pour la barre de navigation partagée (_nav.html)."""
     lang = cfg.load_language()
     return {
         "t": lambda key, **variables: i18n.t(key, lang, **variables),
         "lang": lang,
         "i18n_json": json.dumps(i18n.catalog(lang), ensure_ascii=False),
+        "starlink_enabled": DEMO or cfg.load_starlink()["enabled"],
     }
 
 
