@@ -24,6 +24,9 @@ import os
 from pathlib import Path
 from typing import Any
 
+from . import config as cfg
+from . import i18n
+
 try:  # pragma: no cover - dépend de l'environnement d'installation
     import paho.mqtt.client as paho
 except ImportError:  # une dépendance optionnelle manquante ne doit pas empêcher le site de démarrer
@@ -44,45 +47,45 @@ ONLINE, OFFLINE = "online", "offline"
 
 # (clé, nom, template, unité, device_class, state_class, icône)
 SENSORS: list[tuple[str, str, str, str | None, str | None, str | None, str | None]] = [
-    ("services_down", "Services hors service", "{{ value_json.services.down }}", None, None, "measurement", "mdi:alert-circle"),
-    ("services_warn", "Services en alerte", "{{ value_json.services.warn }}", None, None, "measurement", "mdi:alert"),
-    ("services_up", "Services actifs", "{{ value_json.services.up }}", None, None, "measurement", "mdi:check-circle"),
-    ("alerts", "Alertes", "{{ value_json.alerts.count }}", None, None, "measurement", "mdi:bell-alert"),
-    ("backup_age", "Âge de la dernière sauvegarde", "{{ value_json.backups.oldest_age_days }}", "d", "duration", "measurement", "mdi:backup-restore"),
-    ("apt_updates", "Mises à jour APT", "{{ value_json.updates.apt_total }}", None, None, "measurement", "mdi:package-up"),
-    ("apt_security", "Mises à jour de sécurité", "{{ value_json.updates.apt_security }}", None, None, "measurement", "mdi:shield-alert"),
-    ("docker_outdated", "Images Docker obsolètes", "{{ value_json.updates.docker_outdated }}", None, None, "measurement", "mdi:docker"),
-    ("journal_errors", "Erreurs du journal (24 h)", "{{ value_json.journal.errors }}", None, None, "measurement", "mdi:text-box-search"),
-    ("new_devices", "Nouveaux appareils réseau", "{{ value_json.network.new_devices }}", None, None, "measurement", "mdi:lan-pending"),
-    ("wan_latency", "Latence Internet", "{{ value_json.wan.latency_ms }}", "ms", None, "measurement", "mdi:speedometer"),
-    ("wan_outages", "Coupures Internet (24 h)", "{{ value_json.wan.outages_24h }}", None, None, "measurement", "mdi:wan"),
-    ("ssd_wear", "Usure SSD", "{{ value_json.system.ssd_wear_pct }}", "%", None, "measurement", "mdi:harddisk"),
-    ("public_ip", "IP publique", "{{ value_json.public_ip }}", None, None, None, "mdi:ip-outline"),
-    ("cpu_temperature", "Température CPU", "{{ value_json.system.cpu_temperature_c }}", "°C", "temperature", "measurement", None),
-    ("nvme_temperature", "Température SSD", "{{ value_json.system.storage_temperature_c }}", "°C", "temperature", "measurement", None),
-    ("fan", "Ventilateur", "{{ value_json.system.fan_rpm }}", "rpm", None, "measurement", "mdi:fan"),
-    ("cpu_load", "Charge CPU", "{{ value_json.system.cpu_percent }}", "%", None, "measurement", "mdi:cpu-64-bit"),
-    ("memory", "Mémoire utilisée", "{{ value_json.system.memory_percent }}", "%", None, "measurement", "mdi:memory"),
+    ("services_down", "mqttname.services_down", "{{ value_json.services.down }}", None, None, "measurement", "mdi:alert-circle"),
+    ("services_warn", "mqttname.services_warn", "{{ value_json.services.warn }}", None, None, "measurement", "mdi:alert"),
+    ("services_up", "mqttname.services_up", "{{ value_json.services.up }}", None, None, "measurement", "mdi:check-circle"),
+    ("alerts", "mqttname.alerts", "{{ value_json.alerts.count }}", None, None, "measurement", "mdi:bell-alert"),
+    ("backup_age", "mqttname.backup_age", "{{ value_json.backups.oldest_age_days }}", "d", "duration", "measurement", "mdi:backup-restore"),
+    ("apt_updates", "mqttname.apt_updates", "{{ value_json.updates.apt_total }}", None, None, "measurement", "mdi:package-up"),
+    ("apt_security", "mqttname.apt_security", "{{ value_json.updates.apt_security }}", None, None, "measurement", "mdi:shield-alert"),
+    ("docker_outdated", "mqttname.docker_outdated", "{{ value_json.updates.docker_outdated }}", None, None, "measurement", "mdi:docker"),
+    ("journal_errors", "mqttname.journal_errors", "{{ value_json.journal.errors }}", None, None, "measurement", "mdi:text-box-search"),
+    ("new_devices", "mqttname.new_devices", "{{ value_json.network.new_devices }}", None, None, "measurement", "mdi:lan-pending"),
+    ("wan_latency", "mqttname.wan_latency", "{{ value_json.wan.latency_ms }}", "ms", None, "measurement", "mdi:speedometer"),
+    ("wan_outages", "mqttname.wan_outages", "{{ value_json.wan.outages_24h }}", None, None, "measurement", "mdi:wan"),
+    ("ssd_wear", "mqttname.ssd_wear", "{{ value_json.system.ssd_wear_pct }}", "%", None, "measurement", "mdi:harddisk"),
+    ("public_ip", "mqttname.public_ip", "{{ value_json.public_ip }}", None, None, None, "mdi:ip-outline"),
+    ("cpu_temperature", "mqttname.cpu_temperature", "{{ value_json.system.cpu_temperature_c }}", "°C", "temperature", "measurement", None),
+    ("nvme_temperature", "mqttname.nvme_temperature", "{{ value_json.system.storage_temperature_c }}", "°C", "temperature", "measurement", None),
+    ("fan", "mqttname.fan", "{{ value_json.system.fan_rpm }}", "rpm", None, "measurement", "mdi:fan"),
+    ("cpu_load", "mqttname.cpu_load", "{{ value_json.system.cpu_percent }}", "%", None, "measurement", "mdi:cpu-64-bit"),
+    ("memory", "mqttname.memory", "{{ value_json.system.memory_percent }}", "%", None, "measurement", "mdi:memory"),
     # Un uptime en secondes s'affiche « 176 938,00 s » : illisible. Home Assistant rend en
     # revanche un horodatage en relatif (« il y a 2 jours »), d'où la date de démarrage plutôt
     # que la durée — c'est aussi ce que fait son intégration System Monitor.
-    ("uptime", "Dernier démarrage", "{{ (value_json.timestamp | int - value_json.system.uptime_seconds | int) | as_datetime }}", None, "timestamp", None, "mdi:clock-outline"),
+    ("uptime", "mqttname.uptime", "{{ (value_json.timestamp | int - value_json.system.uptime_seconds | int) | as_datetime }}", None, "timestamp", None, "mdi:clock-outline"),
     # `timestamp` en device_class exige une date **avec fuseau** : `as_datetime` sur un entier
     # Unix rend un datetime UTC conscient de son fuseau, là où `timestamp_utc` rendrait une
     # chaîne sans fuseau que Home Assistant rejetterait.
-    ("updated", "Dernière mise à jour", "{{ value_json.timestamp | int | as_datetime }}", None, "timestamp", None, "mdi:update"),
+    ("updated", "mqttname.updated", "{{ value_json.timestamp | int | as_datetime }}", None, "timestamp", None, "mdi:update"),
 ]
 
 # (clé, nom, template, device_class, icône)
 BINARY_SENSORS: list[tuple[str, str, str, str | None, str | None]] = [
-    ("problem", "Problème détecté", "{{ 'ON' if value_json.problem else 'OFF' }}", "problem", None),
-    ("backup_late", "Sauvegarde en retard", "{{ 'ON' if value_json.backups.late else 'OFF' }}", "problem", "mdi:backup-restore"),
-    ("undervoltage", "Sous-tension", "{{ 'ON' if value_json.system.undervoltage else 'OFF' }}", "problem", "mdi:flash-alert"),
-    ("throttling", "Bridage matériel", "{{ 'ON' if value_json.system.throttling else 'OFF' }}", "problem", "mdi:speedometer-slow"),
+    ("problem", "mqttname.problem", "{{ 'ON' if value_json.problem else 'OFF' }}", "problem", None),
+    ("backup_late", "mqttname.backup_late", "{{ 'ON' if value_json.backups.late else 'OFF' }}", "problem", "mdi:backup-restore"),
+    ("undervoltage", "mqttname.undervoltage", "{{ 'ON' if value_json.system.undervoltage else 'OFF' }}", "problem", "mdi:flash-alert"),
+    ("throttling", "mqttname.throttling", "{{ 'ON' if value_json.system.throttling else 'OFF' }}", "problem", "mdi:speedometer-slow"),
     # Le signal le plus précieux du lot : une sous-tension de trente secondes cette nuit ne
     # laisse aucune autre trace, et elle a disparu quand on regarde le capteur instantané.
     # Il lui faut donc son entité propre — noyé dans le compteur d'alertes, il serait invisible.
-    ("throttled_since_boot", "Incident matériel depuis le démarrage", "{{ 'ON' if value_json.system.throttling_since_boot else 'OFF' }}", "problem", "mdi:history"),
+    ("throttled_since_boot", "mqttname.throttled_since_boot", "{{ 'ON' if value_json.system.throttling_since_boot else 'OFF' }}", "problem", "mdi:history"),
 ]
 
 # Attributs supplémentaires, par clé d'entité. Une liste ne peut pas être l'état d'une entité
@@ -220,6 +223,7 @@ def build_payload(snapshot: dict) -> dict:
 
 
 def build_discovery(payload: dict, hostname: str, base: str, prefix: str) -> list[tuple[str, dict]]:
+    lang = cfg.load_language()
     """(topic, configuration) pour chaque entité. Les disques sont dérivés de l'état courant :
     leur nombre dépend de ce qui est monté, il ne peut pas être écrit en dur."""
     device = _device(hostname)
@@ -234,7 +238,7 @@ def build_discovery(payload: dict, hostname: str, base: str, prefix: str) -> lis
     messages: list[tuple[str, dict]] = []
 
     for key, name, template, unit, device_class, state_class, icon in SENSORS:
-        config = {**common, "name": name, "unique_id": f"homeport_{key}", "value_template": template}
+        config = {**common, "name": i18n.t(name, lang), "unique_id": f"{base}_{key}", "value_template": template}
         if unit:
             config["unit_of_measurement"] = unit
         if device_class:
@@ -243,13 +247,13 @@ def build_discovery(payload: dict, hostname: str, base: str, prefix: str) -> lis
             config["state_class"] = state_class
         if icon:
             config["icon"] = icon
-        messages.append((f"{prefix}/sensor/homeport/{key}/config", config))
+        messages.append((f"{prefix}/sensor/{base}/{key}/config", config))
 
     for key, name, template, device_class, icon in BINARY_SENSORS:
         config = {
             **common,
-            "name": name,
-            "unique_id": f"homeport_{key}",
+            "name": i18n.t(name, lang),
+            "unique_id": f"{base}_{key}",
             "value_template": template,
             "payload_on": "ON",
             "payload_off": "OFF",
@@ -262,16 +266,16 @@ def build_discovery(payload: dict, hostname: str, base: str, prefix: str) -> lis
             # Les attributs sont extraits du message d'état déjà publié : aucun topic de plus.
             config["json_attributes_topic"] = f"{base}/state"
             config.update(extra)
-        messages.append((f"{prefix}/binary_sensor/homeport/{key}/config", config))
+        messages.append((f"{prefix}/binary_sensor/{base}/{key}/config", config))
 
     for slug in payload["system"]["disks"]:
         messages.append(
             (
-                f"{prefix}/sensor/homeport/disk_{slug}/config",
+                f"{prefix}/sensor/{base}/disk_{slug}/config",
                 {
                     **common,
-                    "name": f"Disque {slug}",
-                    "unique_id": f"homeport_disk_{slug}",
+                    "name": i18n.t("mqttname.disk", lang, mount=slug),
+                    "unique_id": f"{base}_disk_{slug}",
                     "value_template": f"{{{{ value_json.system.disks.{slug} }}}}",
                     "unit_of_measurement": "%",
                     "state_class": "measurement",
