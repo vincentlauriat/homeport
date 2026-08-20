@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="fr" data-theme="auto">
+<html lang="{{ lang }}" data-theme="auto">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -19,75 +19,74 @@
       <span class="berry">⚓</span>
       <div>
         <h1>{{ system.hostname }}</h1>
-        <p class="sub">Raspberry Pi · en ligne depuis {{ system.uptime.human }}</p>
+        <p class="sub">{{ t("hero.subtitle", uptime=system.uptime.human) }}</p>
       </div>
     </div>
     <div class="summary" id="summary">
-      <span class="pill pill-up"><b id="count-up">{{ summary.up }}</b> actifs</span>
-      {% if summary.warn %}<span class="pill pill-warn"><b id="count-warn">{{ summary.warn }}</b> dégradés</span>{% endif %}
-      {% if summary.down %}<span class="pill pill-down"><b id="count-down">{{ summary.down }}</b> arrêtés</span>{% endif %}
+      <span class="pill pill-up"><b id="count-up">{{ summary.up }}</b> {{ t("summary.word_up") }}</span>
+      {% if summary.warn %}<span class="pill pill-warn"><b id="count-warn">{{ summary.warn }}</b> {{ t("summary.word_warn") }}</span>{% endif %}
+      {% if summary.down %}<span class="pill pill-down"><b id="count-down">{{ summary.down }}</b> {{ t("summary.word_down") }}</span>{% endif %}
     </div>
     <nav class="view-switch">
-      <a href="/" class="current">Classique</a>
-      <a href="/controle">Contrôle</a>
-      <a href="/journal">Journal</a>
-      <a href="/mur">Mur</a>
+      <a href="/" class="current">{{ t("nav.classic") }}</a>
+      <a href="/controle">{{ t("nav.control") }}</a>
+      <a href="/journal">{{ t("nav.journal") }}</a>
+      <a href="/mur">{{ t("nav.wall") }}</a>
     </nav>
   </header>
 
   <section class="metrics" id="metrics">
     <div class="metric">
-      <span class="metric-label">Charge CPU</span>
+      <span class="metric-label">{{ t("metric.cpu_load") }}</span>
       <span class="metric-value" id="m-cpu">{{ system.load.percent }} %</span>
       <div class="bar"><i style="width: {{ system.load.percent }}%"></i></div>
-      <span class="metric-note">{{ system.load.avg1 }} / {{ system.load.cores }} cœurs</span>
+      <span class="metric-note">{{ system.load.avg1 }} / {{ system.load.cores }} {{ t("metric.cores") }}</span>
     </div>
     <div class="metric">
-      <span class="metric-label">Mémoire</span>
+      <span class="metric-label">{{ t("metric.memory") }}</span>
       <span class="metric-value" id="m-mem">{{ system.memory.percent }} %</span>
       <div class="bar"><i style="width: {{ system.memory.percent }}%"></i></div>
-      <span class="metric-note">{{ system.memory.used_mb }} / {{ system.memory.total_mb }} Mio</span>
+      <span class="metric-note">{{ system.memory.used_mb }} / {{ system.memory.total_mb }} {{ t("unit.mib") }}</span>
     </div>
     <div class="metric">
-      <span class="metric-label">Température</span>
+      <span class="metric-label">{{ t("index.temperature") }}</span>
       <span class="metric-value" id="m-temp">{{ system.temperature_c or "—" }} °C</span>
       <div class="bar"><i style="width: {{ ((system.temperature_c or 0) / 85 * 100) | round(1) }}%"></i></div>
-      <span class="metric-note">seuil de throttling 85 °C</span>
+      <span class="metric-note">{{ t("index.throttle_note") }}</span>
     </div>
     {% if system.storage_temperature_c is not none %}
     <div class="metric">
-      <span class="metric-label">SSD NVMe</span>
+      <span class="metric-label">{{ t("metric.ssd") }}</span>
       <span class="metric-value" id="m-nvme">{{ system.storage_temperature_c }} °C</span>
       <div class="bar"><i style="width: {{ (system.storage_temperature_c / 70 * 100) | round(1) }}%"></i></div>
       <span class="metric-note">
-        {%- if system.fan_rpm %}ventilateur {{ system.fan_rpm }} tr/min{% else %}température du disque{% endif %}
+        {%- if system.fan_rpm %}{{ t("metric.fan", rpm=system.fan_rpm) }}{% else %}{{ t("index.disk_temp") }}{% endif %}
       </span>
     </div>
     {% endif %}
     {% if nvme and nvme.percent_used is not none %}
     <div class="metric" id="metric-wear">
-      <span class="metric-label">Usure SSD</span>
+      <span class="metric-label">{{ t("metric.ssd_wear") }}</span>
       <span class="metric-value" id="m-wear">{{ nvme.percent_used }} %</span>
       <div class="bar"><i style="width: {{ nvme.percent_used }}%"></i></div>
       <span class="metric-note" id="m-wear-note">
-        {%- if nvme.written_gb is not none %}{{ nvme.written_gb }} Go écrits{% endif %}
+        {%- if nvme.written_gb is not none %}{{ t("metric.written", count=nvme.written_gb) }}{% endif %}
         {%- if nvme.power_on_hours is not none %} · {{ nvme.power_on_hours }} h{% endif %}
       </span>
     </div>
     {% endif %}
     {% for disk in system.disks %}
     <div class="metric">
-      <span class="metric-label">Disque {{ disk.mount }}</span>
+      <span class="metric-label">{{ t("index.disk", mount=disk.mount) }}</span>
       <span class="metric-value">{{ disk.percent }} %</span>
       <div class="bar"><i style="width: {{ disk.percent }}%"></i></div>
-      <span class="metric-note">{{ disk.used_gb }} / {{ disk.total_gb }} Gio</span>
+      <span class="metric-note">{{ disk.used_gb }} / {{ disk.total_gb }} {{ t("unit.gib") }}</span>
     </div>
     {% endfor %}
   </section>
 
   {% if not docker_available %}
-  <p class="banner">Le socket Docker n'est pas joignable — l'état des conteneurs est indisponible.
-     Vérifie que l'utilisateur du service appartient au groupe <code>docker</code>.</p>
+  <p class="banner">{{ t("index.docker_banner") }}</p>
   {% endif %}
 
   {% if health.alerts %}
@@ -104,8 +103,8 @@
     {% for backup in health.backups %}
     <div class="health-card state-{{ 'down' if backup.state == 'never' else ('warn' if backup.state == 'warn' else 'up') }}"
          data-health="backup-{{ backup.id }}">
-      <span class="health-label">Sauvegarde — {{ backup.name }}</span>
-      <span class="health-value">{{ "jamais" if backup.state == "never" else backup.detail }}</span>
+      <span class="health-label">{{ t("index.backup_local", name=backup.name) }}</span>
+      <span class="health-value">{{ t("common.never") if backup.state == "never" else backup.detail }}</span>
       <span class="health-note">
         {% if backup.state == "never" %}{{ backup.path }}{% else %}{{ backup.file | replace('homeserver-config-', '') | replace('.tar.gz', '') }} · {{ backup.size_mb }} Mio{% endif %}
       </span>
@@ -115,74 +114,74 @@
 
     <div class="health-card {{ 'state-warn' if health.apt and health.apt.security else ('state-up' if health.apt and not health.apt.total else '') }}"
          data-health="apt">
-      <span class="health-label">Paquets APT</span>
+      <span class="health-label">{{ t("health.apt") }}</span>
       <span class="health-value" id="h-apt">
-        {% if health.apt is none %}—{% else %}{{ health.apt.total }} à mettre à jour{% endif %}
+        {% if health.apt is none %}—{% else %}{{ t("health.apt_to_update", count=health.apt.total) }}{% endif %}
       </span>
       <span class="health-note" id="h-apt-note">
-        {% if health.apt is none %}pas encore mesuré
-        {% else %}{{ health.apt.security }} de sécurité
-          {%- if health.apt.lists_age_days is not none %} · listes vieilles de {{ health.apt.lists_age_days }} j{% endif %}
+        {% if health.apt is none %}{{ t("common.not_measured") }}
+        {% else %}{{ t("health.apt_security", count=health.apt.security) }}
+          {%- if health.apt.lists_age_days is not none %} · {{ t("health.apt_lists_age", count=health.apt.lists_age_days) }}{% endif %}
         {% endif %}
       </span>
     </div>
 
     <div class="health-card {{ 'state-warn' if health.images and health.images.outdated else '' }}" data-health="images">
-      <span class="health-label">Images Docker</span>
+      <span class="health-label">{{ t("health.images") }}</span>
       <span class="health-value" id="h-img">
-        {% if health.images is none %}—{% else %}{{ health.images.outdated }} obsolète(s){% endif %}
+        {% if health.images is none %}—{% else %}{{ t("health.images_outdated", count=health.images.outdated) }}{% endif %}
       </span>
       <span class="health-note" id="h-img-note">
-        {% if health.images is none %}pas encore mesuré{% else %}{{ health.images.checked }} image(s) comparée(s) au registre{% endif %}
+        {% if health.images is none %}{{ t("common.not_measured") }}{% else %}{{ t("health.images_checked", count=health.images.checked) }}{% endif %}
       </span>
     </div>
 
     <div class="health-card {{ 'state-down' if system.undervoltage else ('state-warn' if health.throttling and health.throttling.since_boot else ('state-up' if health.throttling and health.throttling.healthy else '')) }}"
          data-health="power">
-      <span class="health-label">Alimentation</span>
+      <span class="health-label">{{ t("health.power") }}</span>
       <span class="health-value" id="h-power">
-        {%- if system.undervoltage %}sous-tension
+        {%- if system.undervoltage %}{{ t("health.power_undervoltage") }}
         {%- elif health.throttling is none %}—
-        {%- elif health.throttling.healthy %}saine
-        {%- else %}incident{% endif %}
+        {%- elif health.throttling.healthy %}{{ t("health.power_ok") }}
+        {%- else %}{{ t("health.power_incident") }}{% endif %}
       </span>
       <span class="health-note" id="h-power-note">
-        {%- if health.throttling is none %}pas encore mesuré
+        {%- if health.throttling is none %}{{ t("common.not_measured") }}
         {%- elif health.throttling.since_boot %}{{ health.throttling.since_boot | join(' · ') }}
-        {%- else %}aucun incident depuis le démarrage{% endif %}
+        {%- else %}{{ t("health.power_no_incident") }}{% endif %}
       </span>
     </div>
 
     <div class="health-card" data-health="journal">
-      <span class="health-label">Erreurs (24 h)</span>
+      <span class="health-label">{{ t("index.errors_24h") }}</span>
       <span class="health-value" id="h-journal">
         {% if health.journal is none %}—{% else %}{{ health.journal.counted }}{% endif %}
       </span>
       <span class="health-note" id="h-journal-note">
-        {% if health.journal is none %}pas encore mesuré
+        {% if health.journal is none %}{{ t("common.not_measured") }}
         {% else %}
           {%- if health.journal.by_source %}
             {%- for source in health.journal.by_source %}{{ source.source | replace('.service', '') }} {{ source.count }}{% if not loop.last %} · {% endif %}{% endfor %}
-          {%- else %}aucune{% endif %}
-          {%- if health.journal.muted %} · {{ health.journal.muted }} bruit ignoré{% endif %}
+          {%- else %}{{ t("common.none") }}{% endif %}
+          {%- if health.journal.muted %} · {{ t("health.journal_muted", count=health.journal.muted) }}{% endif %}
         {% endif %}
       </span>
     </div>
   </section>
 
   <section class="history" id="history">
-    <h2><a class="back-link" href="/historique" title="courbes 7 jours + coupures Internet">Historique (24 h) ↗</a></h2>
+    <h2><a class="back-link" href="/historique" title="{{ t("index.history_link_title") }}">{{ t("index.history_title") }}</a></h2>
     <div class="charts">
       <div class="chart-card">
-        <span class="health-label">CPU %</span>
+        <span class="health-label">{{ t("metric.cpu") }} %</span>
         <svg class="chart" id="chart-cpu" viewBox="0 0 300 60" preserveAspectRatio="none"></svg>
       </div>
       <div class="chart-card">
-        <span class="health-label">Mémoire %</span>
+        <span class="health-label">{{ t("metric.memory") }} %</span>
         <svg class="chart" id="chart-mem" viewBox="0 0 300 60" preserveAspectRatio="none"></svg>
       </div>
       <div class="chart-card">
-        <span class="health-label">Température CPU °C</span>
+        <span class="health-label">{{ t("hist.temp") }} °C</span>
         <svg class="chart" id="chart-temp" viewBox="0 0 300 60" preserveAspectRatio="none"></svg>
       </div>
     </div>
@@ -190,37 +189,37 @@
 
   <section class="network" id="network">
     <div class="network-card {{ 'state-up' if wan and wan.online else ('state-down' if wan and wan.online == false else '') }}" data-network="wan" {{ 'hidden' if not wan }}>
-      <span class="health-label">Connexion Internet</span>
+      <span class="health-label">{{ t("index.wan_label") }}</span>
       <span class="health-value" id="wan-value">
         {%- if not wan or wan.online is none %}—
-        {%- elif wan.online %}en ligne · {{ wan.latency_ms }} ms
-        {%- else %}coupée{% endif -%}
+        {%- elif wan.online %}{{ t("net.online_latency", latency=wan.latency_ms) }}
+        {%- else %}{{ t("wan.offline_f") }}{% endif -%}
       </span>
       <span class="health-note" id="wan-note">
-        {%- if wan and wan.outages_24h %}{{ wan.outages_24h }} coupure(s) sur 24 h · dernière : {{ wan.last_outage_minutes }} min
-        {%- elif wan %}aucune coupure sur 24 h{% endif -%}
-        {%- if public_ip %} · IP {{ public_ip.ip }}{% endif -%}
+        {%- if wan and wan.outages_24h %}{{ t("net.outages_detail_many", count=wan.outages_24h) }} · {{ t("index.outage_last", count=wan.last_outage_minutes) }}
+        {%- elif wan %}{{ t("net.no_outage") }}{% endif -%}
+        {%- if public_ip %} · {{ t("net.ip", ip=public_ip.ip) }}{% endif -%}
       </span>
     </div>
     <div class="network-card" data-network="tailscale">
-      <span class="health-label">Pairs Tailscale</span>
+      <span class="health-label">{{ t("index.peers_label") }}</span>
       <div class="peer-list" id="net-tailscale">
         {% for peer in network.tailscale_peers %}
         <span class="peer peer-{{ 'online' if peer.online else 'offline' }}">{{ peer.hostname }}</span>
         {% else %}
-        <span class="health-note">aucun pair</span>
+        <span class="health-note">{{ t("net.no_peer") }}</span>
         {% endfor %}
       </div>
     </div>
     <div class="network-card" data-network="lan">
-      <span class="health-label">Appareils LAN vus récemment
+      <span class="health-label">{{ t("index.lan_label") }}
         <span id="net-new-badge" class="chip-new" hidden></span>
       </span>
-      <a class="tile-link" href="/reseau" title="ouvrir l'inventaire réseau">
+      <a class="tile-link" href="/reseau" title="{{ t("index.lan_link_title") }}">
         <span class="health-value" id="net-lan-count">{{ network.lan_neighbors | length }}</span>
       </a>
       <details class="lan-detail">
-        <summary class="health-note">détail</summary>
+        <summary class="health-note">{{ t("index.detail") }}</summary>
         <ul id="net-lan-list">
           {% for n in network.lan_neighbors %}
           <li>{{ n.ip }} <span class="mac">{{ n.mac }}</span></li>
@@ -275,13 +274,13 @@
             {% endif %}
             <div class="avail-line" {{ 'hidden' if not service.availability }}>
               {%- if service.availability -%}
-              <span class="avail-pct">{{ service.availability.uptime_pct }} %</span> sur 7 j
-              {%- if service.availability.incidents %} · {{ service.availability.incidents }} incident(s) · max {{ service.availability.longest_minutes }} min{% endif -%}
+              <span class="avail-pct">{{ service.availability.uptime_pct }} %</span> {{ t("svc.on7d") }}
+              {%- if service.availability.incidents %} · {{ t("svc.incidents", count=service.availability.incidents, minutes=service.availability.longest_minutes) }}{% endif -%}
               {%- endif -%}
             </div>
             {% if service.restartable %}
             <div class="action-row" hidden>
-              <button class="btn-restart" data-service="{{ service.id }}">Redémarrer</button>
+              <button class="btn-restart" data-service="{{ service.id }}">{{ t("svc.restart") }}</button>
               <span class="action-result"></span>
             </div>
             {% endif %}
@@ -293,13 +292,13 @@
             {% endif %}
             {% if service.container %}
             <details class="logs-detail" data-container="{{ service.container }}">
-              <summary class="health-note">Logs récents</summary>
-              <pre class="logs-pre">clique pour charger…</pre>
+              <summary class="health-note">{{ t("svc.logs") }}</summary>
+              <pre class="logs-pre">{{ t("svc.logs_click") }}</pre>
             </details>
             {% endif %}
             <div class="card-foot">
               {% if service.uptime %}<span class="uptime">{{ service.uptime }}</span>{% endif %}
-              {% if service.url %}<a class="open" href="{{ service.url }}" target="_blank" rel="noopener">Ouvrir ↗</a>{% endif %}
+              {% if service.url %}<a class="open" href="{{ service.url }}" target="_blank" rel="noopener">{{ t("svc.open") }}</a>{% endif %}
             </div>
           </div>
         </details>
@@ -311,9 +310,11 @@
 
   <footer>
     <span>Homeport v{{ version }}</span>
-    <span id="refreshed">actualisé à l'instant</span>
+    <span id="refreshed">{{ t("common.refreshed_now") }}</span>
   </footer>
 
+  <script>window.HOMEPORT_I18N = {{ i18n_json|safe }};</script>
+  <script src="/static/i18n.js"></script>
   <script src="/static/app.js" defer></script>
 </body>
 </html>

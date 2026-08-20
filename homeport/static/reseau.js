@@ -9,14 +9,14 @@ let searchTerm = "";
 let editing = false; // un input de nommage est ouvert : le refresh périodique s'abstient
 let canAct = false;  // admin via Tailscale (voir /api/whoami) : révèle le Wake-on-LAN
 
-const CATEGORIES = ["ordinateur", "téléphone", "domotique", "iot", "réseau", "multimédia", "autre"];
+const CATEGORIES = ["computer", "phone", "homeautomation", "iot", "network", "media", "other"];
 
 function relativeTime(ts) {
   const s = Math.max(0, Math.floor(Date.now() / 1000 - ts));
-  if (s < 60) return "à l'instant";
-  if (s < 3600) return `il y a ${Math.floor(s / 60)} min`;
-  if (s < 86400) return `il y a ${Math.floor(s / 3600)} h`;
-  return `il y a ${Math.floor(s / 86400)} j`;
+  if (s < 60) return T("age.just_now");
+  if (s < 3600) return T("age.minutes", { count: Math.floor(s / 60) });
+  if (s < 86400) return T("age.hours", { count: Math.floor(s / 3600) });
+  return T("age.days", { count: Math.floor(s / 86400) });
 }
 
 async function patchDevice(mac, body) {
@@ -64,25 +64,25 @@ function renderDetails(device) {
   const details = document.createElement("details");
   details.className = "net-details";
   const summary = document.createElement("summary");
-  summary.textContent = "détails";
+  summary.textContent = T("reseau.details");
   details.appendChild(summary);
 
   const panel = document.createElement("div");
   panel.className = "net-details-panel";
 
   const note = document.createElement("textarea");
-  note.placeholder = "note…";
+  note.placeholder = T("reseau.note_placeholder");
   note.value = device.note || "";
   note.maxLength = 500;
   const saveNote = document.createElement("button");
-  saveNote.textContent = "Enregistrer la note";
+  saveNote.textContent = T("reseau.save_note");
   saveNote.addEventListener("click", () => patchDevice(device.mac, { note: note.value.trim() || null }));
 
   const select = document.createElement("select");
   for (const value of ["", ...CATEGORIES]) {
     const option = document.createElement("option");
     option.value = value;
-    option.textContent = value || "aucune catégorie";
+    option.textContent = value ? T(`category.${value}`) : T("category.none");
     option.selected = (device.category || "") === value;
     select.appendChild(option);
   }
@@ -92,20 +92,20 @@ function renderDetails(device) {
   if (!device.acknowledged) {
     const ack = document.createElement("button");
     ack.className = "btn-ack";
-    ack.textContent = "OK, vu";
+    ack.textContent = T("reseau.ack");
     ack.addEventListener("click", () => patchDevice(device.mac, { acknowledged: true }));
     panel.appendChild(ack);
   }
   if (canAct && !device.online) {
     const wake = document.createElement("button");
     wake.className = "btn-wake";
-    wake.textContent = "Réveiller (WoL)";
-    wake.title = "Envoie un paquet magique — ne réveille que les appareils ethernet compatibles";
+    wake.textContent = T("reseau.wake");
+    wake.title = T("reseau.wake_title");
     wake.addEventListener("click", async () => {
       wake.disabled = true;
       const r = await fetch(`/api/actions/wake/${encodeURIComponent(device.mac)}`, { method: "POST" });
-      wake.textContent = r.ok ? "Paquet envoyé ✓" : `échec (${r.status})`;
-      setTimeout(() => { wake.disabled = false; wake.textContent = "Réveiller (WoL)"; }, 5000);
+      wake.textContent = r.ok ? T("reseau.wake_sent") : T("reseau.wake_failed", { status: r.status });
+      setTimeout(() => { wake.disabled = false; wake.textContent = T("reseau.wake"); }, 5000);
     });
     panel.appendChild(wake);
   }
@@ -122,27 +122,27 @@ function renderDevice(device) {
 
   const dot = document.createElement("span");
   dot.className = `dot ${device.online ? "dot-online" : "dot-offline"}`;
-  dot.title = device.online ? "en ligne" : "hors ligne";
+  dot.title = device.online ? T("reseau.online") : T("reseau.offline");
   head.appendChild(dot);
 
   const name = document.createElement("button");
   name.className = "net-name";
   name.textContent = device.display_name;
-  name.title = `source : ${device.name_source} — cliquer pour renommer`;
+  name.title = T("reseau.name_title", { source: T(`namesource.${device.name_source}`) });
   name.addEventListener("click", () => startEditing(name, device));
   head.appendChild(name);
 
   if (device.category) {
     const cat = document.createElement("span");
     cat.className = "badge-cat";
-    cat.textContent = device.category;
+    cat.textContent = T(`category.${device.category}`);
     head.appendChild(cat);
   }
   if (device.local_mac) {
     const badge = document.createElement("span");
     badge.className = "badge-private";
-    badge.textContent = "MAC privée";
-    badge.title = "adresse randomisée : le fabricant réel est masqué";
+    badge.textContent = T("reseau.private_mac");
+    badge.title = T("reseau.private_mac_title");
     head.appendChild(badge);
   }
 
@@ -174,7 +174,7 @@ function ensureCategoryButtons() {
     if (!container.querySelector(`button[data-filter="${category}"]`)) {
       const button = document.createElement("button");
       button.dataset.filter = category;
-      button.textContent = category;
+      button.textContent = T(`category.${category}`);
       container.appendChild(button);
     }
   }
@@ -182,8 +182,8 @@ function ensureCategoryButtons() {
 
 function render(summary, available) {
   document.getElementById("net-summary").textContent = available
-    ? `${summary.total} appareils · ${summary.online} en ligne · ${summary.new} nouveau(x)`
-    : "inventaire indisponible — affichage en lecture seule";
+    ? T("reseau.summary", { total: summary.total, online: summary.online, fresh: summary.new })
+    : T("reseau.unavailable");
 
   const fresh = devicesCache.filter((d) => !d.acknowledged);
   document.getElementById("new-devices").hidden = fresh.length === 0;
@@ -225,7 +225,7 @@ async function refresh(force = false) {
   peersCache = data.tailscale_peers;
   render(data.summary, data.inventory_available);
   document.getElementById("refreshed").textContent =
-    `actualisé ${new Date().toLocaleTimeString("fr-FR")}`;
+    T("reseau.refreshed", { time: new Date().toLocaleTimeString() });
 }
 
 function wireToolbar() {

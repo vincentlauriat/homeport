@@ -30,12 +30,12 @@ function applySystem(system) {
     const card = nvme.closest('.metric');
     setBar(card, (system.storage_temperature_c / 70) * 100);
     const note = card?.querySelector('.metric-note');
-    if (note && system.fan_rpm) note.textContent = `ventilateur ${system.fan_rpm} tr/min`;
+    if (note && system.fan_rpm) note.textContent = T('metric.fan', { rpm: system.fan_rpm });
   }
 
   const notes = document.querySelectorAll('#metrics .metric-note');
-  if (notes[0]) notes[0].textContent = `${system.load.avg1} / ${system.load.cores} cœurs`;
-  if (notes[1]) notes[1].textContent = `${system.memory.used_mb} / ${system.memory.total_mb} Mio`;
+  if (notes[0]) notes[0].textContent = `${system.load.avg1} / ${system.load.cores} ${T('metric.cores')}`;
+  if (notes[1]) notes[1].textContent = `${system.memory.used_mb} / ${system.memory.total_mb} ${T('unit.mib')}`;
 }
 
 function applyServices(groups) {
@@ -66,8 +66,8 @@ function applyServices(groups) {
       if (avail && service.availability) {
         avail.hidden = false;
         const a = service.availability;
-        avail.textContent = `${a.uptime_pct} % sur 7 j` +
-          (a.incidents ? ` · ${a.incidents} incident(s) · max ${a.longest_minutes} min` : '');
+        avail.textContent = T('svc.availability_7d', { pct: a.uptime_pct }) +
+          (a.incidents ? ' · ' + T('svc.incidents', { count: a.incidents, minutes: a.longest_minutes }) : '');
       }
 
       const uptime = card.querySelector('.uptime');
@@ -112,7 +112,7 @@ function applyHealth(health) {
     const state = backup.state === 'never' ? 'down' : backup.state === 'warn' ? 'warn' : 'up';
     card.className = `health-card state-${state}`;
     card.querySelector('.health-value').textContent =
-      backup.state === 'never' ? 'jamais' : backup.detail;
+      backup.state === 'never' ? T('common.never') : backup.detail;
     card.querySelector('.health-note').textContent =
       backup.state === 'never'
         ? backup.path
@@ -122,9 +122,9 @@ function applyHealth(health) {
   // Paquets APT
   const apt = health.apt;
   if (apt) {
-    setText('h-apt', `${apt.total} à mettre à jour`);
-    const age = apt.lists_age_days === null ? '' : ` · listes vieilles de ${apt.lists_age_days} j`;
-    setText('h-apt-note', `${apt.security} de sécurité${age}`);
+    setText('h-apt', T('health.apt_to_update', { count: apt.total }));
+    const age = apt.lists_age_days === null ? '' : ' · ' + T('health.apt_lists_age', { count: apt.lists_age_days });
+    setText('h-apt-note', T('health.apt_security', { count: apt.security }) + age);
     const card = document.querySelector('[data-health="apt"]');
     if (card) card.className = `health-card${apt.security ? ' state-warn' : apt.total ? '' : ' state-up'}`;
   }
@@ -132,8 +132,8 @@ function applyHealth(health) {
   // Images Docker
   const images = health.images;
   if (images) {
-    setText('h-img', `${images.outdated} obsolète(s)`);
-    setText('h-img-note', `${images.checked} image(s) comparée(s) au registre`);
+    setText('h-img', T('health.images_outdated', { count: images.outdated }));
+    setText('h-img-note', T('health.images_checked', { count: images.checked }));
     const card = document.querySelector('[data-health="images"]');
     if (card) card.className = `health-card${images.outdated ? ' state-warn' : ''}`;
   }
@@ -145,10 +145,10 @@ function applyHealth(health) {
     const undervoltage = health._undervoltage;
     const state = undervoltage ? 'down' : power.since_boot.length ? 'warn' : power.healthy ? 'up' : '';
     powerCard.className = `health-card${state ? ` state-${state}` : ''}`;
-    setText('h-power', undervoltage ? 'sous-tension' : power.healthy ? 'saine' : 'incident');
+    setText('h-power', undervoltage ? T('health.power_undervoltage') : power.healthy ? T('health.power_ok') : T('health.power_incident'));
     setText(
       'h-power-note',
-      power.since_boot.length ? power.since_boot.join(' · ') : 'aucun incident depuis le démarrage'
+      power.since_boot.length ? power.since_boot.join(' · ') : T('health.power_no_incident')
     );
   }
 
@@ -159,8 +159,8 @@ function applyHealth(health) {
     const sources = journal.by_source
       .map((s) => `${s.source.replace('.service', '')} ${s.count}`)
       .join(' · ');
-    const muted = journal.muted ? ` · ${journal.muted} bruit ignoré` : '';
-    setText('h-journal-note', (sources || 'aucune') + muted);
+    const muted = journal.muted ? ' · ' + T('health.journal_muted', { count: journal.muted }) : '';
+    setText('h-journal-note', (sources || T('common.none')) + muted);
   }
 }
 
@@ -172,7 +172,7 @@ function applyNvme(nvme) {
   const card = document.getElementById('metric-wear');
   setBar(card, nvme.percent_used);
   const parts = [];
-  if (nvme.written_gb !== null && nvme.written_gb !== undefined) parts.push(`${nvme.written_gb} Go écrits`);
+  if (nvme.written_gb !== null && nvme.written_gb !== undefined) parts.push(T('metric.written', { count: nvme.written_gb }));
   if (nvme.power_on_hours !== null && nvme.power_on_hours !== undefined) parts.push(`${nvme.power_on_hours} h`);
   if (parts.length) setText('m-wear-note', parts.join(' · '));
 }
@@ -185,11 +185,11 @@ function applyWan(wan) {
   if (wan.online === true) card.classList.add('state-up');
   if (wan.online === false) card.classList.add('state-down');
   setText('wan-value', wan.online === null ? '—'
-    : wan.online ? `en ligne · ${wan.latency_ms} ms` : 'coupée');
-  const ipSuffix = window.__publicIp ? ` · IP ${window.__publicIp}` : '';
+    : wan.online ? T('net.online_latency', { latency: wan.latency_ms }) : T('wan.offline_f'));
+  const ipSuffix = window.__publicIp ? ' · ' + T('net.ip', { ip: window.__publicIp }) : '';
   setText('wan-note', (wan.outages_24h
-    ? `${wan.outages_24h} coupure(s) sur 24 h · dernière : ${wan.last_outage_minutes} min`
-    : 'aucune coupure sur 24 h') + ipSuffix);
+    ? Tn('net.outages_detail', wan.outages_24h) + ' · ' + T('index.outage_last', { count: wan.last_outage_minutes })
+    : T('net.no_outage')) + ipSuffix);
 }
 
 function applyNetwork(network) {
@@ -200,7 +200,7 @@ function applyNetwork(network) {
   if (tailscaleEl) {
     tailscaleEl.innerHTML = peers.length
       ? peers.map((p) => `<span class="peer peer-${p.online ? 'online' : 'offline'}"></span>`).join('')
-      : '<span class="health-note">aucun pair</span>';
+      : `<span class="health-note">${T('net.no_peer')}</span>`;
     tailscaleEl.querySelectorAll('.peer').forEach((node, i) => { node.textContent = peers[i].hostname; });
   }
 
@@ -210,7 +210,7 @@ function applyNetwork(network) {
   if (newBadge) {
     const count = (network.new_devices || {}).count || 0;
     newBadge.hidden = count === 0;
-    newBadge.textContent = count ? `${count} nouveau${count > 1 ? 'x' : ''}` : '';
+    newBadge.textContent = count ? Tn('net.new', count) : '';
   }
   const list = document.getElementById('net-lan-list');
   if (list) {
@@ -298,9 +298,9 @@ async function refresh() {
     applyWan(data.wan);
     applyNetwork(data.network);
     const time = new Date().toLocaleTimeString('fr-FR');
-    if (stamp) stamp.textContent = `actualisé à ${time}`;
+    if (stamp) stamp.textContent = T('common.refreshed_at', { time });
   } catch (error) {
-    if (stamp) stamp.textContent = `hors ligne — dernière mise à jour conservée (${error.message})`;
+    if (stamp) stamp.textContent = T('common.offline_kept', { error: error.message });
   }
 }
 
@@ -317,9 +317,9 @@ function wireContainerLogs() {
         const response = await fetch(`/api/logs/${encodeURIComponent(name)}?tail=100`, { cache: 'no-store' });
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data = await response.json();
-        pre.textContent = data.logs && data.logs.trim() ? data.logs : '(aucune ligne de log)';
+        pre.textContent = data.logs && data.logs.trim() ? data.logs : '(∅)';
       } catch (error) {
-        pre.textContent = `impossible de charger les logs (${error.message})`;
+        pre.textContent = T('svc.restart_failed', { error: error.message });
         delete details.dataset.loaded; // permettre un nouvel essai à la prochaine ouverture
       }
     });
@@ -354,11 +354,11 @@ async function wireActions() {
     if (!button.dataset.armed) {
       button.dataset.armed = '1';
       button.classList.add('armed');
-      button.textContent = 'Confirmer ?';
+      button.textContent = T('svc.restart_confirm');
       setTimeout(() => {
         delete button.dataset.armed;
         button.classList.remove('armed');
-        button.textContent = 'Redémarrer';
+        button.textContent = T('svc.restart');
       }, 4000);
       return;
     }
@@ -366,18 +366,18 @@ async function wireActions() {
     delete button.dataset.armed;
     button.classList.remove('armed');
     button.disabled = true;
-    button.textContent = 'Redémarrage…';
+    button.textContent = T('svc.restarting');
     try {
       const response = await fetch(`/api/actions/restart/${encodeURIComponent(button.dataset.service)}`,
         { method: 'POST' });
-      result.textContent = response.ok ? 'redémarré ✓' : `échec (${response.status})`;
+      result.textContent = response.ok ? T('svc.restarted') : T('svc.restart_failed', { error: response.status });
       result.className = `action-result ${response.ok ? 'ok' : 'fail'}`;
     } catch (error) {
-      result.textContent = `échec (${error.message})`;
+      result.textContent = T('svc.restart_failed', { error: error.message });
       result.className = 'action-result fail';
     }
     button.disabled = false;
-    button.textContent = 'Redémarrer';
+    button.textContent = T('svc.restart');
     setTimeout(() => { result.textContent = ''; }, 8000);
   });
 }

@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="fr" data-theme="auto">
+<html lang="{{ lang }}" data-theme="auto">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light dark">
-  <title>Journal — Homeport</title>
+  <title>{{ t("nav.journal") }} — Homeport</title>
   <link rel="stylesheet" href="/static/style.css">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚓</text></svg>">
   <link rel="manifest" href="/static/manifest.json">
@@ -16,12 +16,12 @@
 <body class="v-edit">
   <main class="edit-page">
     <header class="edit-brand">
-      <span>⚓ <span id="j-hostname">homeserver</span> · <span id="j-date">—</span></span>
+      <span>⚓ <span id="j-hostname">—</span> · <span id="j-date">—</span></span>
       <nav class="view-switch">
-        <a href="/">Classique</a>
-        <a href="/controle">Contrôle</a>
-        <a href="/journal" class="current">Journal</a>
-        <a href="/mur">Mur</a>
+        <a href="/">{{ t("nav.classic") }}</a>
+        <a href="/controle">{{ t("nav.control") }}</a>
+        <a href="/journal" class="current">{{ t("nav.journal") }}</a>
+        <a href="/mur">{{ t("nav.wall") }}</a>
       </nav>
     </header>
 
@@ -30,18 +30,18 @@
 
     <div class="edit-attention" id="j-attention" hidden></div>
 
-    <h2 class="edit-h2">La machine</h2>
+    <h2 class="edit-h2">{{ t("journal.machine") }}</h2>
     <div class="edit-facts">
-      <div class="efact"><b id="f-cpu">—</b><span id="f-cpu-note">CPU</span></div>
-      <div class="efact"><b id="f-temp">—</b><span id="f-temp-note">température</span></div>
-      <div class="efact"><b id="f-mem">—</b><span id="f-mem-note">mémoire</span></div>
-      <div class="efact"><b id="f-disk">—</b><span id="f-disk-note">disque /</span></div>
+      <div class="efact"><b id="f-cpu">—</b><span id="f-cpu-note">{{ t("metric.cpu") }}</span></div>
+      <div class="efact"><b id="f-temp">—</b><span id="f-temp-note">{{ t("metric.cpu_temp") }}</span></div>
+      <div class="efact"><b id="f-mem">—</b><span id="f-mem-note">{{ t("metric.memory") }}</span></div>
+      <div class="efact"><b id="f-disk">—</b><span id="f-disk-note">{{ t("metric.disk_root") }}</span></div>
     </div>
 
-    <h2 class="edit-h2">Réseau &amp; santé</h2>
+    <h2 class="edit-h2">{{ t("journal.network_health") }}</h2>
     <div class="edit-quiet" id="j-quiet"></div>
 
-    <h2 class="edit-h2" id="j-svc-title">Les services</h2>
+    <h2 class="edit-h2" id="j-svc-title">{{ t("journal.services") }}</h2>
     <div id="j-services"></div>
 
     <footer>
@@ -50,6 +50,8 @@
     </footer>
   </main>
 
+  <script>window.HOMEPORT_I18N = {{ i18n_json|safe }};</script>
+  <script src="/static/i18n.js"></script>
   <script src="/static/views-common.js"></script>
   <script src="/static/journal.js"></script>
 </body>

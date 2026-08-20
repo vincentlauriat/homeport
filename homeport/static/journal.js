@@ -23,22 +23,26 @@ function renderStory(data) {
   const parts = [];
   const s = data.summary;
   parts.push(s.up === s.total
-    ? `Les ${s.total} services tournent`
-    : `${s.up} service(s) sur ${s.total} tournent`);
+    ? T('journal.story_services_all', { total: s.total })
+    : T('journal.story_services_partial', { up: s.up, total: s.total }));
 
   const wan = data.wan;
   if (wan && wan.online) {
-    parts.push(`Internet répond en ${wan.latency_ms} ms${wan.outages_24h ? ` (${wan.outages_24h} coupure(s) sur 24 h)` : ' sans coupure depuis hier'}`);
+    parts.push(wan.outages_24h
+      ? T('journal.story_wan_outages', { latency: wan.latency_ms, count: wan.outages_24h })
+      : T('journal.story_wan_ok', { latency: wan.latency_ms }));
   } else if (wan && wan.online === false) {
-    parts.push('Internet est coupé');
+    parts.push(T('journal.story_wan_down'));
   }
 
   const age = backupAge(data.health);
-  if (age !== null) parts.push(`la maison a été sauvegardée il y a ${age} h`);
+  if (age !== null) parts.push(T('journal.story_backup', { count: age }));
 
   const nvme = data.nvme;
   if (nvme && nvme.percent_used !== null && nvme.percent_used !== undefined) {
-    parts.push(`le SSD est à ${nvme.percent_used} % d'usure${nvme.power_on_hours ? ` après ${nvme.power_on_hours} heures` : ''}`);
+    parts.push(nvme.power_on_hours
+      ? T('journal.story_ssd_hours', { pct: nvme.percent_used, hours: nvme.power_on_hours })
+      : T('journal.story_ssd', { pct: nvme.percent_used }));
   }
 
   setText('j-story', parts.length ? `${parts.join(', ')}.` : '');
@@ -63,16 +67,16 @@ function renderAttention(data) {
 
 function renderFacts(system) {
   setText('f-cpu', `${system.load.percent} %`);
-  setText('f-cpu-note', `CPU · ${system.load.avg1} / ${system.load.cores} cœurs`);
+  setText('f-cpu-note', T('journal.fact_cpu', { load: system.load.avg1, cores: system.load.cores }));
   setText('f-temp', system.temperature_c === null ? '—' : `${system.temperature_c} °C`);
-  setText('f-temp-note', system.storage_temperature_c === null ? 'CPU' : `CPU · SSD ${system.storage_temperature_c} °C`);
+  setText('f-temp-note', system.storage_temperature_c === null ? T('journal.fact_temp_cpu') : T('journal.fact_temp_both', { temp: system.storage_temperature_c }));
   setText('f-mem', `${system.memory.percent} %`);
-  setText('f-mem-note', `mémoire · ${(system.memory.used_mb / 1024).toFixed(1)} / ${(system.memory.total_mb / 1024).toFixed(0)} Gio`);
+  setText('f-mem-note', T('journal.fact_mem', { used: (system.memory.used_mb / 1024).toFixed(1), total: (system.memory.total_mb / 1024).toFixed(0) }));
   const root = (system.disks || []).find((d) => d.mount === '/');
   const ssd = (system.disks || []).find((d) => d.mount !== '/');
   if (root) {
     setText('f-disk', `${root.percent} %`);
-    setText('f-disk-note', ssd ? `disque / · SSD ${ssd.percent} %` : 'disque /');
+    setText('f-disk-note', ssd ? T('journal.fact_disk_ssd', { pct: ssd.percent }) : T('journal.fact_disk'));
   }
 }
 
@@ -82,25 +86,25 @@ function renderQuiet(data) {
   if (wan) {
     const ip = data.public_ip ? ` · IP …${data.public_ip.ip.split('.').slice(2).join('.')}` : '';
     rows.push({
-      k: 'Internet',
+      k: T('net.internet'),
       v: wan.online === null ? '—' : wan.online
-        ? `${wan.latency_ms} ms · ${wan.outages_24h || 0} coupure(s)${ip}` : 'coupé',
+        ? `${wan.latency_ms} ms · ` + Tn('journal.coupure', wan.outages_24h || 0) + ip : T('net.offline'),
       level: wan.online ? 'ok' : '',
     });
   }
   const peers = ((data.network || {}).tailscale_peers || []);
   const online = peers.filter((p) => p.online).length;
-  rows.push({ k: 'Tailscale', v: `${online} pair(s) en ligne`, level: online ? 'ok' : '' });
+  rows.push({ k: T('net.tailscale'), v: T('net.peers_online', { count: online }), level: online ? 'ok' : '' });
 
   const lan = ((data.network || {}).lan_neighbors || []).length;
   const fresh = ((data.network || {}).new_devices || {}).count || 0;
-  rows.push({ k: 'Appareils LAN', v: `${lan} connus · ${fresh} nouveau(x)` });
+  rows.push({ k: T('net.lan_devices'), v: T('journal.lan_known', { count: lan, fresh }) });
 
   const power = (data.health || {}).throttling;
   if (power && power.available) {
     rows.push({
-      k: 'Alimentation',
-      v: data.system.undervoltage ? 'sous-tension' : power.healthy ? 'saine depuis le boot' : power.since_boot.join(' · '),
+      k: T('health.power'),
+      v: data.system.undervoltage ? T('health.power_undervoltage') : power.healthy ? T('journal.power_ok_boot') : power.since_boot.join(' · '),
       level: data.system.undervoltage ? '' : power.healthy ? 'ok' : '',
     });
   }
@@ -108,13 +112,13 @@ function renderQuiet(data) {
   if (journal) {
     const top = (journal.by_source || [])[0];
     rows.push({
-      k: 'Erreurs journal 24 h',
-      v: journal.counted ? `${journal.counted}${top ? ` · ${top.source.replace('.service', '')}` : ''}` : 'aucune',
+      k: T('health.journal_errors'),
+      v: journal.counted ? `${journal.counted}${top ? ` · ${top.source.replace('.service', '')}` : ''}` : T('common.none'),
       level: journal.counted ? '' : 'ok',
     });
   }
   const images = (data.health || {}).images;
-  if (images) rows.push({ k: 'Images Docker', v: images.outdated ? `${images.outdated} obsolète(s)` : 'à jour', level: images.outdated ? '' : 'ok' });
+  if (images) rows.push({ k: T('health.images'), v: images.outdated ? T('health.images_outdated', { count: images.outdated }) : T('common.up_to_date'), level: images.outdated ? '' : 'ok' });
 
   const container = document.getElementById('j-quiet');
   container.replaceChildren(...rows.map(({ k, v, level }) => {
@@ -132,9 +136,9 @@ function renderServices(data) {
     if (s.availability) pcts.push(s.availability.uptime_pct);
   }
   const worst = pcts.length ? Math.min(...pcts) : null;
-  setText('j-svc-title', worst === null ? 'Les services'
-    : worst >= 100 ? 'Les services — 100 % de disponibilité sur 7 jours'
-    : `Les services — au pire ${worst} % de disponibilité sur 7 jours`);
+  setText('j-svc-title', worst === null ? T('journal.services')
+    : worst >= 100 ? T('journal.services_avail_100')
+    : T('journal.services_avail_worst', { pct: worst }));
 
   const container = document.getElementById('j-services');
   const parts = [];
@@ -154,10 +158,10 @@ function renderServices(data) {
       const bits = [];
       if (service.description) bits.push(service.description);
       if (service.cpu_percent !== null && service.cpu_percent !== undefined) bits.push(`CPU ${service.cpu_percent} %`);
-      if (service.availability && service.availability.uptime_pct < 100) bits.push(`${service.availability.uptime_pct} % sur 7 j`);
+      if (service.availability && service.availability.uptime_pct < 100) bits.push(T('svc.availability_7d', { pct: service.availability.uptime_pct }));
       line.appendChild(el('span', 'd', bits.join(' · ')));
 
-      line.appendChild(el('span', 'a', service.uptime ? `démarré il y a ${service.uptime}` : ''));
+      line.appendChild(el('span', 'a', service.uptime ? T('svc.started_ago', { uptime: service.uptime }) : ''));
       parts.push(line);
     }
   }
@@ -166,9 +170,9 @@ function renderServices(data) {
 
 function render(data) {
   setText('j-hostname', data.system.hostname);
-  setText('j-date', new Date().toLocaleDateString('fr-FR', {
+  setText('j-date', new Date().toLocaleDateString(document.documentElement.lang, {
     weekday: 'long', day: 'numeric', month: 'long',
-  }) + ', ' + new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }));
+  }) + ', ' + new Date().toLocaleTimeString(document.documentElement.lang, { hour: '2-digit', minute: '2-digit' }));
   renderVerdict(data);
   renderStory(data);
   renderAttention(data);

@@ -14,7 +14,7 @@ import time
 from pathlib import Path
 
 CATEGORIES = frozenset(
-    {"ordinateur", "téléphone", "domotique", "iot", "réseau", "multimédia", "autre"}
+    {"computer", "phone", "homeautomation", "iot", "network", "media", "other"}
 )
 
 _MAC = re.compile(r"^[0-9a-f]{2}(:[0-9a-f]{2}){5}$")
@@ -89,12 +89,12 @@ def display_name(device: dict, vendor: str | None) -> tuple[str, str]:
     """Le meilleur nom disponible et sa source. Le nom manuel gagne toujours ; à défaut le
     mDNS (l'appareil se nomme lui-même) ; à défaut le fabricant ; sinon la MAC brute."""
     if device.get("name"):
-        return device["name"], "manuel"
+        return device["name"], "manual"
     if device.get("mdns_name"):
         return device["mdns_name"], "mdns"
     if vendor:
-        return vendor, "fabricant"
-    return device["mac"], "inconnu"
+        return vendor, "vendor"
+    return device["mac"], "unknown"
 
 
 def update_meta(path: Path, mac: str, fields: dict) -> bool:

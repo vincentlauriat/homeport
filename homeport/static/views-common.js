@@ -39,10 +39,10 @@ window.RaspViews = (() => {
   const verdict = (data) => {
     const s = data.summary;
     const alerts = ((data.health || {}).alerts || []).length;
-    if (s.down) return { level: 'down', text: `${s.down} service${s.down > 1 ? 's' : ''} en panne.` };
-    if (s.warn) return { level: 'warn', text: `${s.warn} service${s.warn > 1 ? 's' : ''} dégradé${s.warn > 1 ? 's' : ''}.` };
-    if (alerts) return { level: 'warn', text: 'Presque tout va bien.' };
-    return { level: 'up', text: 'Tout va bien.' };
+    if (s.down) return { level: 'down', text: Tn('journal.verdict_down', s.down) };
+    if (s.warn) return { level: 'warn', text: Tn('journal.verdict_warn', s.warn) };
+    if (alerts) return { level: 'warn', text: T('journal.verdict_almost') };
+    return { level: 'up', text: T('journal.verdict_ok') };
   };
 
   // Âge de la sauvegarde la plus récente (SSD/SD), en texte court — les deux vues denses
@@ -60,9 +60,9 @@ window.RaspViews = (() => {
         const response = await fetch('/api/status', { cache: 'no-store' });
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         render(await response.json());
-        if (stamp) stamp.textContent = `actualisé à ${new Date().toLocaleTimeString('fr-FR')}`;
+        if (stamp) stamp.textContent = T('common.refreshed_at', { time: new Date().toLocaleTimeString() });
       } catch (error) {
-        if (stamp) stamp.textContent = `hors ligne — dernière vue conservée (${error.message})`;
+        if (stamp) stamp.textContent = T('common.offline_kept', { error: error.message });
       }
     };
     const refreshHistory = async () => {

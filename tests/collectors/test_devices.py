@@ -64,10 +64,10 @@ def test_update_meta_champs_filtres(db: Path):
 
 def test_display_name_priorites():
     base = {"name": None, "mdns_name": None, "mac": "9c:a2:f4:af:b4:f4"}
-    assert devices.display_name({**base, "name": "Routeur"}, "TP-Link") == ("Routeur", "manuel")
+    assert devices.display_name({**base, "name": "Routeur"}, "TP-Link") == ("Routeur", "manual")
     assert devices.display_name({**base, "mdns_name": "deco"}, "TP-Link") == ("deco", "mdns")
-    assert devices.display_name(base, "TP-Link") == ("TP-Link", "fabricant")
-    assert devices.display_name(base, None) == ("9c:a2:f4:af:b4:f4", "inconnu")
+    assert devices.display_name(base, "TP-Link") == ("TP-Link", "vendor")
+    assert devices.display_name(base, None) == ("9c:a2:f4:af:b4:f4", "unknown")
 
 
 def test_list_trie_par_derniere_activite(db: Path):

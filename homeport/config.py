@@ -127,6 +127,15 @@ DEFAULT_INTERVALS = {
     "public_ip": 3600,
 }
 DEFAULT_HISTORY_RETENTION_DAYS = 7
+DEFAULT_LANGUAGE = "en"
+
+
+def load_language(path: Path | None = None) -> str:
+    """Clé `language:` au sommet du fichier de config, surchargeable par HOMEPORT_LANG."""
+    override = os.environ.get("HOMEPORT_LANG")
+    if override:
+        return override
+    return _read_yaml(path or CONFIG_PATH).get("language") or DEFAULT_LANGUAGE
 
 
 def load_health(path: Path | None = None) -> dict:

@@ -11,7 +11,8 @@ from __future__ import annotations
 import math
 import time
 
-from . import status as status_module
+from . import i18n
+from . import config as cfg
 _START = 1_700_000_000  # époque fictive stable pour les séries déterministes
 
 
@@ -69,7 +70,7 @@ async def build(hostname: str) -> dict:
             "icon": icon,
             "description": desc,
             "state": state,
-            "state_label": status_module.STATE_LABELS[state],
+            "state_label": i18n.t(f"state.{state}", cfg.load_language()),
             "sources": sources,
             "extra": [],
             "uptime": f"{2 + i % 5} days" if docker else "",

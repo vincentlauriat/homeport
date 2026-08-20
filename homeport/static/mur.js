@@ -6,8 +6,8 @@ const { setText, drawSpark, verdict, backupAge, startPolling } = window.RaspView
 // Horloge locale — indépendante du sondage : elle bat même si le Pi ne répond plus.
 function tickClock() {
   const now = new Date();
-  setText('w-clock', now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }));
-  setText('w-date', now.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }));
+  setText('w-clock', now.toLocaleTimeString(document.documentElement.lang, { hour: '2-digit', minute: '2-digit' }));
+  setText('w-date', now.toLocaleDateString(document.documentElement.lang, { weekday: 'long', day: 'numeric', month: 'long' }));
 }
 tickClock();
 setInterval(tickClock, 10000);
@@ -46,15 +46,15 @@ function render(data) {
   }
   const worst = availAll.length ? Math.min(...availAll) : null;
   setCell('w-services', `${s.up}`, `/ ${s.total}`,
-    worst === null ? '' : `${worst >= 100 ? '100' : `au pire ${worst}`} % de disponibilité sur 7 jours`,
+    worst === null ? '' : (worst >= 100 ? T('wall.avail_100') : T('wall.avail_worst', { pct: worst })),
     s.down ? 'down' : s.warn ? 'warn' : 'ok');
 
   const wan = data.wan;
   if (wan) {
     setCell('w-internet',
-      wan.online === null ? '—' : wan.online ? `${wan.latency_ms}` : 'coupé',
+      wan.online === null ? '—' : wan.online ? `${wan.latency_ms}` : T('net.offline'),
       wan.online ? 'ms' : '',
-      wan.outages_24h ? `${wan.outages_24h} coupure(s) sur 24 h` : 'aucune coupure sur 24 h',
+      wan.outages_24h ? Tn('net.outages_detail', wan.outages_24h) : T('net.no_outage'),
       wan.online ? 'ok' : wan.online === false ? 'down' : '');
   }
 
@@ -67,8 +67,8 @@ function render(data) {
 
   const apt = (data.health || {}).apt;
   if (apt) {
-    setCell('w-updates', `${apt.security}`, 'sécu',
-      apt.total ? `${apt.total} paquet(s) à mettre à jour au total` : 'système à jour',
+    setCell('w-updates', `${apt.security}`, T('wall.updates_security'),
+      apt.total ? T('wall.updates_total', { count: apt.total }) : T('wall.updates_none'),
       apt.security ? 'warn' : 'ok');
   }
 
@@ -77,25 +77,25 @@ function render(data) {
   const fresh = (net.new_devices || {}).count || 0;
   const peersOnline = (net.tailscale_peers || []).filter((p) => p.online).length;
   setCell('w-lan', `${lan}`, '',
-    `appareils · ${fresh} nouveau(x) · ${peersOnline} pair(s) Tailscale`,
+    T('wall.lan_detail', { fresh, peers: peersOnline }),
     fresh ? 'warn' : '');
 
   // Pied : détails machine en petit.
   const sys = data.system;
   const nvme = data.nvme;
-  const wear = nvme && nvme.percent_used !== null && nvme.percent_used !== undefined ? ` · usure ${nvme.percent_used} %` : '';
-  setText('wf-ssd', sys.storage_temperature_c === null ? '' : `SSD ${sys.storage_temperature_c} °C${wear}`);
-  setText('wf-mem', `mémoire ${sys.memory.percent} %`);
+  const wear = nvme && nvme.percent_used !== null && nvme.percent_used !== undefined ? ' · ' + T('wall.ssd_wear', { pct: nvme.percent_used }) : '';
+  setText('wf-ssd', sys.storage_temperature_c === null ? '' : T('wall.ssd', { temp: sys.storage_temperature_c }) + wear);
+  setText('wf-mem', T('wall.mem', { pct: sys.memory.percent }));
   const power = (data.health || {}).throttling;
-  setText('wf-power', sys.undervoltage ? 'alimentation : sous-tension'
-    : power && power.available ? `alimentation ${power.healthy ? 'saine' : 'incident'}` : '');
-  setText('wf-ip', data.public_ip ? `IP publique ${data.public_ip.ip}` : '');
+  setText('wf-power', sys.undervoltage ? T('wall.power_undervoltage')
+    : power && power.available ? T('wall.power', { state: T(power.healthy ? 'health.power_ok' : 'health.power_incident') }) : '');
+  setText('wf-ip', data.public_ip ? T('wall.public_ip', { ip: data.public_ip.ip }) : '');
 
   // Le pied CPU de la cellule sparkline vient du statut, la courbe de /api/history.
   const cpuFoot = document.querySelector('#w-cpu .foot');
   if (cpuFoot) {
     const temp = sys.temperature_c === null ? '' : ` · ${sys.temperature_c} °C`;
-    cpuFoot.textContent = `${sys.load.percent} %${window.__cpuPeak !== undefined ? ` · pic ${window.__cpuPeak} %` : ''}${temp}`;
+    cpuFoot.textContent = `${sys.load.percent} %${window.__cpuPeak !== undefined ? ' · ' + T('wall.peak', { pct: window.__cpuPeak }) : ''}${temp}`;
   }
 }
 

@@ -66,10 +66,13 @@ def collect(entries: list[dict]) -> list[dict]:
 
 
 def _humanize(age_days: float) -> str:
+    from .. import i18n
+    from .. import config as cfg
+    lang = cfg.load_language()
     if age_days < 1 / 24:
-        return "à l'instant"
+        return i18n.t("age.just_now", lang)
     if age_days < 1:
-        return f"il y a {int(age_days * 24)} h"
+        return i18n.t("age.hours", lang, count=int(age_days * 24))
     if age_days < 2:
         return "hier"
-    return f"il y a {int(age_days)} j"
+    return i18n.t("age.days", lang, count=int(age_days))

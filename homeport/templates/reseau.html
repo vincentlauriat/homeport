@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="fr" data-theme="auto">
+<html lang="{{ lang }}" data-theme="auto">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light dark">
-  <title>Réseau — Homeport</title>
+  <title>{{ t("reseau.title") }} — Homeport</title>
   <link rel="stylesheet" href="/static/style.css">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚓</text></svg>">
   <link rel="manifest" href="/static/manifest.json">
@@ -18,30 +18,30 @@
     <div class="identity">
       <span class="berry">⚓</span>
       <div>
-        <h1><a class="back-link" href="/">homeserver</a> · Réseau</h1>
-        <p class="sub" id="net-summary">chargement…</p>
+        <h1><a class="back-link" href="/">Homeport</a> · {{ t("reseau.title") }}</h1>
+        <p class="sub" id="net-summary">{{ t("common.loading") }}</p>
       </div>
     </div>
   </header>
 
   <section id="new-devices" class="net-new" hidden>
-    <h2>Nouveaux appareils</h2>
+    <h2>{{ t("reseau.new_devices") }}</h2>
     <div id="new-list" class="net-list"></div>
   </section>
 
   <section class="net-toolbar">
-    <input id="search" type="search" placeholder="nom, IP, MAC, fabricant…" autocomplete="off">
+    <input id="search" type="search" placeholder="{{ t("reseau.search_placeholder") }}" autocomplete="off">
     <div id="filters" class="net-filters">
-      <button data-filter="all" class="active">Tous</button>
-      <button data-filter="online">En ligne</button>
-      <button data-filter="new">Nouveaux</button>
+      <button data-filter="all" class="active">{{ t("reseau.filter_all") }}</button>
+      <button data-filter="online">{{ t("reseau.filter_online") }}</button>
+      <button data-filter="new">{{ t("reseau.filter_new") }}</button>
     </div>
   </section>
 
   <section id="devices" class="net-list"></section>
 
   <section class="net-peers">
-    <h2>Pairs Tailscale</h2>
+    <h2>{{ t("reseau.peers") }}</h2>
     <div id="peers" class="peer-list"></div>
   </section>
 
@@ -49,6 +49,8 @@
     <span>Homeport v{{ version }}</span>
     <span id="refreshed"></span>
   </footer>
+  <script>window.HOMEPORT_I18N = {{ i18n_json|safe }};</script>
+  <script src="/static/i18n.js"></script>
   <script src="/static/reseau.js"></script>
 </body>
 </html>

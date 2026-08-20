@@ -6,7 +6,7 @@ import asyncio
 import sqlite3
 import time
 
-from . import background
+from . import background, i18n
 from . import config as cfg
 from .collectors import cron, devices, docker_api, nvme, oui, probes, system, wan
 from .collectors import systemd as systemd_collector
@@ -15,7 +15,8 @@ from .links import build_url
 # États possibles, du meilleur au pire.
 UP, WARN, DOWN, UNKNOWN = "up", "warn", "down", "unknown"
 
-STATE_LABELS = {UP: "Actif", WARN: "Dégradé", DOWN: "Arrêté", UNKNOWN: "Inconnu"}
+def state_label(state: str, lang: str) -> str:
+    return i18n.t(f"state.{state}", lang)
 
 _CACHE_TTL = 3.0
 _cache: dict = {}
@@ -113,6 +114,7 @@ async def _snapshot() -> dict:
     availability_raw = background.snapshot().get("availability")
     availability = (availability_raw or {}).get("data") or {}
     cron_jobs = cron.collect()
+    lang = cfg.load_language()
     ssh_sessions = _ssh_sessions()
     container_cpu = _container_cpu()
 
@@ -136,7 +138,7 @@ async def _snapshot() -> dict:
                     "icon": service.icon,
                     "description": service.description,
                     "state": state,
-                    "state_label": STATE_LABELS[state],
+                    "state_label": state_label(state, lang),
                     "sources": _source_rows(container, unit, probe_state, service),
                     "extra": _extra_info(service, containers, unit, network_data, cron_jobs, ssh_sessions),
                     "uptime": (container or {}).get("uptime", ""),
@@ -176,6 +178,7 @@ async def _snapshot() -> dict:
 def _health() -> dict:
     """Assemble les mesures de fond en une section prête à afficher."""
     raw = background.snapshot()
+    lang = cfg.load_language()
 
     def value(key):
         entry = raw.get(key)
@@ -194,24 +197,24 @@ def _health() -> dict:
     alerts = []
     for backup in backups:
         if backup["state"] == "never":
-            alerts.append({"level": "down", "text": f"{backup['name']} : aucune sauvegarde"})
+            alerts.append({"level": "down", "text": i18n.t("alert.backup_never", lang, name=backup["name"])})
         elif backup["state"] == "warn":
-            alerts.append({"level": "warn", "text": f"{backup['name']} : sauvegarde {backup['detail']}"})
+            alerts.append({"level": "warn", "text": i18n.t("alert.backup_stale", lang, name=backup["name"], detail=backup["detail"])})
     if apt and apt.get("security"):
-        alerts.append({"level": "warn", "text": f"{apt['security']} mise(s) à jour de sécurité en attente"})
+        alerts.append({"level": "warn", "text": i18n.t("alert.apt_security", lang, count=apt["security"])})
     if apt and (age := apt.get("lists_age_days")) is not None and age > 14:
         # Un compteur calculé sur des listes périmées annonce un chiffre faux.
-        alerts.append({"level": "warn", "text": f"listes APT vieilles de {age:.0f} j — le compte de paquets est peut-être obsolète"})
+        alerts.append({"level": "warn", "text": i18n.t("alert.apt_lists", lang, count=f"{age:.0f}")})
     if throttling and throttling.get("available"):
         # Le passé compte autant que le présent : une sous-tension de trente secondes cette
         # nuit n'apparaît nulle part ailleurs et menace la carte SD.
         for label in throttling["now"]:
-            alerts.append({"level": "down", "text": f"maintenant : {label}"})
+            alerts.append({"level": "down", "text": i18n.t("alert.throttle_now", lang, label=label)})
         for label in throttling["since_boot"]:
-            alerts.append({"level": "warn", "text": f"depuis le démarrage : {label}"})
+            alerts.append({"level": "warn", "text": i18n.t("alert.throttle_boot", lang, label=label)})
     if images and images.get("outdated"):
         names = ", ".join(i["image"] for i in images["images"] if i["state"] == "outdated")
-        alerts.append({"level": "warn", "text": f"image(s) Docker à mettre à jour : {names}"})
+        alerts.append({"level": "warn", "text": i18n.t("alert.images", lang, names=names)})
 
     return {
         "backups": backups,
@@ -280,13 +283,13 @@ def _source_rows(container: dict | None, unit: dict | None, probe_state: str, se
     rows = []
     if service.docker:
         ok = bool(container) and container.get("state") == "running"
-        rows.append({"label": "docker", "value": container["state"] if container else "absent", "ok": ok})
+        rows.append({"label": "docker", "value": container["state"] if container else i18n.t("source.absent", cfg.load_language()), "ok": ok})
     if service.systemd:
         ok = bool(unit) and unit.get("active_state") == "active"
-        rows.append({"label": "systemd", "value": unit["active_state"] if unit else "inconnue", "ok": ok})
+        rows.append({"label": "systemd", "value": unit["active_state"] if unit else i18n.t("source.unknown", cfg.load_language()), "ok": ok})
     if service.probe:
         ok = probe_state == UP
-        rows.append({"label": f"port {service.probe.port}", "value": "répond" if ok else "muet", "ok": ok})
+        rows.append({"label": f"port {service.probe.port}", "value": i18n.t("source.answers" if ok else "source.silent", cfg.load_language()), "ok": ok})
     return rows
 
 

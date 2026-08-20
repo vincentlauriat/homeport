@@ -23,7 +23,7 @@ function renderPills(data) {
 
   const wan = data.wan;
   setPill('p-internet', !wan || wan.online === null ? '—'
-    : wan.online ? `${wan.latency_ms} ms` : 'coupé',
+    : wan.online ? `${wan.latency_ms} ms` : T('net.offline'),
     !wan || wan.online === null ? '' : wan.online ? 'up' : 'down');
 
   const age = backupAge(data.health);
@@ -77,31 +77,31 @@ function renderHealth(data) {
   const rows = [];
   for (const backup of h.backups || []) {
     rows.push({
-      k: `Sauvegarde ${backup.name}`,
-      v: backup.state === 'never' ? 'jamais' : backup.detail,
+      k: T('health.backup', { name: backup.name }),
+      v: backup.state === 'never' ? T('common.never') : backup.detail,
       level: backup.state === 'never' ? 'down' : backup.state === 'warn' ? 'warn' : 'ok',
     });
   }
   if (h.apt) {
     rows.push({
-      k: 'Paquets APT',
-      v: h.apt.total ? `${h.apt.total} · ${h.apt.security} sécu` : 'à jour',
+      k: T('health.apt'),
+      v: h.apt.total ? T('health.apt_detail', { total: h.apt.total, security: h.apt.security }) : T('common.up_to_date'),
       level: h.apt.security ? 'warn' : 'ok',
     });
   }
   if (h.images) {
-    rows.push({ k: 'Images Docker', v: h.images.outdated ? `${h.images.outdated} obsolète(s)` : 'à jour', level: h.images.outdated ? 'warn' : 'ok' });
+    rows.push({ k: T('health.images'), v: h.images.outdated ? T('health.images_outdated', { count: h.images.outdated }) : T('common.up_to_date'), level: h.images.outdated ? 'warn' : 'ok' });
   }
   const power = h.throttling;
   if (power && power.available) {
     rows.push({
-      k: 'Alimentation',
-      v: data.system.undervoltage ? 'sous-tension' : power.healthy ? 'saine' : power.since_boot.join(' · '),
+      k: T('health.power'),
+      v: data.system.undervoltage ? T('health.power_undervoltage') : power.healthy ? T('health.power_ok') : power.since_boot.join(' · '),
       level: data.system.undervoltage ? 'down' : power.healthy ? 'ok' : 'warn',
     });
   }
   if (h.journal) {
-    rows.push({ k: 'Erreurs journal 24 h', v: `${h.journal.counted}`, level: h.journal.counted ? '' : 'ok' });
+    rows.push({ k: T('health.journal_errors'), v: `${h.journal.counted}`, level: h.journal.counted ? '' : 'ok' });
   }
   renderKv('c-health', rows);
 }
@@ -110,15 +110,15 @@ function renderNetwork(data) {
   const rows = [];
   const wan = data.wan;
   if (wan) {
-    const ip = data.public_ip ? ` · IP ${data.public_ip.ip}` : '';
+    const ip = data.public_ip ? ' · ' + T('net.ip', { ip: data.public_ip.ip }) : '';
     rows.push({
-      k: 'Internet',
-      v: wan.online === null ? '—' : wan.online ? `en ligne · ${wan.latency_ms} ms${ip}` : 'coupé',
+      k: T('net.internet'),
+      v: wan.online === null ? '—' : wan.online ? T('net.online_latency', { latency: wan.latency_ms }) + ip : T('net.offline'),
       level: wan.online ? 'ok' : wan.online === false ? 'down' : '',
     });
     rows.push({
-      k: 'Coupures 24 h',
-      v: wan.outages_24h ? `${wan.outages_24h} · dernière ${wan.last_outage_minutes} min` : 'aucune',
+      k: T('net.outages_24h'),
+      v: wan.outages_24h ? `${wan.outages_24h} · ` + T('net.last_outage', { count: wan.last_outage_minutes }) : T('common.none'),
       level: wan.outages_24h ? 'warn' : 'ok',
     });
   }
@@ -126,19 +126,19 @@ function renderNetwork(data) {
   const peers = net.tailscale_peers || [];
   const online = peers.filter((p) => p.online);
   rows.push({
-    k: 'Tailscale',
-    v: online.length ? online.map((p) => p.hostname).join(' · ') : `0/${peers.length} pair(s)`,
+    k: T('net.tailscale'),
+    v: online.length ? online.map((p) => p.hostname).join(' · ') : T('net.peers_online', { count: 0 }),
     level: online.length ? 'ok' : '',
   });
   const lan = (net.lan_neighbors || []).length;
   const fresh = (net.new_devices || {}).count || 0;
-  rows.push({ k: 'Appareils LAN', v: `${lan}${fresh ? ` · ${fresh} nouveau(x)` : ''}`, level: fresh ? 'warn' : '' });
+  rows.push({ k: T('net.lan_devices'), v: `${lan}${fresh ? ' · ' + Tn('net.new', fresh) : ''}`, level: fresh ? 'warn' : '' });
   renderKv('c-network', rows);
 
   // La ligne « Appareils LAN » mène à l'inventaire — recréée à chaque cycle par renderKv.
   const last = document.querySelector('#c-network .ckv:last-child .v');
   if (last) {
-    const link = el('a', 'ctrl-link', ' inventaire ↗');
+    const link = el('a', 'ctrl-link', ' ' + T('net.inventory_link'));
     link.href = '/reseau';
     last.appendChild(link);
   }
@@ -191,7 +191,7 @@ function renderServices(groups) {
 
 function render(data) {
   setText('c-hostname', data.system.hostname);
-  setText('c-sub', `Raspberry Pi · en ligne depuis ${data.system.uptime.human}`);
+  setText('c-sub', T('hero.subtitle', { uptime: data.system.uptime.human }));
   renderPills(data);
   renderMachine(data.system, data.nvme);
   renderHealth(data);

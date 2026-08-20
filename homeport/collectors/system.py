@@ -25,6 +25,12 @@ def hostname() -> str:
     return socket.gethostname()
 
 
+def _unit(key: str) -> str:
+    from .. import i18n
+    from .. import config as cfg
+    return i18n.t(key, cfg.load_language())
+
+
 def uptime() -> dict:
     raw = _read("/proc/uptime").split()
     seconds = float(raw[0]) if raw else 0.0
@@ -33,10 +39,10 @@ def uptime() -> dict:
     minutes = rest // 60
     parts = []
     if days:
-        parts.append(f"{days} j")
+        parts.append(f"{days} {_unit('unit.days')}")
     if hours or days:
-        parts.append(f"{hours} h")
-    parts.append(f"{minutes} min")
+        parts.append(f"{hours} {_unit('unit.hours')}")
+    parts.append(f"{minutes} {_unit('unit.minutes')}")
     return {"seconds": int(seconds), "human": " ".join(parts)}
 
 

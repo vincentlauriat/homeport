@@ -51,8 +51,8 @@ function drawChart(svgId, samples, field, outages, windowStart, windowEnd) {
 
 function note(id, stats, unit) {
   document.getElementById(id).textContent = stats
-    ? `min ${stats.min.toFixed(1)} · moy ${stats.avg.toFixed(1)} · max ${stats.max.toFixed(1)} ${unit}`
-    : "pas encore assez de mesures";
+    ? T("hist.min_avg_max", { min: stats.min.toFixed(1), avg: stats.avg.toFixed(1), max: stats.max.toFixed(1), unit })
+    : T("hist.not_enough");
 }
 
 async function refresh() {
@@ -75,11 +75,11 @@ async function refresh() {
   note("hist-temp-note", drawChart("hist-temp", samples, "temp_c", outages, windowStart, now), "°C");
   note("hist-nvme-note", drawChart("hist-nvme", samples, "nvme_temp_c", outages, windowStart, now), "°C");
 
-  const label = windowHours === 24 ? "24 heures" : windowHours === 72 ? "3 jours" : "7 jours";
+  const label = T(`hist.label_${windowHours}`);
   document.getElementById("hist-summary").textContent =
-    `${samples.length} mesures sur ${label} · ${outages.length} coupure(s) Internet`;
+    T("hist.summary", { count: samples.length, label, outages: outages.length });
   document.getElementById("refreshed").textContent =
-    `actualisé ${new Date().toLocaleTimeString("fr-FR")}`;
+    T("reseau.refreshed", { time: new Date().toLocaleTimeString() });
 }
 
 document.getElementById("windows").addEventListener("click", (event) => {

@@ -51,12 +51,12 @@ def test_source_rows_marks_a_missing_container_as_not_ok():
     assert rows == [{"label": "docker", "value": "absent", "ok": False}]
 
 
-def test_source_rows_reports_a_dead_probe_as_muet_and_not_ok():
+def test_source_rows_reports_a_dead_probe_as_silent_and_not_ok():
     service = _service(probe=cfg.Probe(type="tcp", port=3000))
 
     rows = status._source_rows(None, None, status.DOWN, service)
 
-    assert rows == [{"label": "port 3000", "value": "muet", "ok": False}]
+    assert rows == [{"label": "port 3000", "value": "silent", "ok": False}]
 
 
 def test_source_rows_reports_an_inactive_systemd_unit():

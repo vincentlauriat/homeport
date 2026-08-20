@@ -7,6 +7,7 @@ Deux routes utiles :
 
 from __future__ import annotations
 
+import json
 import logging
 import os
 import sqlite3
@@ -18,7 +19,7 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from . import __version__, actions, background, demo, mqtt, status
+from . import __version__, actions, background, demo, i18n, mqtt, status
 from . import config as cfg
 from .collectors import (
     backups,
@@ -250,6 +251,16 @@ app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
 templates = Jinja2Templates(directory=BASE_DIR / "templates")
 
 
+def _i18n_context() -> dict:
+    """Contexte de rendu commun : `t` pour Jinja, le catalogue sérialisé pour le JS."""
+    lang = cfg.load_language()
+    return {
+        "t": lambda key, **variables: i18n.t(key, lang, **variables),
+        "lang": lang,
+        "i18n_json": json.dumps(i18n.catalog(lang), ensure_ascii=False),
+    }
+
+
 def _hostname(request: Request) -> str:
     """Hôte par lequel le navigateur a joint Homeport — c'est lui qui détermine les liens."""
     return request_hostname(
@@ -264,7 +275,7 @@ async def index(request: Request) -> HTMLResponse:
     return templates.TemplateResponse(
         request=request,
         name="index.html",
-        context={**data, "version": __version__},
+        context={**data, "version": __version__, **_i18n_context()},
     )
 
 
@@ -274,7 +285,7 @@ async def reseau(request: Request) -> HTMLResponse:
     index.html (rendu serveur), tout y est dynamique et éditable : le JS est la seule source
     de rendu, pas de double implémentation Jinja + JS à maintenir."""
     return templates.TemplateResponse(
-        request=request, name="reseau.html", context={"version": __version__}
+        request=request, name="reseau.html", context={"version": __version__, **_i18n_context()}
     )
 
 
@@ -440,7 +451,7 @@ async def historique(request: Request) -> HTMLResponse:
     """Courbes 7 jours (CPU/mémoire/température) avec les coupures Internet surimprimées —
     voir la corrélation, pas deux listes. Page dynamique, peuplée par /api/history."""
     return templates.TemplateResponse(
-        request=request, name="historique.html", context={"version": __version__}
+        request=request, name="historique.html", context={"version": __version__, **_i18n_context()}
     )
 
 
@@ -451,7 +462,7 @@ async def historique(request: Request) -> HTMLResponse:
 async def vue_controle(request: Request) -> HTMLResponse:
     """Vue A — salle de contrôle : dense, deux colonnes, tableau de services."""
     return templates.TemplateResponse(
-        request=request, name="controle.html", context={"version": __version__}
+        request=request, name="controle.html", context={"version": __version__, **_i18n_context()}
     )
 
 
@@ -459,7 +470,7 @@ async def vue_controle(request: Request) -> HTMLResponse:
 async def vue_journal(request: Request) -> HTMLResponse:
     """Vue B — le journal de la maison : verdict, attention, faits."""
     return templates.TemplateResponse(
-        request=request, name="journal.html", context={"version": __version__}
+        request=request, name="journal.html", context={"version": __version__, **_i18n_context()}
     )
 
 
@@ -467,7 +478,7 @@ async def vue_journal(request: Request) -> HTMLResponse:
 async def vue_mur(request: Request) -> HTMLResponse:
     """Vue C — le mur : tablette murale, chiffres géants, horloge."""
     return templates.TemplateResponse(
-        request=request, name="mur.html", context={"version": __version__}
+        request=request, name="mur.html", context={"version": __version__, **_i18n_context()}
     )
 
 

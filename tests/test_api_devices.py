@@ -31,7 +31,7 @@ def test_api_devices_fusionne_presence_et_metas(client, monkeypatch):
     device = body["devices"][0]
     assert device["online"] is True
     assert device["display_name"] == "Routeur Deco"
-    assert device["name_source"] == "manuel"
+    assert device["name_source"] == "manual"
     assert body["summary"]["total"] == 1
     assert body["summary"]["online"] == 1
 
@@ -40,12 +40,12 @@ def test_patch_nomme_un_appareil(client):
     http, db = client
     devices.upsert_seen(db, [{"ip": "1.1.1.1", "mac": "aa:bb:cc:dd:ee:ff"}], now=1000)
     response = http.patch(
-        "/api/devices/aa:bb:cc:dd:ee:ff", json={"name": "Imprimante", "category": "multimédia"}
+        "/api/devices/aa:bb:cc:dd:ee:ff", json={"name": "Imprimante", "category": "media"}
     )
     assert response.status_code == 200
     row = devices.list_devices(db)[0]
     assert row["name"] == "Imprimante"
-    assert row["category"] == "multimédia"
+    assert row["category"] == "media"
 
 
 def test_patch_acquitte(client):
@@ -91,7 +91,7 @@ def test_page_reseau_repond(client, monkeypatch):
     monkeypatch.setattr(background, "snapshot", lambda: {})
     response = http.get("/reseau")
     assert response.status_code == 200
-    assert "Réseau" in response.text
+    assert "Network" in response.text
 
 
 def test_api_outages(client, monkeypatch, tmp_path):
@@ -109,4 +109,4 @@ def test_page_historique_repond(client, monkeypatch):
     monkeypatch.setattr(background, "snapshot", lambda: {})
     response = http.get("/historique")
     assert response.status_code == 200
-    assert "Historique" in response.text
+    assert "History" in response.text
