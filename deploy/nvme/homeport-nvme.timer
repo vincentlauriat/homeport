@@ -1,0 +1,11 @@
+[Unit]
+Description=Daily NVMe SMART reading for Homeport
+
+[Timer]
+# L'usure d'un SSD bouge très lentement : un relevé par jour suffit largement.
+OnCalendar=daily
+Persistent=true
+RandomizedDelaySec=300
+
+[Install]
+WantedBy=timers.target

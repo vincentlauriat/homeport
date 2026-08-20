@@ -1,0 +1,22 @@
+# docker-socket-proxy — l'API Docker en lecture seule pour Raspweb (chantier B de la roadmap).
+#
+# Pourquoi : le groupe `docker` équivaut à root. Raspweb ne fait que des GET sur /containers ;
+# ce proxy (HAProxy) n'expose QUE cela, sur le loopback uniquement. Même un Raspweb compromis
+# ne peut ni créer, ni arrêter, ni exécuter quoi que ce soit — les POST sont refusés par le
+# proxy, pas par la bonne volonté du code.
+#
+# Installé par deploy.sh dans /mnt/ssd/socket-proxy/ et lancé par `docker compose up -d`.
+services:
+  socket-proxy:
+    image: tecnativa/docker-socket-proxy:latest
+    container_name: socket-proxy
+    restart: unless-stopped
+    ports:
+      # Loopback uniquement : rien sur le LAN ni le tailnet n'atteint cette API.
+      - "127.0.0.1:2375:2375"
+    environment:
+      # Seule la famille /containers est autorisée (état, stats, logs). Tout le reste —
+      # POST, exec, images, volumes, réseaux, swarm — reste au 0 par défaut du proxy.
+      CONTAINERS: 1
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro

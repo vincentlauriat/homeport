@@ -1,0 +1,9 @@
+# Homeport restart actions — exact-command sudo rules, no wildcards.
+# Install with: visudo -f /etc/sudoers.d/homeport   (then paste, adapted to YOUR services)
+#
+# One line per restartable service declared in /etc/homeport/services.yaml.
+# Docker containers:
+homeport ALL=(root) NOPASSWD: /usr/bin/docker restart homeassistant
+homeport ALL=(root) NOPASSWD: /usr/bin/docker restart mosquitto
+# systemd units:
+homeport ALL=(root) NOPASSWD: /usr/bin/systemctl restart avahi-daemon.service

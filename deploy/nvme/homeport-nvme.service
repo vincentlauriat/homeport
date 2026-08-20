@@ -1,0 +1,10 @@
+[Unit]
+Description=NVMe SMART reading for Homeport
+Documentation=file:///opt/homeport/homeport/collectors/nvme.py
+After=local-fs.target
+
+[Service]
+Type=oneshot
+# Root par défaut (pas de User=) : `nvme smart-log` exige les privilèges d'administration du
+# périphérique. Le service web, lui, ne fait que lire le fichier produit — voir nvme.py.
+ExecStart=/usr/local/bin/homeport-nvme.sh /var/lib/homeport/nvme.json
