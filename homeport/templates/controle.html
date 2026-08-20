@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="fr" data-theme="auto">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Contrôle — Homeport</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚓</text></svg>">
+  <link rel="manifest" href="/static/manifest.json">
+  <link rel="apple-touch-icon" href="/static/icons/icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Homeport">
+  <meta name="theme-color" content="#b8452f">
+</head>
+<body class="v-ctrl">
+  <header class="ctrl-top">
+    <span class="berry">⚓</span>
+    <div>
+      <h1 id="c-hostname">homeserver</h1>
+      <p class="sub" id="c-sub">chargement…</p>
+    </div>
+    <div class="ctrl-pills">
+      <div class="cpill" id="p-services"><b>—</b><span>services</span></div>
+      <div class="cpill" id="p-internet"><b>—</b><span>internet</span></div>
+      <div class="cpill" id="p-backup"><b>—</b><span>sauvegarde</span></div>
+      <div class="cpill" id="p-alerts"><b>—</b><span>alertes</span></div>
+      <div class="cpill" id="p-apt"><b>—</b><span>màj sécu</span></div>
+    </div>
+    <nav class="view-switch">
+      <a href="/">Classique</a>
+      <a href="/controle" class="current">Contrôle</a>
+      <a href="/journal">Journal</a>
+      <a href="/mur">Mur</a>
+    </nav>
+  </header>
+
+  <main class="ctrl-cols">
+    <div class="ctrl-left">
+      <section class="ctrl-panel">
+        <h2>Machine</h2>
+        <div class="cmetric"><span class="lbl">CPU</span><span class="bar"><i id="b-cpu"></i></span><span class="val" id="v-cpu">—</span></div>
+        <div class="cmetric"><span class="lbl">Mémoire</span><span class="bar"><i id="b-mem"></i></span><span class="val" id="v-mem">—</span></div>
+        <div class="cmetric"><span class="lbl">Temp. CPU</span><span class="bar"><i id="b-temp"></i></span><span class="val" id="v-temp">—</span></div>
+        <div class="cmetric"><span class="lbl">SSD NVMe</span><span class="bar"><i id="b-ssd"></i></span><span class="val" id="v-ssd">—</span></div>
+        <div class="cmetric" id="row-wear" hidden><span class="lbl">Usure SSD</span><span class="bar"><i id="b-wear"></i></span><span class="val" id="v-wear">—</span></div>
+        <div class="cmetric"><span class="lbl">Disque /</span><span class="bar"><i id="b-disk"></i></span><span class="val" id="v-disk">—</span></div>
+        <svg class="ctrl-spark" id="c-spark" viewBox="0 0 300 34" preserveAspectRatio="none"></svg>
+        <p class="ctrl-sparknote">CPU · 24 h — <a href="/historique">historique 7 j ↗</a></p>
+      </section>
+
+      <section class="ctrl-panel">
+        <h2>Santé</h2>
+        <div id="c-health"></div>
+      </section>
+
+      <section class="ctrl-panel">
+        <h2>Réseau</h2>
+        <div id="c-network"></div>
+      </section>
+    </div>
+
+    <section class="ctrl-panel ctrl-services" id="c-services">
+      <p class="sub">chargement…</p>
+    </section>
+  </main>
+
+  <footer>
+    <span id="refreshed">—</span>
+    <span>Homeport v{{ version }}</span>
+  </footer>
+
+  <script src="/static/views-common.js"></script>
+  <script src="/static/controle.js"></script>
+</body>
+</html>

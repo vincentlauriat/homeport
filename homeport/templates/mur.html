@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="fr" data-theme="auto">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Mur — Homeport</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚓</text></svg>">
+  <link rel="manifest" href="/static/manifest.json">
+  <link rel="apple-touch-icon" href="/static/icons/icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Homeport">
+  <meta name="theme-color" content="#b8452f">
+</head>
+<body class="v-wall">
+  <header class="wall-head">
+    <span class="wall-clock" id="w-clock">—:—</span>
+    <span class="wall-date" id="w-date">—</span>
+    <span class="wall-state" id="w-state"><span class="wall-halo" id="w-halo"></span><span id="w-state-text">…</span></span>
+    <nav class="view-switch">
+      <a href="/">Classique</a>
+      <a href="/controle">Contrôle</a>
+      <a href="/journal">Journal</a>
+      <a href="/mur" class="current">Mur</a>
+    </nav>
+  </header>
+
+  <main class="wall-grid">
+    <div class="wall-cell" id="w-services">
+      <span class="t">Services</span>
+      <span class="big">—</span>
+      <span class="foot">—</span>
+    </div>
+    <div class="wall-cell" id="w-internet">
+      <span class="t">Internet</span>
+      <span class="big">—</span>
+      <span class="foot">—</span>
+    </div>
+    <div class="wall-cell" id="w-backup">
+      <span class="t">Sauvegarde</span>
+      <span class="big">—</span>
+      <span class="foot">—</span>
+    </div>
+    <div class="wall-cell" id="w-cpu">
+      <span class="t">CPU · 24 h</span>
+      <svg class="wall-spark" id="w-spark" viewBox="0 0 300 44" preserveAspectRatio="none"></svg>
+      <span class="foot">—</span>
+    </div>
+    <div class="wall-cell" id="w-updates">
+      <span class="t">Mises à jour</span>
+      <span class="big">—</span>
+      <span class="foot">—</span>
+    </div>
+    <div class="wall-cell" id="w-lan">
+      <span class="t">Réseau local</span>
+      <span class="big">—</span>
+      <span class="foot">—</span>
+    </div>
+  </main>
+
+  <footer class="wall-foot" id="w-foot">
+    <span id="wf-ssd">—</span>
+    <span id="wf-mem">—</span>
+    <span id="wf-power">—</span>
+    <span id="wf-ip">—</span>
+    <span class="wall-brand">⚓ <span id="w-hostname">homeserver</span> · v{{ version }}</span>
+  </footer>
+
+  <script src="/static/views-common.js"></script>
+  <script src="/static/mur.js"></script>
+</body>
+</html>

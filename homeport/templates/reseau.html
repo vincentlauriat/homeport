@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="fr" data-theme="auto">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Réseau — Homeport</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚓</text></svg>">
+  <link rel="manifest" href="/static/manifest.json">
+  <link rel="apple-touch-icon" href="/static/icons/icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Homeport">
+  <meta name="theme-color" content="#b8452f">
+</head>
+<body>
+  <header class="topbar">
+    <div class="identity">
+      <span class="berry">⚓</span>
+      <div>
+        <h1><a class="back-link" href="/">homeserver</a> · Réseau</h1>
+        <p class="sub" id="net-summary">chargement…</p>
+      </div>
+    </div>
+  </header>
+
+  <section id="new-devices" class="net-new" hidden>
+    <h2>Nouveaux appareils</h2>
+    <div id="new-list" class="net-list"></div>
+  </section>
+
+  <section class="net-toolbar">
+    <input id="search" type="search" placeholder="nom, IP, MAC, fabricant…" autocomplete="off">
+    <div id="filters" class="net-filters">
+      <button data-filter="all" class="active">Tous</button>
+      <button data-filter="online">En ligne</button>
+      <button data-filter="new">Nouveaux</button>
+    </div>
+  </section>
+
+  <section id="devices" class="net-list"></section>
+
+  <section class="net-peers">
+    <h2>Pairs Tailscale</h2>
+    <div id="peers" class="peer-list"></div>
+  </section>
+
+  <footer class="footer">
+    <span>Homeport v{{ version }}</span>
+    <span id="refreshed"></span>
+  </footer>
+  <script src="/static/reseau.js"></script>
+</body>
+</html>

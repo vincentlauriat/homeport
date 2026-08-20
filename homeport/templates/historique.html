@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="fr" data-theme="auto">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Historique — Homeport</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚓</text></svg>">
+  <link rel="manifest" href="/static/manifest.json">
+  <meta name="theme-color" content="#b8452f">
+</head>
+<body>
+  <header class="topbar">
+    <div class="identity">
+      <span class="berry">⚓</span>
+      <div>
+        <h1><a class="back-link" href="/">homeserver</a> · Historique</h1>
+        <p class="sub" id="hist-summary">chargement…</p>
+      </div>
+    </div>
+    <div class="net-filters" id="windows">
+      <button data-hours="24" class="active">24 h</button>
+      <button data-hours="72">3 j</button>
+      <button data-hours="168">7 j</button>
+    </div>
+  </header>
+
+  <section class="hist-charts">
+    <div class="hist-card">
+      <span class="health-label">CPU %</span>
+      <svg class="hist-chart" id="hist-cpu" viewBox="0 0 600 140" preserveAspectRatio="none"></svg>
+      <span class="health-note" id="hist-cpu-note"></span>
+    </div>
+    <div class="hist-card">
+      <span class="health-label">Mémoire %</span>
+      <svg class="hist-chart" id="hist-mem" viewBox="0 0 600 140" preserveAspectRatio="none"></svg>
+      <span class="health-note" id="hist-mem-note"></span>
+    </div>
+    <div class="hist-card">
+      <span class="health-label">Température CPU °C</span>
+      <svg class="hist-chart" id="hist-temp" viewBox="0 0 600 140" preserveAspectRatio="none"></svg>
+      <span class="health-note" id="hist-temp-note"></span>
+    </div>
+    <div class="hist-card">
+      <span class="health-label">Température SSD °C</span>
+      <svg class="hist-chart" id="hist-nvme" viewBox="0 0 600 140" preserveAspectRatio="none"></svg>
+      <span class="health-note" id="hist-nvme-note"></span>
+    </div>
+  </section>
+
+  <p class="health-note hist-legend">Les bandes rouges marquent les coupures Internet constatées
+  (sonde 60 s). Un point de mesure toutes les 5 minutes, rétention 7 jours.</p>
+
+  <footer class="footer">
+    <span>Homeport v{{ version }}</span>
+    <span id="refreshed"></span>
+  </footer>
+  <script src="/static/historique.js"></script>
+</body>
+</html>

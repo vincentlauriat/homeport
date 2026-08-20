@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="fr" data-theme="auto">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>{{ system.hostname }} — Homeport</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚓</text></svg>">
+  <link rel="manifest" href="/static/manifest.json">
+  <link rel="apple-touch-icon" href="/static/icons/icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Homeport">
+  <meta name="theme-color" content="#b8452f">
+</head>
+<body>
+  <header class="topbar">
+    <div class="identity">
+      <span class="berry">⚓</span>
+      <div>
+        <h1>{{ system.hostname }}</h1>
+        <p class="sub">Raspberry Pi · en ligne depuis {{ system.uptime.human }}</p>
+      </div>
+    </div>
+    <div class="summary" id="summary">
+      <span class="pill pill-up"><b id="count-up">{{ summary.up }}</b> actifs</span>
+      {% if summary.warn %}<span class="pill pill-warn"><b id="count-warn">{{ summary.warn }}</b> dégradés</span>{% endif %}
+      {% if summary.down %}<span class="pill pill-down"><b id="count-down">{{ summary.down }}</b> arrêtés</span>{% endif %}
+    </div>
+    <nav class="view-switch">
+      <a href="/" class="current">Classique</a>
+      <a href="/controle">Contrôle</a>
+      <a href="/journal">Journal</a>
+      <a href="/mur">Mur</a>
+    </nav>
+  </header>
+
+  <section class="metrics" id="metrics">
+    <div class="metric">
+      <span class="metric-label">Charge CPU</span>
+      <span class="metric-value" id="m-cpu">{{ system.load.percent }} %</span>
+      <div class="bar"><i style="width: {{ system.load.percent }}%"></i></div>
+      <span class="metric-note">{{ system.load.avg1 }} / {{ system.load.cores }} cœurs</span>
+    </div>
+    <div class="metric">
+      <span class="metric-label">Mémoire</span>
+      <span class="metric-value" id="m-mem">{{ system.memory.percent }} %</span>
+      <div class="bar"><i style="width: {{ system.memory.percent }}%"></i></div>
+      <span class="metric-note">{{ system.memory.used_mb }} / {{ system.memory.total_mb }} Mio</span>
+    </div>
+    <div class="metric">
+      <span class="metric-label">Température</span>
+      <span class="metric-value" id="m-temp">{{ system.temperature_c or "—" }} °C</span>
+      <div class="bar"><i style="width: {{ ((system.temperature_c or 0) / 85 * 100) | round(1) }}%"></i></div>
+      <span class="metric-note">seuil de throttling 85 °C</span>
+    </div>
+    {% if system.storage_temperature_c is not none %}
+    <div class="metric">
+      <span class="metric-label">SSD NVMe</span>
+      <span class="metric-value" id="m-nvme">{{ system.storage_temperature_c }} °C</span>
+      <div class="bar"><i style="width: {{ (system.storage_temperature_c / 70 * 100) | round(1) }}%"></i></div>
+      <span class="metric-note">
+        {%- if system.fan_rpm %}ventilateur {{ system.fan_rpm }} tr/min{% else %}température du disque{% endif %}
+      </span>
+    </div>
+    {% endif %}
+    {% if nvme and nvme.percent_used is not none %}
+    <div class="metric" id="metric-wear">
+      <span class="metric-label">Usure SSD</span>
+      <span class="metric-value" id="m-wear">{{ nvme.percent_used }} %</span>
+      <div class="bar"><i style="width: {{ nvme.percent_used }}%"></i></div>
+      <span class="metric-note" id="m-wear-note">
+        {%- if nvme.written_gb is not none %}{{ nvme.written_gb }} Go écrits{% endif %}
+        {%- if nvme.power_on_hours is not none %} · {{ nvme.power_on_hours }} h{% endif %}
+      </span>
+    </div>
+    {% endif %}
+    {% for disk in system.disks %}
+    <div class="metric">
+      <span class="metric-label">Disque {{ disk.mount }}</span>
+      <span class="metric-value">{{ disk.percent }} %</span>
+      <div class="bar"><i style="width: {{ disk.percent }}%"></i></div>
+      <span class="metric-note">{{ disk.used_gb }} / {{ disk.total_gb }} Gio</span>
+    </div>
+    {% endfor %}
+  </section>
+
+  {% if not docker_available %}
+  <p class="banner">Le socket Docker n'est pas joignable — l'état des conteneurs est indisponible.
+     Vérifie que l'utilisateur du service appartient au groupe <code>docker</code>.</p>
+  {% endif %}
+
+  {% if health.alerts %}
+  <section class="alerts" id="alerts">
+    {% for alert in health.alerts %}
+    <p class="alert alert-{{ alert.level }}">{{ alert.text }}</p>
+    {% endfor %}
+  </section>
+  {% else %}
+  <section class="alerts" id="alerts" hidden></section>
+  {% endif %}
+
+  <section class="health" id="health">
+    {% for backup in health.backups %}
+    <div class="health-card state-{{ 'down' if backup.state == 'never' else ('warn' if backup.state == 'warn' else 'up') }}"
+         data-health="backup-{{ backup.id }}">
+      <span class="health-label">Sauvegarde — {{ backup.name }}</span>
+      <span class="health-value">{{ "jamais" if backup.state == "never" else backup.detail }}</span>
+      <span class="health-note">
+        {% if backup.state == "never" %}{{ backup.path }}{% else %}{{ backup.file | replace('homeserver-config-', '') | replace('.tar.gz', '') }} · {{ backup.size_mb }} Mio{% endif %}
+      </span>
+    </div>
+    {% endfor %}
+
+    <div class="health-card {{ 'state-up' if offsite and offsite.status == 'ok' and offsite.age_hours is not none and offsite.age_hours < 48 else ('state-down' if offsite and offsite.status == 'error' else ('state-warn' if offsite else '')) }}"
+         data-health="offsite" {{ 'hidden' if not offsite }}>
+      <span class="health-label">Sauvegarde — hors-site</span>
+      <span class="health-value" id="offsite-value">
+        {%- if not offsite %}—
+        {%- elif offsite.age_hours is not none %}il y a {{ offsite.age_hours }} h
+        {%- else %}en attente{% endif -%}
+      </span>
+      <span class="health-note" id="offsite-note">
+        {%- if offsite and offsite.snapshots %}{{ offsite.snapshots }} snapshot(s) sur offsite
+          {%- if offsite.verified_ok %} · restauration vérifiée{% endif %}
+        {%- elif offsite %}{{ offsite.message }}{% endif -%}
+      </span>
+    </div>
+
+    <div class="health-card {{ 'state-warn' if health.apt and health.apt.security else ('state-up' if health.apt and not health.apt.total else '') }}"
+         data-health="apt">
+      <span class="health-label">Paquets APT</span>
+      <span class="health-value" id="h-apt">
+        {% if health.apt is none %}—{% else %}{{ health.apt.total }} à mettre à jour{% endif %}
+      </span>
+      <span class="health-note" id="h-apt-note">
+        {% if health.apt is none %}pas encore mesuré
+        {% else %}{{ health.apt.security }} de sécurité
+          {%- if health.apt.lists_age_days is not none %} · listes vieilles de {{ health.apt.lists_age_days }} j{% endif %}
+        {% endif %}
+      </span>
+    </div>
+
+    <div class="health-card {{ 'state-warn' if health.images and health.images.outdated else '' }}" data-health="images">
+      <span class="health-label">Images Docker</span>
+      <span class="health-value" id="h-img">
+        {% if health.images is none %}—{% else %}{{ health.images.outdated }} obsolète(s){% endif %}
+      </span>
+      <span class="health-note" id="h-img-note">
+        {% if health.images is none %}pas encore mesuré{% else %}{{ health.images.checked }} image(s) comparée(s) au registre{% endif %}
+      </span>
+    </div>
+
+    <div class="health-card {{ 'state-down' if system.undervoltage else ('state-warn' if health.throttling and health.throttling.since_boot else ('state-up' if health.throttling and health.throttling.healthy else '')) }}"
+         data-health="power">
+      <span class="health-label">Alimentation</span>
+      <span class="health-value" id="h-power">
+        {%- if system.undervoltage %}sous-tension
+        {%- elif health.throttling is none %}—
+        {%- elif health.throttling.healthy %}saine
+        {%- else %}incident{% endif %}
+      </span>
+      <span class="health-note" id="h-power-note">
+        {%- if health.throttling is none %}pas encore mesuré
+        {%- elif health.throttling.since_boot %}{{ health.throttling.since_boot | join(' · ') }}
+        {%- else %}aucun incident depuis le démarrage{% endif %}
+      </span>
+    </div>
+
+    <div class="health-card" data-health="journal">
+      <span class="health-label">Erreurs (24 h)</span>
+      <span class="health-value" id="h-journal">
+        {% if health.journal is none %}—{% else %}{{ health.journal.counted }}{% endif %}
+      </span>
+      <span class="health-note" id="h-journal-note">
+        {% if health.journal is none %}pas encore mesuré
+        {% else %}
+          {%- if health.journal.by_source %}
+            {%- for source in health.journal.by_source %}{{ source.source | replace('.service', '') }} {{ source.count }}{% if not loop.last %} · {% endif %}{% endfor %}
+          {%- else %}aucune{% endif %}
+          {%- if health.journal.muted %} · {{ health.journal.muted }} bruit ignoré{% endif %}
+        {% endif %}
+      </span>
+    </div>
+  </section>
+
+  <section class="history" id="history">
+    <h2><a class="back-link" href="/historique" title="courbes 7 jours + coupures Internet">Historique (24 h) ↗</a></h2>
+    <div class="charts">
+      <div class="chart-card">
+        <span class="health-label">CPU %</span>
+        <svg class="chart" id="chart-cpu" viewBox="0 0 300 60" preserveAspectRatio="none"></svg>
+      </div>
+      <div class="chart-card">
+        <span class="health-label">Mémoire %</span>
+        <svg class="chart" id="chart-mem" viewBox="0 0 300 60" preserveAspectRatio="none"></svg>
+      </div>
+      <div class="chart-card">
+        <span class="health-label">Température CPU °C</span>
+        <svg class="chart" id="chart-temp" viewBox="0 0 300 60" preserveAspectRatio="none"></svg>
+      </div>
+    </div>
+  </section>
+
+  <section class="network" id="network">
+    <div class="network-card {{ 'state-up' if wan and wan.online else ('state-down' if wan and wan.online == false else '') }}" data-network="wan" {{ 'hidden' if not wan }}>
+      <span class="health-label">Connexion Internet</span>
+      <span class="health-value" id="wan-value">
+        {%- if not wan or wan.online is none %}—
+        {%- elif wan.online %}en ligne · {{ wan.latency_ms }} ms
+        {%- else %}coupée{% endif -%}
+      </span>
+      <span class="health-note" id="wan-note">
+        {%- if wan and wan.outages_24h %}{{ wan.outages_24h }} coupure(s) sur 24 h · dernière : {{ wan.last_outage_minutes }} min
+        {%- elif wan %}aucune coupure sur 24 h{% endif -%}
+        {%- if public_ip %} · IP {{ public_ip.ip }}{% endif -%}
+      </span>
+    </div>
+    <div class="network-card" data-network="tailscale">
+      <span class="health-label">Pairs Tailscale</span>
+      <div class="peer-list" id="net-tailscale">
+        {% for peer in network.tailscale_peers %}
+        <span class="peer peer-{{ 'online' if peer.online else 'offline' }}">{{ peer.hostname }}</span>
+        {% else %}
+        <span class="health-note">aucun pair</span>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="network-card" data-network="lan">
+      <span class="health-label">Appareils LAN vus récemment
+        <span id="net-new-badge" class="chip-new" hidden></span>
+      </span>
+      <a class="tile-link" href="/reseau" title="ouvrir l'inventaire réseau">
+        <span class="health-value" id="net-lan-count">{{ network.lan_neighbors | length }}</span>
+      </a>
+      <details class="lan-detail">
+        <summary class="health-note">détail</summary>
+        <ul id="net-lan-list">
+          {% for n in network.lan_neighbors %}
+          <li>{{ n.ip }} <span class="mac">{{ n.mac }}</span></li>
+          {% endfor %}
+        </ul>
+      </details>
+    </div>
+  </section>
+
+  <main id="groups">
+    {% for group in groups %}
+    <section class="group">
+      <h2>{{ group.name }}</h2>
+      <div class="cards">
+        {% for service in group.services %}
+        <details class="card state-{{ service.state }}" data-id="{{ service.id }}"
+                  {{ "open" if service.state != "up" else "" }}>
+          <summary class="card-head">
+            <span class="icon">{{ service.icon }}</span>
+            <div class="title-block">
+              <h3>{{ service.name }}</h3>
+              {% if service.description %}<p class="desc">{{ service.description }}</p>{% endif %}
+            </div>
+            <span class="chip chip-{{ service.state }}">{{ service.state_label }}</span>
+            <span class="chevron"></span>
+          </summary>
+          <div class="detail-panel">
+            <table class="mini-table">
+              {% for src in service.sources %}
+              <tr>
+                <td class="mt-label">{{ src.label }}</td>
+                <td class="mt-value {{ 'ok' if src.ok else 'fail' }}">{{ src.value }}</td>
+              </tr>
+              {% endfor %}
+            </table>
+            {% if service.extra %}
+            <table class="extra-table">
+              {% for row in service.extra %}
+              <tr>
+                <td class="extra-label">{{ row.label }}</td>
+                <td class="extra-value">{{ row.value }}</td>
+              </tr>
+              {% endfor %}
+            </table>
+            {% endif %}
+            {% if service.cpu_percent is not none %}
+            <div class="cpu-line">
+              <span class="cpu-label">CPU</span>
+              <div class="bar"><i style="width: {{ service.cpu_percent }}%"></i></div>
+              <span class="cpu-val">{{ service.cpu_percent }} %</span>
+            </div>
+            {% endif %}
+            <div class="avail-line" {{ 'hidden' if not service.availability }}>
+              {%- if service.availability -%}
+              <span class="avail-pct">{{ service.availability.uptime_pct }} %</span> sur 7 j
+              {%- if service.availability.incidents %} · {{ service.availability.incidents }} incident(s) · max {{ service.availability.longest_minutes }} min{% endif -%}
+              {%- endif -%}
+            </div>
+            {% if service.restartable %}
+            <div class="action-row" hidden>
+              <button class="btn-restart" data-service="{{ service.id }}">Redémarrer</button>
+              <span class="action-result"></span>
+            </div>
+            {% endif %}
+            {% if service.image %}
+            <div class="tag-row">
+              <span class="tag mono">{{ service.image }}</span>
+              {% for port in service.ports %}<span class="tag">:{{ port }}</span>{% endfor %}
+            </div>
+            {% endif %}
+            {% if service.container %}
+            <details class="logs-detail" data-container="{{ service.container }}">
+              <summary class="health-note">Logs récents</summary>
+              <pre class="logs-pre">clique pour charger…</pre>
+            </details>
+            {% endif %}
+            <div class="card-foot">
+              {% if service.uptime %}<span class="uptime">{{ service.uptime }}</span>{% endif %}
+              {% if service.url %}<a class="open" href="{{ service.url }}" target="_blank" rel="noopener">Ouvrir ↗</a>{% endif %}
+            </div>
+          </div>
+        </details>
+        {% endfor %}
+      </div>
+    </section>
+    {% endfor %}
+  </main>
+
+  <footer>
+    <span>Homeport v{{ version }}</span>
+    <span id="refreshed">actualisé à l'instant</span>
+  </footer>
+
+  <script src="/static/app.js" defer></script>
+</body>
+</html>
