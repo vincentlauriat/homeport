@@ -221,7 +221,7 @@ async def _wan_probe() -> dict:
 def _record_history_sample(path: Path, retention_days: int) -> None:
     """Un point d'historique = un instantané de `system.collect()`, pas un nouveau collecteur :
     les mêmes valeurs que la tuile Métriques, juste conservées dans le temps."""
-    sample = system_collector.collect()
+    sample = system_collector.collect(cfg.load_health()["disks"])
     history.record(
         path,
         {

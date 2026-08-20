@@ -23,3 +23,13 @@ def test_sans_fichier_de_config_dashboard_vide_mais_sain(tmp_path):
     assert health["intervals"] == config.DEFAULT_INTERVALS
     assert config.load_actions(absent)["admin"] is None
     assert config.load_mqtt(absent)["enabled"] is False
+
+
+def test_disks_configurables(tmp_path):
+    f = tmp_path / "services.yaml"
+    f.write_text("health:\n  disks: [\"/\", \"/srv\"]\n")
+    assert config.load_health(f)["disks"] == ["/", "/srv"]
+
+
+def test_disks_defaut_racine_seule(tmp_path):
+    assert config.load_health(tmp_path / "absent.yaml")["disks"] == ["/"]

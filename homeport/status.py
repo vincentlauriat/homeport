@@ -160,7 +160,7 @@ async def _snapshot() -> dict:
             "unknown": counters[UNKNOWN],
             "total": len(services),
         },
-        "system": system.collect(),
+        "system": system.collect(cfg.load_health()["disks"]),
         "docker_available": await docker_api.is_available(),
         # Mesures lentes : simple lecture du dernier résultat des boucles de fond, jamais
         # d'attente. `None` signifie « pas encore mesuré », pas « rien à signaler ».
