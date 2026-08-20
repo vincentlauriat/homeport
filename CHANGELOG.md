@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.3.3
+
+- **Uniform headers** — every page now shows the same top-left identity (anchor + your
+  server's hostname, linking home from sub-pages) and the header keeps a constant height
+  across pages. The Control and Journal headers were bespoke; sub-pages said "Homeport"
+  instead of the hostname.
+- **Static asset cache-busting** — CSS/JS URLs now carry the release version, so browsers
+  pick up new code on every update without a hard refresh (stale JS could previously hide
+  freshly shipped features).
+
 ## v0.3.2
 
 - **Uniform view switcher** — the navigation bar now renders identically on every page
