@@ -264,5 +264,9 @@
   "mqttname.undervoltage": "Under-voltage",
   "mqttname.throttling": "Hardware throttling",
   "mqttname.throttled_since_boot": "Hardware incident since boot",
-  "mqttname.disk": "Disk {mount}"
+  "mqttname.disk": "Disk {mount}",
+  "mqttname.statusfile_age": "Age — {name}",
+  "statusfile.stale": "overdue",
+  "statusfile.missing": "status file missing",
+  "statusfile.invalid": "unreadable status file"
 }

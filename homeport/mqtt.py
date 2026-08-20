@@ -206,6 +206,10 @@ def build_payload(snapshot: dict) -> dict:
             "ssd_wear_pct": (snapshot.get("nvme") or {}).get("percent_used"),
         },
         "public_ip": (snapshot.get("public_ip") or {}).get("ip"),
+        "status_files": {
+            sf["id"]: {"age_hours": sf["age_hours"], "status": sf["status"], "level": sf["level"]}
+            for sf in (snapshot.get("status_files") or [])
+        },
         "network": {
             "new_devices": ((snapshot.get("network") or {}).get("new_devices") or {}).get("count"),
             "new_names": ((snapshot.get("network") or {}).get("new_devices") or {}).get("names", []),
@@ -267,6 +271,21 @@ def build_discovery(payload: dict, hostname: str, base: str, prefix: str) -> lis
             config["json_attributes_topic"] = f"{base}/state"
             config.update(extra)
         messages.append((f"{prefix}/binary_sensor/{base}/{key}/config", config))
+
+    for sf_id in payload.get("status_files", {}):
+        messages.append((
+            f"{prefix}/sensor/{base}/{sf_id}_age/config",
+            {
+                **common,
+                "name": i18n.t("mqttname.statusfile_age", lang, name=sf_id),
+                "unique_id": f"{base}_{sf_id}_age",
+                "value_template": f"{{{{ value_json.status_files.{sf_id}.age_hours }}}}",
+                "unit_of_measurement": "h",
+                "device_class": "duration",
+                "state_class": "measurement",
+                "icon": "mdi:cloud-upload",
+            },
+        ))
 
     for slug in payload["system"]["disks"]:
         messages.append(

@@ -82,6 +82,14 @@ function renderHealth(data) {
       level: backup.state === 'never' ? 'down' : backup.state === 'warn' ? 'warn' : 'ok',
     });
   }
+  for (const sf of data.status_files || []) {
+    rows.push({
+      k: sf.name,
+      v: sf.age_hours !== null && sf.age_hours !== undefined
+        ? T('common.ago_hours', { count: sf.age_hours }) : (sf.message || T('common.pending')),
+      level: sf.level === 'up' ? 'ok' : sf.level === 'down' ? 'down' : 'warn',
+    });
+  }
   if (h.apt) {
     rows.push({
       k: T('health.apt'),

@@ -264,5 +264,9 @@
   "mqttname.undervoltage": "Sous-tension",
   "mqttname.throttling": "Bridage matériel",
   "mqttname.throttled_since_boot": "Incident matériel depuis le démarrage",
-  "mqttname.disk": "Disque {mount}"
+  "mqttname.disk": "Disque {mount}",
+  "mqttname.statusfile_age": "Âge — {name}",
+  "statusfile.stale": "en retard",
+  "statusfile.missing": "fichier d'état absent",
+  "statusfile.invalid": "fichier d'état illisible"
 }

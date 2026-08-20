@@ -146,6 +146,10 @@ async def build(hostname: str) -> dict:
                 "outages_24h": 1, "last_outage_ts": now - 6 * 3600, "last_outage_minutes": 4},
         "public_ip": {"ip": "203.0.113.42", "changed_ts": now - 12 * 86400},
         "update": {"current": "0.1.0", "latest": None, "available": False},
+        "status_files": [
+            {"id": "offsite", "name": "Offsite backup", "status": "ok", "message": "",
+             "age_hours": 11.0, "stale": False, "level": "up"},
+        ],
     }
 
 

@@ -33,3 +33,11 @@ def test_disks_configurables(tmp_path):
 
 def test_disks_defaut_racine_seule(tmp_path):
     assert config.load_health(tmp_path / "absent.yaml")["disks"] == ["/"]
+
+
+def test_status_files_configurables(tmp_path):
+    f = tmp_path / "services.yaml"
+    f.write_text("health:\n  status_files:\n    - {id: offsite, name: Offsite, path: /tmp/x.json, warn_after_hours: 48}\n")
+    files = config.load_health(f)["status_files"]
+    assert files[0]["id"] == "offsite"
+    assert config.load_health(tmp_path / "absent.yaml")["status_files"] == []

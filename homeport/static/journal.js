@@ -56,6 +56,10 @@ function renderAttention(data) {
     cards.push({ level: alert.level, title: alert.text });
   }
 
+  for (const sf of data.status_files || []) {
+    if (sf.level === 'up') continue;
+    cards.push({ level: sf.level === 'down' ? 'down' : 'warn', title: sf.name, note: sf.message || '' });
+  }
   container.hidden = cards.length === 0;
   container.replaceChildren(...cards.map((card) => {
     const box = el('div', `eatt eatt-${card.level}`);

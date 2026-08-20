@@ -44,6 +44,32 @@ health:
   history: {retention_days: 7}
 ```
 
+## Status files
+
+Bridge any privileged job (offsite backup, replication, certificate renewal…) to the
+dashboard: the job writes a small JSON where Homeport can read it, Homeport shows a health
+card, raises an alert when it goes wrong or stale, and publishes an MQTT sensor
+(`{id}_age`, hours).
+
+```yaml
+health:
+  status_files:
+    - id: offsite
+      name: Offsite backup
+      path: /var/lib/homeport/offsite.json
+      warn_after_hours: 48     # optional: alert when the last success is older
+```
+
+The file's contract (every field optional except `status`):
+
+```json
+{"status": "ok",                  // "ok" | "pending" | "error"
+ "message": "one line for humans",
+ "last_ts": 1787217794}           // unix time of the last success (or last_snapshot_ts)
+```
+
+`error` shows red; `pending`, a missing/unreadable file, or an overdue `ok` show amber.
+
 ## Environment variables
 
 | Variable | Default | |
