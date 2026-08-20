@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light dark">
   <title>{{ t("nav.control") }} — Homeport</title>
-  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="/static/style.css?v={{ version }}">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚓</text></svg>">
   <link rel="manifest" href="/static/manifest.json">
   <link rel="apple-touch-icon" href="/static/icons/icon-192.png">
@@ -14,11 +14,13 @@
   <meta name="theme-color" content="#b8452f">
 </head>
 <body class="v-ctrl">
-  <header class="ctrl-top">
-    <span class="berry">⚓</span>
-    <div>
-      <h1 id="c-hostname">—</h1>
-      <p class="sub" id="c-sub">{{ t("common.loading") }}</p>
+  <header class="topbar">
+    <div class="identity">
+      <span class="berry">⚓</span>
+      <div>
+        <h1 id="c-hostname">{{ hostname }}</h1>
+        <p class="sub" id="c-sub">{{ t("common.loading") }}</p>
+      </div>
     </div>
     <div class="ctrl-pills">
       <div class="cpill" id="p-services"><b>—</b><span>{{ t("pill.services") }}</span></div>
@@ -67,7 +69,7 @@
 
   <script>window.HOMEPORT_I18N = {{ i18n_json|safe }};</script>
   <script src="/static/i18n.js"></script>
-  <script src="/static/views-common.js"></script>
-  <script src="/static/controle.js"></script>
+  <script src="/static/views-common.js?v={{ version }}"></script>
+  <script src="/static/controle.js?v={{ version }}"></script>
 </body>
 </html>

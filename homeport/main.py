@@ -267,6 +267,8 @@ def _i18n_context() -> dict:
         "lang": lang,
         "i18n_json": json.dumps(i18n.catalog(lang), ensure_ascii=False),
         "starlink_enabled": DEMO or cfg.load_starlink()["enabled"],
+        # Identité affichée en haut à gauche de chaque page (nom court, sans domaine).
+        "hostname": "demo" if DEMO else system_collector.hostname().split(".")[0],
     }
 
 

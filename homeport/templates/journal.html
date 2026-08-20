@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light dark">
   <title>{{ t("nav.journal") }} — Homeport</title>
-  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="/static/style.css?v={{ version }}">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚓</text></svg>">
   <link rel="manifest" href="/static/manifest.json">
   <link rel="apple-touch-icon" href="/static/icons/icon-192.png">
@@ -14,11 +14,17 @@
   <meta name="theme-color" content="#b8452f">
 </head>
 <body class="v-edit">
+  <header class="topbar">
+    <div class="identity">
+      <span class="berry">⚓</span>
+      <div>
+        <h1 id="j-hostname">{{ hostname }}</h1>
+        <p class="sub" id="j-date">—</p>
+      </div>
+    </div>
+    {% set nav_current = "journal" %}{% include "_nav.html" %}
+  </header>
   <main class="edit-page">
-    <header class="edit-brand">
-      <span>⚓ <span id="j-hostname">—</span> · <span id="j-date">—</span></span>
-      {% set nav_current = "journal" %}{% include "_nav.html" %}
-    </header>
 
     <h1 class="edit-verdict" id="j-verdict">…</h1>
     <p class="edit-story" id="j-story"></p>
@@ -47,7 +53,7 @@
 
   <script>window.HOMEPORT_I18N = {{ i18n_json|safe }};</script>
   <script src="/static/i18n.js"></script>
-  <script src="/static/views-common.js"></script>
-  <script src="/static/journal.js"></script>
+  <script src="/static/views-common.js?v={{ version }}"></script>
+  <script src="/static/journal.js?v={{ version }}"></script>
 </body>
 </html>

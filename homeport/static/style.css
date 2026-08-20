@@ -50,6 +50,8 @@ body {
   justify-content: space-between;
   padding-bottom: 1.25rem;
   border-bottom: 1px solid var(--border);
+  /* Hauteur constante d'une page à l'autre, quel que soit le contenu central. */
+  min-height: 4.75rem;
 }
 
 .identity { display: flex; align-items: center; gap: .9rem; }
@@ -620,12 +622,6 @@ footer {
 /* ---------- Vue A : salle de contrôle ---------- */
 
 .v-ctrl { padding: 1rem clamp(.75rem, 2.5vw, 2rem) 2rem; font-size: .85rem; }
-.ctrl-top {
-  display: flex; align-items: center; gap: .9rem; flex-wrap: wrap;
-  padding-bottom: .9rem; border-bottom: 1px solid var(--border);
-}
-.ctrl-top h1 { margin: 0; font-size: 1.15rem; letter-spacing: -.01em; }
-.ctrl-top .sub { font-size: .75rem; }
 .ctrl-pills { display: flex; gap: .5rem; flex-wrap: wrap; margin-left: auto; }
 .cpill {
   display: flex; flex-direction: column; align-items: center; min-width: 5.2rem;
@@ -691,10 +687,6 @@ footer {
 
 .v-edit { font-size: .9rem; }
 .edit-page { max-width: 58rem; margin: 0 auto; padding: .8rem 0 2rem; }
-.edit-brand {
-  display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
-  color: var(--muted); font-size: .72rem; text-transform: uppercase; letter-spacing: .13em;
-}
 .edit-verdict { margin: 1.3rem 0 0; font-size: clamp(2rem, 6vw, 2.9rem); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
 .verdict-up { color: var(--up); } .verdict-warn { color: var(--warn); } .verdict-down { color: var(--down); }
 .edit-story { margin: .6rem 0 0; color: var(--muted); font-size: 1rem; max-width: 42rem; line-height: 1.55; }
