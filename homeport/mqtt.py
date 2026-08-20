@@ -358,7 +358,7 @@ class Publisher:
                 # redémarrage et ne les retrouve qu'au prochain envoi de découverte.
                 self.client.publish(topic, json.dumps(config, ensure_ascii=False), qos=1, retain=True)
             self._discovery_sent = True
-            log.info("découverte publiée sous %s/…/homeport/", self.prefix)
+            log.info("découverte publiée sous %s/…/%s/", self.prefix, self.base)
 
         # retain sur l'état aussi : au redémarrage de Home Assistant, les entités ont une valeur
         # immédiatement au lieu d'afficher « inconnu » jusqu'à la prochaine publication.
