@@ -162,11 +162,18 @@ function renderServices(data) {
       line.appendChild(el('span', `edot edot-${service.state}`));
 
       if (service.url) {
-        const link = el('a', 'n', `${service.icon} ${service.name}`);
+        const link = el('a', 'n');
+        const licon = el('span', '', service.icon);
+        licon.setAttribute('aria-hidden', 'true');
+        link.append(licon, ` ${service.name}`);
         link.href = service.url;
         line.appendChild(link);
       } else {
-        line.appendChild(el('span', 'n', `${service.icon} ${service.name}`));
+        const nspan = el('span', 'n');
+        const nicon = el('span', '', service.icon);
+        nicon.setAttribute('aria-hidden', 'true');
+        nspan.append(nicon, ` ${service.name}`);
+        line.appendChild(nspan);
       }
 
       const bits = [];

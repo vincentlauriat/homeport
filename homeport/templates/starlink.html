@@ -13,7 +13,7 @@
 <body class="v-starlink">
   <header class="topbar">
     <div class="identity">
-      <span class="berry">⚓</span>
+      <span class="berry" aria-hidden="true">⚓</span>
       <div>
         <h1><a class="back-link" href="/">{{ hostname }}</a> · Starlink</h1>
         <p class="sub" id="sl-sub">{{ t("common.loading") }}</p>
@@ -37,12 +37,12 @@
   <section class="hist-charts sl-charts">
     <div class="hist-card">
       <span class="health-label">{{ t("starlink.chart_latency") }}</span>
-      <svg class="hist-chart" id="sl-chart-latency" viewBox="0 0 600 140" preserveAspectRatio="none"></svg>
+      <svg class="hist-chart" aria-hidden="true" id="sl-chart-latency" viewBox="0 0 600 140" preserveAspectRatio="none"></svg>
       <span class="health-note" id="sl-chart-latency-note"></span>
     </div>
     <div class="hist-card">
       <span class="health-label">{{ t("starlink.chart_throughput") }}</span>
-      <svg class="hist-chart" id="sl-chart-throughput" viewBox="0 0 600 140" preserveAspectRatio="none"></svg>
+      <svg class="hist-chart" aria-hidden="true" id="sl-chart-throughput" viewBox="0 0 600 140" preserveAspectRatio="none"></svg>
       <span class="health-note" id="sl-chart-throughput-note"></span>
     </div>
   </section>
@@ -50,7 +50,7 @@
   <section class="sl-bottom">
     <div class="hist-card sl-map-card">
       <span class="health-label">{{ t("starlink.map") }}</span>
-      <canvas id="sl-map" width="123" height="123"></canvas>
+      <canvas id="sl-map" width="123" height="123" role="img" aria-label="{{ t("starlink.map") }}"></canvas>
       <span class="health-note">{{ t("starlink.map_legend") }}</span>
     </div>
     <div class="hist-card">

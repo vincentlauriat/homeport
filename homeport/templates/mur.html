@@ -14,6 +14,7 @@
   <meta name="theme-color" content="#b8452f">
 </head>
 <body class="v-wall">
+  <h1 class="sr-only">Homeport — {{ t("nav.wall") }}</h1>
   <header class="wall-head">
     <span class="wall-clock" id="w-clock">—:—</span>
     <span class="wall-date" id="w-date">—</span>
@@ -39,7 +40,7 @@
     </div>
     <div class="wall-cell" id="w-cpu">
       <span class="t">{{ t("wall.cpu_24h") }}</span>
-      <svg class="wall-spark" id="w-spark" viewBox="0 0 300 44" preserveAspectRatio="none"></svg>
+      <svg class="wall-spark" aria-hidden="true" id="w-spark" viewBox="0 0 300 44" preserveAspectRatio="none"></svg>
       <span class="foot">—</span>
     </div>
     <div class="wall-cell" id="w-updates">
@@ -60,7 +61,7 @@
     <span id="wf-power">—</span>
     <span id="wf-ip">—</span>
     <span id="wf-starlink"></span>
-    <span class="wall-brand">⚓ <span id="w-hostname">—</span> · v{{ version }}</span>
+    <span class="wall-brand"><span aria-hidden="true">⚓</span> <span id="w-hostname">—</span> · v{{ version }}</span>
   </footer>
 
   <script>window.HOMEPORT_I18N = {{ i18n_json|safe }};</script>

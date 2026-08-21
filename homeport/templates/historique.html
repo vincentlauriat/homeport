@@ -13,7 +13,7 @@
 <body>
   <header class="topbar">
     <div class="identity">
-      <span class="berry">⚓</span>
+      <span class="berry" aria-hidden="true">⚓</span>
       <div>
         <h1><a class="back-link" href="/">{{ hostname }}</a> · {{ t("hist.title") }}</h1>
         <p class="sub" id="hist-summary">{{ t("common.loading") }}</p>
@@ -30,22 +30,22 @@
   <section class="hist-charts">
     <div class="hist-card">
       <span class="health-label">{{ t("metric.cpu") }} %</span>
-      <svg class="hist-chart" id="hist-cpu" viewBox="0 0 600 140" preserveAspectRatio="none"></svg>
+      <svg class="hist-chart" aria-hidden="true" id="hist-cpu" viewBox="0 0 600 140" preserveAspectRatio="none"></svg>
       <span class="health-note" id="hist-cpu-note"></span>
     </div>
     <div class="hist-card">
       <span class="health-label">{{ t("metric.memory") }} %</span>
-      <svg class="hist-chart" id="hist-mem" viewBox="0 0 600 140" preserveAspectRatio="none"></svg>
+      <svg class="hist-chart" aria-hidden="true" id="hist-mem" viewBox="0 0 600 140" preserveAspectRatio="none"></svg>
       <span class="health-note" id="hist-mem-note"></span>
     </div>
     <div class="hist-card">
       <span class="health-label">{{ t("hist.temp") }} °C</span>
-      <svg class="hist-chart" id="hist-temp" viewBox="0 0 600 140" preserveAspectRatio="none"></svg>
+      <svg class="hist-chart" aria-hidden="true" id="hist-temp" viewBox="0 0 600 140" preserveAspectRatio="none"></svg>
       <span class="health-note" id="hist-temp-note"></span>
     </div>
     <div class="hist-card">
       <span class="health-label">{{ t("hist.ssd_temp") }} °C</span>
-      <svg class="hist-chart" id="hist-nvme" viewBox="0 0 600 140" preserveAspectRatio="none"></svg>
+      <svg class="hist-chart" aria-hidden="true" id="hist-nvme" viewBox="0 0 600 140" preserveAspectRatio="none"></svg>
       <span class="health-note" id="hist-nvme-note"></span>
     </div>
   </section>

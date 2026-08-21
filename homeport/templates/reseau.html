@@ -16,7 +16,7 @@
 <body>
   <header class="topbar">
     <div class="identity">
-      <span class="berry">⚓</span>
+      <span class="berry" aria-hidden="true">⚓</span>
       <div>
         <h1><a class="back-link" href="/">{{ hostname }}</a> · {{ t("reseau.title") }}</h1>
         <p class="sub" id="net-summary">{{ t("common.loading") }}</p>
@@ -31,7 +31,7 @@
   </section>
 
   <section class="net-toolbar">
-    <input id="search" type="search" placeholder="{{ t("reseau.search_placeholder") }}" autocomplete="off">
+    <input id="search" type="search" aria-label="{{ t("reseau.search_placeholder") }}" placeholder="{{ t("reseau.search_placeholder") }}" autocomplete="off">
     <div id="filters" class="net-filters">
       <button data-filter="all" class="active">{{ t("reseau.filter_all") }}</button>
       <button data-filter="online">{{ t("reseau.filter_online") }}</button>
