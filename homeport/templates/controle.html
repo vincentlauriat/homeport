@@ -16,7 +16,7 @@
 <body class="v-ctrl">
   <header class="topbar">
     <div class="identity">
-      <span class="berry">⚓</span>
+      <span class="berry" aria-hidden="true">⚓</span>
       <div>
         <h1 id="c-hostname">{{ hostname }}</h1>
         <p class="sub" id="c-sub">{{ t("common.loading") }}</p>
@@ -42,7 +42,7 @@
         <div class="cmetric"><span class="lbl">{{ t("metric.ssd") }}</span><span class="bar"><i id="b-ssd"></i></span><span class="val" id="v-ssd">—</span></div>
         <div class="cmetric" id="row-wear" hidden><span class="lbl">{{ t("metric.ssd_wear") }}</span><span class="bar"><i id="b-wear"></i></span><span class="val" id="v-wear">—</span></div>
         <div class="cmetric"><span class="lbl">{{ t("metric.disk_root") }}</span><span class="bar"><i id="b-disk"></i></span><span class="val" id="v-disk">—</span></div>
-        <svg class="ctrl-spark" id="c-spark" viewBox="0 0 300 34" preserveAspectRatio="none"></svg>
+        <svg class="ctrl-spark" aria-hidden="true" id="c-spark" viewBox="0 0 300 34" preserveAspectRatio="none"></svg>
         <p class="ctrl-sparknote">{{ t("panel.cpu_24h") }} — <a href="/historique">{{ t("panel.history_link") }}</a></p>
       </section>
 

@@ -186,11 +186,16 @@ function renderServices(groups) {
       const name = el('td', 'name');
       name.appendChild(el('span', `cdot cdot-${service.state}`));
       if (service.url) {
-        const link = el('a', '', `${service.icon} ${service.name}`);
+        const link = el('a', '');
+        const licon = el('span', '', service.icon);
+        licon.setAttribute('aria-hidden', 'true');
+        link.append(licon, ` ${service.name}`);
         link.href = service.url;
         name.appendChild(link);
       } else {
-        name.append(`${service.icon} ${service.name}`);
+        const nicon = el('span', '', service.icon);
+        nicon.setAttribute('aria-hidden', 'true');
+        name.append(nicon, ` ${service.name}`);
       }
       row.appendChild(name);
 

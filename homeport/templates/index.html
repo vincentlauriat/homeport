@@ -16,7 +16,7 @@
 <body>
   <header class="topbar">
     <div class="identity">
-      <span class="berry">⚓</span>
+      <span class="berry" aria-hidden="true">⚓</span>
       <div>
         <h1>{{ system.hostname }}</h1>
         <p class="sub">{{ t("hero.subtitle", uptime=system.uptime.human) }}</p>
@@ -180,15 +180,15 @@
     <div class="charts">
       <div class="chart-card">
         <span class="health-label">{{ t("metric.cpu") }} %</span>
-        <svg class="chart" id="chart-cpu" viewBox="0 0 300 60" preserveAspectRatio="none"></svg>
+        <svg class="chart" aria-hidden="true" id="chart-cpu" viewBox="0 0 300 60" preserveAspectRatio="none"></svg>
       </div>
       <div class="chart-card">
         <span class="health-label">{{ t("metric.memory") }} %</span>
-        <svg class="chart" id="chart-mem" viewBox="0 0 300 60" preserveAspectRatio="none"></svg>
+        <svg class="chart" aria-hidden="true" id="chart-mem" viewBox="0 0 300 60" preserveAspectRatio="none"></svg>
       </div>
       <div class="chart-card">
         <span class="health-label">{{ t("hist.temp") }} °C</span>
-        <svg class="chart" id="chart-temp" viewBox="0 0 300 60" preserveAspectRatio="none"></svg>
+        <svg class="chart" aria-hidden="true" id="chart-temp" viewBox="0 0 300 60" preserveAspectRatio="none"></svg>
       </div>
     </div>
   </section>
@@ -260,7 +260,7 @@
         <details class="card state-{{ service.state }}" data-id="{{ service.id }}"
                   {{ "open" if service.state != "up" else "" }}>
           <summary class="card-head">
-            <span class="icon">{{ service.icon }}</span>
+            <span class="icon" aria-hidden="true">{{ service.icon }}</span>
             <div class="title-block">
               <h3>{{ service.name }}</h3>
               {% if service.description %}<p class="desc">{{ service.description }}</p>{% endif %}
@@ -303,7 +303,7 @@
             {% if service.restartable %}
             <div class="action-row" hidden>
               <button class="btn-restart" data-service="{{ service.id }}">{{ t("svc.restart") }}</button>
-              <span class="action-result"></span>
+              <span class="action-result" role="status"></span>
             </div>
             {% endif %}
             {% if service.image %}

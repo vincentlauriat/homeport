@@ -11,6 +11,14 @@
   --unknown: #9a9992;
   --radius: 12px;
   --shadow: 0 1px 2px rgba(0,0,0,.05), 0 4px 12px rgba(0,0,0,.04);
+  /* Variantes texte des couleurs d'état : les tokens pleins passent sous 4.5:1 en petit
+     texte (surtout --warn sur fond clair). Assises vers --text, elles tiennent AA dans
+     les deux thèmes ; les dots, bordures et fonds gardent les tokens pleins. */
+  --up-text: color-mix(in srgb, var(--up) 80%, var(--text));
+  --warn-text: color-mix(in srgb, var(--warn) 65%, var(--text));
+  --down-text: color-mix(in srgb, var(--down) 80%, var(--text));
+  /* Fond "espace" de la carte Starlink — volontairement identique dans les deux thèmes. */
+  --map-bg: #101420;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -68,9 +76,9 @@ body {
   background: var(--surface);
 }
 .pill b { font-variant-numeric: tabular-nums; }
-.pill-up b { color: var(--up); }
-.pill-warn b { color: var(--warn); }
-.pill-down b { color: var(--down); }
+.pill-up b { color: var(--up-text); }
+.pill-warn b { color: var(--warn-text); }
+.pill-down b { color: var(--down-text); }
 
 /* ---------- métriques machine ---------- */
 
@@ -174,9 +182,9 @@ body {
   white-space: nowrap;
   margin-top: .05rem;
 }
-.chip-up { background: color-mix(in srgb, var(--up) 16%, var(--surface)); color: var(--up); }
-.chip-warn { background: color-mix(in srgb, var(--warn) 16%, var(--surface)); color: var(--warn); }
-.chip-down { background: color-mix(in srgb, var(--down) 16%, var(--surface)); color: var(--down); }
+.chip-up { background: color-mix(in srgb, var(--up) 16%, var(--surface)); color: var(--up-text); }
+.chip-warn { background: color-mix(in srgb, var(--warn) 16%, var(--surface)); color: var(--warn-text); }
+.chip-down { background: color-mix(in srgb, var(--down) 16%, var(--surface)); color: var(--down-text); }
 .chip-unknown { background: color-mix(in srgb, var(--unknown) 16%, var(--surface)); color: var(--muted); }
 
 .chevron {
@@ -195,8 +203,8 @@ body {
 .mini-table tr + tr td { border-top: 1px solid var(--border); }
 .mt-label { color: var(--muted); padding: .3rem 0; width: 45%; }
 .mt-value { padding: .3rem 0; text-align: right; font-weight: 500; font-variant-numeric: tabular-nums; }
-.mt-value.ok { color: var(--up); }
-.mt-value.fail { color: var(--down); }
+.mt-value.ok { color: var(--up-text); }
+.mt-value.fail { color: var(--down-text); }
 
 /* Contenu propre à quelques tuiles (cron, minuteur de sauvegarde, Docker, Tailscale, SSH) —
    même esprit que `.mini-table` mais valeur à gauche : une commande cron ou une liste d'hôtes
@@ -390,7 +398,7 @@ footer {
   border-radius: 999px;
   border: 1px solid var(--border);
 }
-.peer-online { color: var(--up); border-color: color-mix(in srgb, var(--up) 40%, var(--border)); }
+.peer-online { color: var(--up-text); border-color: color-mix(in srgb, var(--up) 40%, var(--border)); }
 .peer-offline { color: var(--muted); }
 
 .lan-detail summary { cursor: pointer; }
@@ -411,7 +419,7 @@ footer {
   border-left: 4px solid var(--warn);
   border-radius: var(--radius);
 }
-.net-new h2 { margin: 0 0 .75rem; font-size: 1rem; color: var(--warn); }
+.net-new h2 { margin: 0 0 .75rem; font-size: 1rem; color: var(--warn-text); }
 
 .net-toolbar {
   display: flex;
@@ -535,7 +543,7 @@ footer {
   cursor: pointer;
 }
 .btn-ack {
-  color: var(--up) !important;
+  color: var(--up-text) !important;
   border-color: color-mix(in srgb, var(--up) 50%, var(--border)) !important;
 }
 
@@ -548,7 +556,7 @@ footer {
   padding: .1rem .5rem;
   border-radius: 999px;
   background: color-mix(in srgb, var(--warn) 15%, var(--surface));
-  color: var(--warn);
+  color: var(--warn-text);
   border: 1px solid color-mix(in srgb, var(--warn) 45%, var(--border));
 }
 
@@ -572,8 +580,8 @@ footer {
 .btn-restart.armed { background: var(--accent); color: var(--surface); }
 .btn-restart:disabled, .btn-wake:disabled { opacity: .5; cursor: default; }
 .action-result { font-size: .8125rem; }
-.action-result.ok { color: var(--up); }
-.action-result.fail { color: var(--down); }
+.action-result.ok { color: var(--up-text); }
+.action-result.fail { color: var(--down-text); }
 
 /* Tuile Connexion Internet (chantier F1) : même vocabulaire d'état que les autres cartes. */
 .network-card { border-left: 3px solid transparent; }
@@ -613,7 +621,7 @@ footer {
   white-space: nowrap;
 }
 .view-switch a:hover { color: var(--text); }
-.view-switch a.current { background: var(--accent); color: #fff; }
+.view-switch a.current { background: var(--accent); color: var(--surface); }
 
 /* Sparklines communes (aire + trait) */
 .spark-line { fill: none; stroke: var(--accent); stroke-width: 1.6; }
@@ -630,7 +638,7 @@ footer {
 }
 .cpill b { font-size: .95rem; font-variant-numeric: tabular-nums; }
 .cpill span { font-size: .6rem; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); }
-.cpill-up b { color: var(--up); } .cpill-warn b { color: var(--warn); } .cpill-down b { color: var(--down); }
+.cpill-up b { color: var(--up-text); } .cpill-warn b { color: var(--warn-text); } .cpill-down b { color: var(--down-text); }
 
 .ctrl-cols { display: grid; grid-template-columns: minmax(260px, 330px) 1fr; gap: 1rem; margin-top: 1rem; }
 @media (max-width: 900px) { .ctrl-cols { grid-template-columns: 1fr; } }
@@ -659,7 +667,7 @@ footer {
 .ckv:last-child { border-bottom: none; }
 .ckv .k { color: var(--muted); }
 .ckv .v { font-variant-numeric: tabular-nums; text-align: right; }
-.ckv .v.ok { color: var(--up); } .ckv .v.warn { color: var(--warn); } .ckv .v.down { color: var(--down); }
+.ckv .v.ok { color: var(--up-text); } .ckv .v.warn { color: var(--warn-text); } .ckv .v.down { color: var(--down-text); }
 .ctrl-link { color: var(--muted); }
 
 .ctrl-services { padding: .3rem .55rem .55rem; }
@@ -683,7 +691,7 @@ footer {
 .ctrl-svc td.cpu .cpu-num { display: block; margin-top: .1rem; color: var(--muted); font-size: .62rem; font-variant-numeric: tabular-nums; }
 .ctrl-svc td.avail { color: var(--muted); font-variant-numeric: tabular-nums; text-align: right; font-size: .71rem; width: 3.6rem; }
 .ctrl-svc td.up { color: var(--muted); font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; font-size: .71rem; width: 5.2rem; }
-.ctrl-row.state-down td.name { color: var(--down); }
+.ctrl-row.state-down td.name { color: var(--down-text); }
 /* Sous 640px la description disparaît : rendre sa largeur au nom, sinon les colonnes
    fixes (12rem + 92px + 5.2rem) débordent du panneau. */
 @media (max-width: 640px) { .ctrl-svc td.desc, .ctrl-svc td.avail { display: none; } .ctrl-svc td.name { width: auto; } }
@@ -693,7 +701,7 @@ footer {
 .v-edit { font-size: .9rem; }
 .edit-page { max-width: 58rem; margin: 0 auto; padding: .8rem 0 2rem; }
 .edit-verdict { margin: 1.3rem 0 0; font-size: clamp(2rem, 6vw, 2.9rem); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
-.verdict-up { color: var(--up); } .verdict-warn { color: var(--warn); } .verdict-down { color: var(--down); }
+.verdict-up { color: var(--up-text); } .verdict-warn { color: var(--warn-text); } .verdict-down { color: var(--down-text); }
 .edit-story { margin: .6rem 0 0; color: var(--muted); font-size: 1rem; max-width: 42rem; line-height: 1.55; }
 
 .edit-attention { margin-top: 1.6rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: .7rem; }
@@ -723,7 +731,7 @@ footer {
 }
 .erow .k { color: var(--muted); }
 .erow .v { font-variant-numeric: tabular-nums; text-align: right; }
-.erow .v.ok { color: var(--up); }
+.erow .v.ok { color: var(--up-text); }
 
 .esvc { display: flex; align-items: baseline; gap: .6rem; padding: .5rem 0; border-bottom: 1px dotted var(--border); }
 .esvc:last-child { border-bottom: none; }
@@ -747,7 +755,7 @@ a.n:hover { color: var(--accent); }
 .wall-head { display: flex; align-items: baseline; gap: 1rem; flex-wrap: wrap; }
 .wall-clock { font-size: clamp(2.2rem, 6vh, 3.4rem); font-weight: 700; letter-spacing: -.02em; font-variant-numeric: tabular-nums; line-height: 1; }
 .wall-date { color: var(--muted); font-size: clamp(.85rem, 2vh, 1.05rem); }
-.wall-state { margin-left: auto; display: flex; align-items: center; gap: .7rem; font-size: clamp(1rem, 2.6vh, 1.45rem); font-weight: 700; color: var(--up); }
+.wall-state { margin-left: auto; display: flex; align-items: center; gap: .7rem; font-size: clamp(1rem, 2.6vh, 1.45rem); font-weight: 700; color: var(--up-text); }
 .wall-halo { width: 15px; height: 15px; border-radius: 50%; background: var(--up); box-shadow: 0 0 22px 4px color-mix(in srgb, var(--up) 45%, transparent); }
 .wall-halo.halo-warn { background: var(--warn); box-shadow: 0 0 22px 4px color-mix(in srgb, var(--warn) 45%, transparent); }
 .wall-halo.halo-down { background: var(--down); box-shadow: 0 0 22px 4px color-mix(in srgb, var(--down) 45%, transparent); }
@@ -770,17 +778,17 @@ a.n:hover { color: var(--accent); }
 .wall-cell .big { margin-top: auto; font-size: clamp(2rem, 6.5vh, 3rem); font-weight: 700; letter-spacing: -.02em; font-variant-numeric: tabular-nums; line-height: 1; }
 .wall-cell .big small { font-size: .45em; color: var(--muted); font-weight: 600; }
 .wall-cell .foot { margin-top: .45rem; color: var(--muted); font-size: .78rem; }
-.wall-ok .big { color: var(--up); }
+.wall-ok .big { color: var(--up-text); }
 .wall-warn { border-color: color-mix(in srgb, var(--warn) 50%, transparent); }
-.wall-warn .big { color: var(--warn); }
+.wall-warn .big { color: var(--warn-text); }
 .wall-down { border-color: color-mix(in srgb, var(--down) 55%, transparent); }
-.wall-down .big { color: var(--down); }
+.wall-down .big { color: var(--down-text); }
 .wall-spark { width: 100%; height: 44px; margin-top: auto; }
 
 .wall-foot { display: flex; gap: 1.6rem; flex-wrap: wrap; margin-top: clamp(.8rem, 2.5vh, 1.4rem); color: var(--muted); font-size: .82rem; border-top: none; padding-top: 0; }
 .wall-brand { margin-left: auto; }
-.wall-state.state-warn { color: var(--warn); }
-.wall-state.state-down { color: var(--down); }
+.wall-state.state-warn { color: var(--warn-text); }
+.wall-state.state-down { color: var(--down-text); }
 
 /* ---------- Page /starlink (v0.3) ---------- */
 
@@ -806,7 +814,7 @@ a.n:hover { color: var(--accent); }
 }
 .sl-map-card canvas {
   width: 100%; max-width: 320px; aspect-ratio: 1; align-self: center;
-  image-rendering: pixelated; border-radius: 8px; background: #101420;
+  image-rendering: pixelated; border-radius: 8px; background: var(--map-bg);
 }
 .sl-kv { display: flex; justify-content: space-between; gap: 1rem; padding: .3rem 0; border-bottom: 1px solid var(--border); font-size: .85rem; }
 .sl-kv:last-child { border-bottom: none; }
@@ -820,3 +828,29 @@ body.v-starlink .alerts { margin-top: 1rem; }
   border-radius: 999px; padding: .15rem .6rem; font-size: .72rem;
 }
 .update-chip:hover { border-color: var(--accent); }
+
+/* ---------- Accessibilité et tactile ---------- */
+
+/* Focus clavier signé Rouille de coque, cohérent dans les deux thèmes. */
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Texte réservé aux lecteurs d'écran. */
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* Au doigt, les contrôles denses remontent à ~44px sans changer le rendu au pointeur fin. */
+@media (pointer: coarse) {
+  .view-switch a, .net-filters button, .btn-restart, .btn-wake,
+  .net-details-panel button, .net-details-panel select, .open, .update-chip {
+    min-height: 44px; display: inline-flex; align-items: center;
+  }
+}
+
+/* Mouvement réduit : on gèle les animations de largeur et de rotation ;
+   les changements de couleur d'état restent (feedback sans mouvement). */
+@media (prefers-reduced-motion: reduce) {
+  .bar i, .cmetric .bar i, .ctrl-svc td.cpu .bar i { transition: none; }
+  .chevron { transition: none; }
+}
