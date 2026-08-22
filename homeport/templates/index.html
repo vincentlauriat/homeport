@@ -224,6 +224,20 @@
               obstruction=(starlink.obstruction.fraction * 100) | round(2)) }}{% endif -%}
       </span>
     </div>
+    <div class="network-card {{ 'state-up' if livebox and livebox.online else ('state-down' if livebox else '') }}" data-network="livebox" {{ 'hidden' if not livebox }}>
+      <span class="health-label">📡 Livebox</span>
+      <a class="tile-link" href="/livebox" title="{{ t("livebox.card_link_title") }}">
+        <span class="health-value" id="lbx-card-value">
+          {%- if not livebox %}—
+          {%- elif livebox.online %}{{ t("net.online_latency", latency=livebox.latency_ms) }}
+          {%- elif livebox.reachable %}{{ t("livebox.wan_down") }}
+          {%- else %}{{ t("livebox.offline") }}{% endif -%}
+        </span>
+      </a>
+      <span class="health-note" id="lbx-card-note">
+        {%- if livebox %}{{ t("livebox.card_note", model=livebox.model or "Livebox", link=(livebox.link_type or "?") | upper) }}{% endif -%}
+      </span>
+    </div>
     <div class="network-card" data-network="tailscale">
       <span class="health-label">{{ t("index.peers_label") }}</span>
       <div class="peer-list" id="net-tailscale">

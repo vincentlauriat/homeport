@@ -30,6 +30,7 @@ from .collectors import (
     hardware,
     history,
     journal,
+    livebox,
     mdns,
     network,
     oui,
@@ -122,6 +123,9 @@ async def lifespan(_: FastAPI):
                 "starlink_history": (lambda: starlink.fetch_history(cfg.load_starlink()), intervals["starlink_history"]),
                 "starlink_map": (lambda: starlink.fetch_map(cfg.load_starlink()), intervals["starlink_map"]),
             } if cfg.load_starlink()["enabled"] else {}),
+            **({
+                "livebox_status": (_livebox_probe, intervals["livebox_status"]),
+            } if cfg.load_livebox()["enabled"] else {}),
         }
     )
     # L'état publié sur MQTT est celui du tableau de bord, lu par le même chemin (donc via le
@@ -253,6 +257,16 @@ async def _wan_probe() -> dict:
     return sample
 
 
+async def _livebox_probe() -> dict:
+    """État de la box Orange + transition livebox.up/down dans le livre de bord."""
+    data = await livebox.fetch_status(cfg.load_livebox())
+    try:
+        events_watch.livebox(cfg.DB_PATH, bool(data.get("online")))
+    except (sqlite3.Error, OSError) as exc:
+        log.warning("événement livebox indisponible : %s", exc)
+    return data
+
+
 def _record_history_sample(path: Path, retention_days: int) -> None:
     """Un point d'historique = un instantané de `system.collect()`, pas un nouveau collecteur :
     les mêmes valeurs que la tuile Métriques, juste conservées dans le temps."""
@@ -320,6 +334,7 @@ def _i18n_context(request: Request | None = None) -> dict:
         "lang": lang,
         "i18n_json": json.dumps(i18n.catalog(lang), ensure_ascii=False),
         "starlink_enabled": DEMO or cfg.load_starlink()["enabled"],
+        "livebox_enabled": DEMO or cfg.load_livebox()["enabled"],
         # Identité affichée en haut à gauche de chaque page (nom court, sans domaine).
         "hostname": "demo" if DEMO else system_collector.hostname().split(".")[0],
     }
@@ -573,6 +588,24 @@ async def api_starlink() -> JSONResponse:
         "history": data("starlink_history"),
         "map": data("starlink_map"),
     })
+
+
+@app.get("/livebox", response_class=HTMLResponse)
+async def vue_livebox(request: Request) -> HTMLResponse:
+    """Page de la box Orange — même pattern coquille + JS que /starlink."""
+    return templates.TemplateResponse(
+        request=request, name="livebox.html", context={"version": __version__, **_i18n_context(request)}
+    )
+
+
+@app.get("/api/livebox")
+async def api_livebox() -> JSONResponse:
+    if DEMO:
+        return JSONResponse(demo.livebox())
+    if not cfg.load_livebox()["enabled"]:
+        return JSONResponse({"enabled": False, "status": None})
+    entry = background.snapshot().get("livebox_status")
+    return JSONResponse({"enabled": True, "status": entry.get("data") if entry else None})
 
 
 @app.get("/api/outages")

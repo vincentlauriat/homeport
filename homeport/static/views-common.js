@@ -14,7 +14,7 @@ window.RaspViews = (() => {
 
   const setBar = (id, percent) => {
     const bar = document.getElementById(id);
-    if (bar) bar.style.width = `${Math.min(Math.max(percent, 0), 100)}%`;
+    if (bar) bar.style.transform = `scaleX(${Math.min(Math.max(percent, 0), 100) / 100})`;
   };
 
   // Sparkline avec aire remplie — abscisse proportionnelle au temps écoulé, comme app.js :

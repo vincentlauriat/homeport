@@ -23,6 +23,7 @@
     {% set nav_current = "logbook" %}{% include "_nav.html" %}
   </header>
 
+  <main>
   <div class="lb-toolbar">
     <div class="net-filters" id="lb-families">
       <button data-family="all" class="active">{{ t("logbook.f_all") }}</button>
@@ -40,6 +41,7 @@
   </div>
 
   <section id="lb-days" aria-live="polite"></section>
+  </main>
 
   <footer>
     <span id="refreshed">—</span>

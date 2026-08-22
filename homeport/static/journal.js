@@ -106,6 +106,16 @@ function renderQuiet(data) {
       level: starlink.online ? 'ok' : '',
     });
   }
+  const livebox = data.livebox;
+  if (livebox) {
+    rows.push({
+      k: 'Livebox',
+      v: livebox.online
+        ? `${livebox.latency_ms} ms · ${(livebox.link_type || '?').toUpperCase()}`
+        : T(livebox.reachable ? 'livebox.wan_down' : 'livebox.offline'),
+      level: livebox.online ? 'ok' : '',
+    });
+  }
   const peers = ((data.network || {}).tailscale_peers || []);
   const online = peers.filter((p) => p.online).length;
   rows.push({ k: T('net.tailscale'), v: T('net.peers_online', { count: online }), level: online ? 'ok' : '' });

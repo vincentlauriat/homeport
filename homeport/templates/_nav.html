@@ -9,4 +9,14 @@
   <a href="/historique" {{ 'class=current' if nav_current == 'history' }}>{{ t("nav.history") }}</a>
   <a href="/livre-de-bord" {{ 'class=current' if nav_current == 'logbook' }}>{{ t("nav.logbook") }}</a>
   {% if starlink_enabled %}<a href="/starlink" {{ 'class=current' if nav_current == 'starlink' }}>Starlink</a>{% endif %}
+  {% if livebox_enabled %}<a href="/livebox" {{ 'class=current' if nav_current == 'livebox' }}>Livebox</a>{% endif %}
 </nav>
+<script>
+(function () {
+  var nav = document.currentScript.previousElementSibling;
+  var cur = nav && nav.querySelector("a.current");
+  if (!cur || nav.scrollWidth <= nav.clientWidth) return;
+  var n = nav.getBoundingClientRect(), c = cur.getBoundingClientRect();
+  nav.scrollLeft += c.left - n.left - (nav.clientWidth - c.width) / 2;
+})();
+</script>

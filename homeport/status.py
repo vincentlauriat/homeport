@@ -180,11 +180,22 @@ async def _snapshot(lang: str | None = None) -> dict:
         "public_ip": (background.snapshot().get("public_ip") or {}).get("data"),
         "starlink": (background.snapshot().get("starlink_status") or {}).get("data")
         if cfg.load_starlink()["enabled"] else None,
+        # La sparkline reste sur /api/livebox : le snapshot des vues n'embarque pas le ring.
+        "livebox": _livebox_summary(),
         "status_files": [statusfile.collect(e) for e in cfg.load_health()["status_files"]],
         "update": updates_collector.update_summary(
             __version__, (background.snapshot().get("update_check") or {}).get("data")
         ),
     }
+
+
+def _livebox_summary() -> dict | None:
+    if not cfg.load_livebox()["enabled"]:
+        return None
+    data = (background.snapshot().get("livebox_status") or {}).get("data")
+    if not data:
+        return None
+    return {k: v for k, v in data.items() if k != "latency_history"}
 
 
 def _health(lang: str | None = None) -> dict:
