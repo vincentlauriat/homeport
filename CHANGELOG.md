@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v0.4.0
 
 - **Three languages** — Chinese (Simplified) joins English and French, and every browser
   can pick its own language from the footer selector (cookie; the server config stays the
