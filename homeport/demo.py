@@ -239,3 +239,49 @@ def devices() -> dict:
 def outages(hours: float = 24.0) -> dict:
     now = time.time()
     return {"outages": [{"start_ts": now - 6 * 3600, "end_ts": now - 6 * 3600 + 240, "minutes": 4}]}
+
+
+def events(days: float = 7.0, limit: int = 200, kinds: list[str] | None = None) -> list[dict]:
+    """Un an de vie plausible et déterministe : pannes brèves, retours, un appareil
+    inconnu de temps en temps, quelques redémarrages d'admin — assez pour meubler le
+    livre de bord à n'importe quelle fenêtre."""
+    now = int(time.time())
+    start = now - int(days * 86400)
+    patterns = [
+        # (période s, [(décalage s, kind, sévérité, sujet, détail)])
+        (86400 * 3 + 7130, [
+            (0, "service.down", "down", "camera-gw", None),
+            (14 * 60, "service.up", "up", "camera-gw", "14 min"),
+        ]),
+        (86400 * 2 + 15600, [
+            (0, "service.degraded", "warn", "camera-gw", None),
+            (52 * 60, "service.up", "up", "camera-gw", "52 min"),
+        ]),
+        (86400 * 5 + 21600, [
+            (0, "internet.down", "down", "internet", None),
+            (4 * 60, "internet.up", "up", "internet", "4 min"),
+        ]),
+        (86400 * 9 + 3600, [(0, "device.new", "warn", "3c:71:bf:aa:12:9e", "192.168.1.63")]),
+        (86400 * 6 + 11000, [(0, "action.restart", "up", "jellyfin", "vincent@tailnet")]),
+        (86400 * 15 + 40000, [
+            (0, "backup.stale", "warn", "config", None),
+            (43200, "backup.ok", "up", "config", None),
+        ]),
+        (86400 * 30 + 50000, [(0, "boot", "warn", "system", None)]),
+        (86400 * 45 + 20000, [(0, "temp.high", "warn", "cpu", "81 °C")]),
+    ]
+    out: list[dict] = []
+    for period, sequence in patterns:
+        t = (start // period) * period + period // 3
+        while t < now:
+            for delta, kind, severity, subject, detail in sequence:
+                ts = t + delta
+                if start <= ts <= now:
+                    out.append(
+                        {"ts": ts, "kind": kind, "severity": severity, "subject": subject, "detail": detail}
+                    )
+            t += period
+    if kinds:
+        out = [e for e in out if any(e["kind"].startswith(p) for p in kinds)]
+    out.sort(key=lambda e: e["ts"], reverse=True)
+    return out[:limit]

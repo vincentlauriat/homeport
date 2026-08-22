@@ -829,6 +829,34 @@ body.v-starlink .alerts { margin-top: 1rem; }
 }
 .update-chip:hover { border-color: var(--accent); }
 
+/* ---------- Page /livre-de-bord ---------- */
+
+.lb-toolbar {
+  display: flex; flex-wrap: wrap; gap: .75rem; align-items: center;
+  justify-content: space-between; margin: 1.25rem 0 .25rem;
+}
+.lb-day { margin-top: 1.6rem; }
+.lb-day h2 {
+  margin: 0 0 .3rem; font-size: .68rem; text-transform: uppercase; letter-spacing: .12em;
+  color: var(--muted); padding-bottom: .45rem; border-bottom: 1px solid var(--border);
+  font-weight: 600;
+}
+.lb-row {
+  display: flex; align-items: baseline; gap: .7rem; padding: .45rem 0;
+  border-bottom: 1px dotted var(--border); font-size: .85rem;
+}
+.lb-row:last-child { border-bottom: none; }
+.lb-row .edot { align-self: center; }
+.lb-time { color: var(--muted); font-variant-numeric: tabular-nums; font-size: .78rem; min-width: 3.2rem; }
+.lb-text { flex: 1; min-width: 0; }
+.lb-text b { font-weight: 600; }
+.lb-detail { color: var(--muted); font-size: .78rem; }
+.lb-logs { flex-basis: 100%; margin: 0 0 0 4.6rem; font-size: .8125rem; }
+.lb-logs summary { cursor: pointer; color: var(--muted); }
+.lb-row:has(.lb-logs) { flex-wrap: wrap; }
+.lb-empty { margin-top: 2.5rem; color: var(--muted); max-width: 42rem; font-size: .95rem; }
+@media (max-width: 520px) { .lb-logs { margin-left: 0; } }
+
 /* ---------- Accessibilité et tactile ---------- */
 
 /* Focus clavier signé Rouille de coque, cohérent dans les deux thèmes. */

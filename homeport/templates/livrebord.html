@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="{{ lang }}" data-theme="auto">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>{{ t("logbook.title") }} — Homeport</title>
+  <link rel="stylesheet" href="/static/style.css?v={{ version }}">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚓</text></svg>">
+  <link rel="manifest" href="/static/manifest.json">
+  <meta name="theme-color" content="#b8452f">
+</head>
+<body>
+  <header class="topbar">
+    <div class="identity">
+      <span class="berry" aria-hidden="true">⚓</span>
+      <div>
+        <h1><a class="back-link" href="/">{{ hostname }}</a> · {{ t("logbook.title") }}</h1>
+        <p class="sub" id="lb-summary">{{ t("common.loading") }}</p>
+      </div>
+    </div>
+    {% set nav_current = "logbook" %}{% include "_nav.html" %}
+  </header>
+
+  <div class="lb-toolbar">
+    <div class="net-filters" id="lb-families">
+      <button data-family="all" class="active">{{ t("logbook.f_all") }}</button>
+      <button data-family="services">{{ t("logbook.f_services") }}</button>
+      <button data-family="network">{{ t("logbook.f_network") }}</button>
+      <button data-family="actions">{{ t("logbook.f_actions") }}</button>
+      <button data-family="machine">{{ t("logbook.f_machine") }}</button>
+    </div>
+    <div class="net-filters" id="lb-periods">
+      <button data-days="7" class="active">{{ t("logbook.p7") }}</button>
+      <button data-days="30">{{ t("logbook.p30") }}</button>
+      <button data-days="90">{{ t("logbook.p90") }}</button>
+      <button data-days="365">{{ t("logbook.p365") }}</button>
+    </div>
+  </div>
+
+  <section id="lb-days" aria-live="polite"></section>
+
+  <footer>
+    <span id="refreshed">—</span>
+    <span>Homeport v{{ version }}</span>
+  </footer>
+
+  <script>window.HOMEPORT_I18N = {{ i18n_json|safe }};</script>
+  <script src="/static/i18n.js"></script>
+  <script src="/static/livrebord.js?v={{ version }}"></script>
+</body>
+</html>

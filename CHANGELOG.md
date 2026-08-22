@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- **Logbook view** (`/livre-de-bord`) — the major events of the server's life on a
+  day-grouped timeline: service state transitions, Internet outages and recoveries,
+  public-IP changes, new LAN devices, admin restarts/wakes, boots, under-voltage,
+  temperature peaks and backup slips. Backed by a dedicated `events` table (1-year
+  retention) fed by transition detectors on the existing background loops; admin actions
+  are merged at read time. Filter by family and period, drill into container logs inline.
+
 ## v0.3.3
 
 - **Uniform headers** — every page now shows the same top-left identity (anchor + your
