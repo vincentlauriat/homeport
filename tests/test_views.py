@@ -33,11 +33,18 @@ def test_les_trois_vues_portent_le_selecteur(client):
 # La nav partagée (_nav.html) : chaque page mène à toutes les autres — Vincent doit pouvoir
 # revenir à l'accueil depuis /reseau ou /starlink, et y aller depuis n'importe où.
 def test_toutes_les_pages_portent_la_nav_complete(client):
-    for path in ("/controle", "/journal", "/mur", "/reseau", "/historique", "/starlink"):
+    for path in ("/controle", "/journal", "/mur", "/reseau", "/historique", "/starlink", "/livre-de-bord"):
         text = client.get(path).text
         assert 'class="view-switch"' in text, path
-        for target in ('href="/"', 'href="/reseau"', 'href="/historique"'):
+        for target in ('href="/"', 'href="/reseau"', 'href="/historique"', 'href="/livre-de-bord"'):
             assert target in text, (path, target)
+
+
+def test_livre_de_bord_repond(client):
+    response = client.get("/livre-de-bord")
+    assert response.status_code == 200
+    assert 'id="lb-days"' in response.text
+    assert "livrebord.js" in response.text
 
 
 def test_nav_starlink_seulement_si_module_actif(client, tmp_path, monkeypatch):

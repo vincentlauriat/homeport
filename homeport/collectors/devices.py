@@ -48,15 +48,19 @@ def normalize_mac(mac: str) -> str | None:
     return cleaned if _MAC.match(cleaned) else None
 
 
-def upsert_seen(path: Path, seen: list[dict], now: float | None = None) -> None:
-    """Enregistre un passage du job de fond.
+def upsert_seen(path: Path, seen: list[dict], now: float | None = None) -> list[dict]:
+    """Enregistre un passage du job de fond ; retourne les appareils vus pour la première
+    fois (`[{mac, ip}]`), matière du livre de bord.
 
     Table vide = tout premier passage : les appareils déjà présents sont acquittés d'office,
-    sinon les ~50 appareils du jour zéro inonderaient le capteur « nouveaux » de HA.
+    sinon les ~50 appareils du jour zéro inonderaient le capteur « nouveaux » de HA — et le
+    premier passage ne compte donc jamais comme « nouveaux ».
     """
     ts = int(now if now is not None else time.time())
+    created: list[dict] = []
     with sqlite3.connect(path) as conn:
         initial = conn.execute("SELECT COUNT(*) FROM devices").fetchone()[0] == 0
+        known = {row[0] for row in conn.execute("SELECT mac FROM devices")}
         for device in seen:
             mac = normalize_mac(device.get("mac", ""))
             if mac is None:
@@ -67,6 +71,10 @@ def upsert_seen(path: Path, seen: list[dict], now: float | None = None) -> None:
                    ON CONFLICT(mac) DO UPDATE SET last_seen = ?, last_ip = ?""",
                 (mac, ts, ts, device.get("ip"), 1 if initial else 0, ts, device.get("ip")),
             )
+            if not initial and mac not in known:
+                created.append({"mac": mac, "ip": device.get("ip")})
+            known.add(mac)
+    return created
 
 
 def list_devices(path: Path) -> list[dict]:

@@ -56,6 +56,9 @@ restart actions ([exact-command sudoers](deploy/sudoers.example)), NVMe wear
   outage history, public IP changes.
 - **History** — 7 days of CPU/memory/temperature charts with Internet outages overlaid
   as red bands, plus per-service availability percentages.
+- **Logbook** — a one-year, day-grouped timeline of the events that matter: services
+  falling and recovering, Internet outages, new devices, admin actions, boots and
+  power incidents — with container logs one click away.
 
 Everything degrades gracefully: no Docker → systemd and probes only; no Tailscale → a
 read-only dashboard; not a Raspberry Pi → the Pi-specific tiles simply disappear.

@@ -11,6 +11,7 @@ import json
 import logging
 import os
 import sqlite3
+import time
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -19,12 +20,13 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from . import __version__, actions, background, demo, i18n, mqtt, status
+from . import __version__, actions, background, demo, events_watch, i18n, mqtt, status
 from . import config as cfg
 from .collectors import (
     backups,
     devices,
     docker_api,
+    events,
     hardware,
     history,
     journal,
@@ -78,12 +80,20 @@ async def lifespan(_: FastAPI):
         wan.init_db(cfg.DB_PATH)
         service_history.init_db(cfg.DB_PATH)
         public_ip.init_db(cfg.DB_PATH)
+        events.init_db(cfg.DB_PATH)
     except OSError as exc:
         log.warning("inventaire appareils désactivé : %s", exc)
 
+    # Un uptime machine plus jeune que le seuil : ce démarrage suit un boot, pas un
+    # simple restart du service — le seul événement écrit sans transition observée.
+    try:
+        events_watch.boot(cfg.DB_PATH, system_collector.uptime()["seconds"])
+    except (sqlite3.Error, OSError) as exc:
+        log.warning("livre de bord indisponible au démarrage : %s", exc)
+
     background.start(
         {
-            "backups": (lambda: _to_async(backups.collect, health["backups"]), intervals["backups"]),
+            "backups": (lambda: _to_async(_backups_and_watch, health["backups"]), intervals["backups"]),
             "journal": (
                 lambda: journal.collect(
                     since=journal_config.get("since", "24 hours ago"),
@@ -91,7 +101,7 @@ async def lifespan(_: FastAPI):
                 ),
                 intervals["journal"],
             ),
-            "throttling": (hardware.throttling, intervals["throttling"]),
+            "throttling": (_throttling_and_watch, intervals["throttling"]),
             "apt": (updates.apt, intervals["apt"]),
             "docker_images": (updates.docker_images, intervals["docker_images"]),
             "history": (
@@ -171,7 +181,8 @@ async def _network_and_track() -> dict:
     visible), le snapshot réseau ne l'est pas."""
     data = await network.collect()
     try:
-        devices.upsert_seen(cfg.DB_PATH, data.get("lan_neighbors", []))
+        created = devices.upsert_seen(cfg.DB_PATH, data.get("lan_neighbors", []))
+        events_watch.devices_new(cfg.DB_PATH, created)
     except (sqlite3.Error, OSError) as exc:
         log.warning("inventaire appareils indisponible : %s", exc)
     return data
@@ -199,6 +210,11 @@ async def _record_service_states() -> int:
     states = {s["id"]: s["state"] for g in snapshot["groups"] for s in g["services"]}
     service_history.record_states(cfg.DB_PATH, states)
     service_history.prune(cfg.DB_PATH, retention_days=7)
+    try:
+        events_watch.services(cfg.DB_PATH, states)
+        events.prune(cfg.DB_PATH, retention_days=365)
+    except (sqlite3.Error, OSError) as exc:
+        log.warning("livre de bord indisponible : %s", exc)
     return len(states)
 
 
@@ -215,6 +231,7 @@ async def _track_public_ip() -> dict | None:
     if ip is not None:
         try:
             public_ip.track(cfg.DB_PATH, ip)
+            events_watch.public_ip(cfg.DB_PATH, ip)
         except (sqlite3.Error, OSError) as exc:
             log.warning("historique IP publique indisponible : %s", exc)
     try:
@@ -230,6 +247,7 @@ async def _wan_probe() -> dict:
     try:
         wan.record(cfg.DB_PATH, sample)
         wan.prune(cfg.DB_PATH, retention_days=7)
+        events_watch.wan(cfg.DB_PATH, bool(sample.get("online")))
     except (sqlite3.Error, OSError) as exc:
         log.warning("historique WAN indisponible : %s", exc)
     return sample
@@ -249,6 +267,29 @@ def _record_history_sample(path: Path, retention_days: int) -> None:
         },
     )
     history.prune(path, retention_days)
+    try:
+        events_watch.temperature(path, sample["temperature_c"])
+    except (sqlite3.Error, OSError) as exc:
+        log.warning("livre de bord (température) indisponible : %s", exc)
+
+
+def _backups_and_watch(entries: list[dict]) -> list[dict]:
+    """Le collecteur backups existant, plus le scribe : mêmes données, un seul passage."""
+    data = backups.collect(entries)
+    try:
+        events_watch.backups(cfg.DB_PATH, data)
+    except (sqlite3.Error, OSError) as exc:
+        log.warning("livre de bord (backups) indisponible : %s", exc)
+    return data
+
+
+async def _throttling_and_watch() -> dict:
+    data = await hardware.throttling()
+    try:
+        events_watch.throttling(cfg.DB_PATH, data)
+    except (sqlite3.Error, OSError) as exc:
+        log.warning("livre de bord (alimentation) indisponible : %s", exc)
+    return data
 
 
 app = FastAPI(
@@ -531,6 +572,53 @@ async def api_outages(hours: float = 24.0) -> JSONResponse:
     except sqlite3.Error:
         result = []
     return JSONResponse({"outages": result})
+
+
+@app.get("/livre-de-bord", response_class=HTMLResponse)
+async def livre_de_bord(request: Request) -> HTMLResponse:
+    """Le livre de bord : la chronique des événements marquants — transitions de services,
+    pannes Internet, appareils inconnus, gestes d'admin — peuplée par /api/events."""
+    return templates.TemplateResponse(
+        request=request, name="livrebord.html", context={"version": __version__, **_i18n_context()}
+    )
+
+
+@app.get("/api/events")
+async def api_events(days: float = 7, limit: int = 200, kinds: str | None = None) -> JSONResponse:
+    """Le livre de bord : événements consignés + actions admin, fusionnés à la lecture.
+
+    La table `actions` reste l'autorité des actions (elle sert aussi /api/actions) ; les
+    dupliquer dans `events` créerait deux vérités. `kinds` filtre par préfixes de famille,
+    séparés par des virgules (« service.,internet. »)."""
+    days = max(0.25, min(days, 365.0))
+    limit = max(1, min(limit, 1000))
+    prefixes = [k.strip() for k in kinds.split(",") if k.strip()] if kinds else None
+    if DEMO:
+        return JSONResponse({"events": demo.events(days=days, limit=limit, kinds=prefixes)})
+    try:
+        rows = events.query(cfg.DB_PATH, days=days, kinds=prefixes, limit=limit)
+    except sqlite3.Error:
+        rows = []
+    if prefixes is None or any(p.startswith("action") for p in prefixes):
+        cutoff = time.time() - days * 86400
+        try:
+            for act in actions.recent(cfg.DB_PATH, limit=limit):
+                if act["ts"] < cutoff:
+                    break  # recent est trié du plus récent au plus ancien
+                rows.append(
+                    {
+                        "ts": act["ts"],
+                        "kind": f"action.{act['kind']}",
+                        "severity": "up" if act["ok"] else "down",
+                        "subject": act["target"],
+                        "detail": act["identity"],
+                    }
+                )
+        except sqlite3.Error:
+            pass
+        rows.sort(key=lambda e: e["ts"], reverse=True)
+        rows = rows[:limit]
+    return JSONResponse({"events": rows})
 
 
 @app.get("/api/logs/{name}")

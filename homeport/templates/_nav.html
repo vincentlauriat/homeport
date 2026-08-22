@@ -7,5 +7,6 @@
   <a href="/mur" {{ 'class=current' if nav_current == 'wall' }}>{{ t("nav.wall") }}</a>
   <a href="/reseau" {{ 'class=current' if nav_current == 'network' }}>{{ t("nav.network") }}</a>
   <a href="/historique" {{ 'class=current' if nav_current == 'history' }}>{{ t("nav.history") }}</a>
+  <a href="/livre-de-bord" {{ 'class=current' if nav_current == 'logbook' }}>{{ t("nav.logbook") }}</a>
   {% if starlink_enabled %}<a href="/starlink" {{ 'class=current' if nav_current == 'starlink' }}>Starlink</a>{% endif %}
 </nav>
