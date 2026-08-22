@@ -1,11 +1,12 @@
-"""Couche i18n : catalogues EN/FR à parité, variables, pluriels, repli sur la clé."""
+"""Couche i18n : catalogues EN/FR/ZH à parité, variables, pluriels, repli sur la clé."""
 from homeport import i18n
 
 
 def test_parite_des_catalogues():
-    en, fr = i18n.catalog("en"), i18n.catalog("fr")
-    assert set(en) == set(fr)
+    en = i18n.catalog("en")
     assert en  # jamais vide
+    for lang in i18n.SUPPORTED:
+        assert set(i18n.catalog(lang)) == set(en), lang
 
 
 def test_variables():
@@ -30,3 +31,8 @@ def test_pluriel():
 def test_etats_traduits():
     assert i18n.t("state.up", "fr") == "Actif"
     assert i18n.t("state.up", "en") == "Running"
+
+
+def test_zh_traduit():
+    assert i18n.t("state.up", "zh") == "运行中"
+    assert "个" in i18n.t("summary.up_count", "zh", count=3)

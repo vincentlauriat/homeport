@@ -344,5 +344,10 @@
   "ev.backup.stale": "Backup {subject} is late",
   "ev.backup.ok": "Backup {subject} is back on schedule",
   "ev.action.restart": "{subject} restarted by admin",
-  "ev.action.wake": "Wake-on-LAN sent to {subject}"
+  "ev.action.wake": "Wake-on-LAN sent to {subject}",
+  "prefs.language": "Language",
+  "prefs.theme": "Theme",
+  "prefs.theme_auto": "Auto",
+  "prefs.theme_light": "Light",
+  "prefs.theme_dark": "Dark"
 }

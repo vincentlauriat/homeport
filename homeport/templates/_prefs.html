@@ -1,0 +1,28 @@
+{# Préférences locales au navigateur : langue via cookie (rendu serveur), thème via localStorage. #}
+<span class="prefs">
+  <select id="pref-lang" aria-label="{{ t("prefs.language") }}">
+    <option value="en" {{ 'selected' if lang == 'en' }}>English</option>
+    <option value="fr" {{ 'selected' if lang == 'fr' }}>Français</option>
+    <option value="zh" {{ 'selected' if lang == 'zh' }}>中文</option>
+  </select>
+  <select id="pref-theme" aria-label="{{ t("prefs.theme") }}">
+    <option value="auto">{{ t("prefs.theme_auto") }}</option>
+    <option value="light">{{ t("prefs.theme_light") }}</option>
+    <option value="dark">{{ t("prefs.theme_dark") }}</option>
+  </select>
+</span>
+<script>
+(function () {
+  var lang = document.getElementById('pref-lang');
+  lang.addEventListener('change', function () {
+    document.cookie = 'homeport_lang=' + lang.value + ';path=/;max-age=31536000;samesite=lax';
+    location.reload();
+  });
+  var theme = document.getElementById('pref-theme');
+  theme.value = localStorage.getItem('homeport_theme') || 'auto';
+  theme.addEventListener('change', function () {
+    localStorage.setItem('homeport_theme', theme.value);
+    document.documentElement.dataset.theme = theme.value;
+  });
+})();
+</script>

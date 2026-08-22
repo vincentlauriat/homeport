@@ -299,10 +299,22 @@ app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
 templates = Jinja2Templates(directory=BASE_DIR / "templates")
 
 
-def _i18n_context() -> dict:
+def _request_lang(request: Request | None) -> str | None:
+    """Langue du cookie navigateur si elle est connue, sinon None (→ config serveur)."""
+    if request is None:
+        return None
+    cookie = request.cookies.get("homeport_lang")
+    return cookie if cookie in i18n.SUPPORTED else None
+
+
+def _i18n_context(request: Request | None = None) -> dict:
     """Contexte de rendu commun : `t` pour Jinja, le catalogue sérialisé pour le JS,
-    et le flag Starlink pour la barre de navigation partagée (_nav.html)."""
-    lang = cfg.load_language()
+    et le flag Starlink pour la barre de navigation partagée (_nav.html).
+
+    La langue vient du cookie du navigateur quand il porte une valeur connue — chacun la
+    sienne (sélecteur du pied de page) — sinon de la config serveur. MQTT et les capteurs
+    Home Assistant restent sur la langue de la config : un cookie ne les concerne pas."""
+    lang = _request_lang(request) or cfg.load_language()
     return {
         "t": lambda key, **variables: i18n.t(key, lang, **variables),
         "lang": lang,
@@ -323,11 +335,11 @@ def _hostname(request: Request) -> str:
 
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request) -> HTMLResponse:
-    data = await (demo.build if DEMO else status.build)(_hostname(request))
+    data = await (demo.build if DEMO else status.build)(_hostname(request), _request_lang(request))
     return templates.TemplateResponse(
         request=request,
         name="index.html",
-        context={**data, "version": __version__, **_i18n_context()},
+        context={**data, "version": __version__, **_i18n_context(request)},
     )
 
 
@@ -337,13 +349,13 @@ async def reseau(request: Request) -> HTMLResponse:
     index.html (rendu serveur), tout y est dynamique et éditable : le JS est la seule source
     de rendu, pas de double implémentation Jinja + JS à maintenir."""
     return templates.TemplateResponse(
-        request=request, name="reseau.html", context={"version": __version__, **_i18n_context()}
+        request=request, name="reseau.html", context={"version": __version__, **_i18n_context(request)}
     )
 
 
 @app.get("/api/status")
 async def api_status(request: Request) -> JSONResponse:
-    return JSONResponse(await (demo.build if DEMO else status.build)(_hostname(request)))
+    return JSONResponse(await (demo.build if DEMO else status.build)(_hostname(request), _request_lang(request)))
 
 
 @app.get("/api/history")
@@ -503,7 +515,7 @@ async def historique(request: Request) -> HTMLResponse:
     """Courbes 7 jours (CPU/mémoire/température) avec les coupures Internet surimprimées —
     voir la corrélation, pas deux listes. Page dynamique, peuplée par /api/history."""
     return templates.TemplateResponse(
-        request=request, name="historique.html", context={"version": __version__, **_i18n_context()}
+        request=request, name="historique.html", context={"version": __version__, **_i18n_context(request)}
     )
 
 
@@ -514,7 +526,7 @@ async def historique(request: Request) -> HTMLResponse:
 async def vue_controle(request: Request) -> HTMLResponse:
     """Vue A — salle de contrôle : dense, deux colonnes, tableau de services."""
     return templates.TemplateResponse(
-        request=request, name="controle.html", context={"version": __version__, **_i18n_context()}
+        request=request, name="controle.html", context={"version": __version__, **_i18n_context(request)}
     )
 
 
@@ -522,7 +534,7 @@ async def vue_controle(request: Request) -> HTMLResponse:
 async def vue_journal(request: Request) -> HTMLResponse:
     """Vue B — le journal de la maison : verdict, attention, faits."""
     return templates.TemplateResponse(
-        request=request, name="journal.html", context={"version": __version__, **_i18n_context()}
+        request=request, name="journal.html", context={"version": __version__, **_i18n_context(request)}
     )
 
 
@@ -530,7 +542,7 @@ async def vue_journal(request: Request) -> HTMLResponse:
 async def vue_mur(request: Request) -> HTMLResponse:
     """Vue C — le mur : tablette murale, chiffres géants, horloge."""
     return templates.TemplateResponse(
-        request=request, name="mur.html", context={"version": __version__, **_i18n_context()}
+        request=request, name="mur.html", context={"version": __version__, **_i18n_context(request)}
     )
 
 
@@ -538,7 +550,7 @@ async def vue_mur(request: Request) -> HTMLResponse:
 async def vue_starlink(request: Request) -> HTMLResponse:
     """Page complète de l'antenne Starlink — même pattern coquille + JS que /reseau."""
     return templates.TemplateResponse(
-        request=request, name="starlink.html", context={"version": __version__, **_i18n_context()}
+        request=request, name="starlink.html", context={"version": __version__, **_i18n_context(request)}
     )
 
 
@@ -579,7 +591,7 @@ async def livre_de_bord(request: Request) -> HTMLResponse:
     """Le livre de bord : la chronique des événements marquants — transitions de services,
     pannes Internet, appareils inconnus, gestes d'admin — peuplée par /api/events."""
     return templates.TemplateResponse(
-        request=request, name="livrebord.html", context={"version": __version__, **_i18n_context()}
+        request=request, name="livrebord.html", context={"version": __version__, **_i18n_context(request)}
     )
 
 

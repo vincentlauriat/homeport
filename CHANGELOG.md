@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- **Three languages** — Chinese (Simplified) joins English and French, and every browser
+  can pick its own language from the footer selector (cookie; the server config stays the
+  default and still drives MQTT sensor names). Status labels and alerts follow too.
+- **Light / dark / auto theme** — a footer selector forces light or dark per browser
+  (localStorage, applied before first paint), "auto" keeps following the system.
+
 - **Logbook view** (`/livre-de-bord`) — the major events of the server's life on a
   day-grouped timeline: service state transitions, Internet outages and recoveries,
   public-IP changes, new LAN devices, admin restarts/wakes, boots, under-voltage,

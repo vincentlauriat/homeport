@@ -21,8 +21,11 @@
   --map-bg: #101420;
 }
 
+/* Trois états de thème : « auto » suit le système (media query), un choix explicite du
+   sélecteur (data-theme sur <html>, posé avant le CSS) gagne dans les deux sens. Le bloc
+   sombre existe donc deux fois — c'est le prix du CSS pur, les valeurs sont identiques. */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --bg: #16181a;
     --surface: #1e2124;
     --border: #2c3034;
@@ -35,6 +38,20 @@
     --unknown: #6a6a64;
     --shadow: 0 1px 2px rgba(0,0,0,.3), 0 4px 14px rgba(0,0,0,.25);
   }
+}
+
+:root[data-theme="dark"] {
+  --bg: #16181a;
+  --surface: #1e2124;
+  --border: #2c3034;
+  --text: #e8e6e1;
+  --muted: #93938c;
+  --accent: #e2705a;
+  --up: #4caf6a;
+  --warn: #d9a441;
+  --down: #e05c4c;
+  --unknown: #6a6a64;
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 4px 14px rgba(0,0,0,.25);
 }
 
 * { box-sizing: border-box; }
@@ -856,6 +873,16 @@ body.v-starlink .alerts { margin-top: 1rem; }
 .lb-row:has(.lb-logs) { flex-wrap: wrap; }
 .lb-empty { margin-top: 2.5rem; color: var(--muted); max-width: 42rem; font-size: .95rem; }
 @media (max-width: 520px) { .lb-logs { margin-left: 0; } }
+
+/* Sélecteurs langue / thème du pied de page — discrets, dans la voix du système. */
+.prefs { display: inline-flex; gap: .4rem; }
+.prefs select {
+  font: inherit; font-size: .72rem; color: var(--muted);
+  background: var(--surface); border: 1px solid var(--border); border-radius: 999px;
+  padding: .15rem .5rem; cursor: pointer;
+}
+.prefs select:hover { color: var(--text); border-color: var(--accent); }
+.wall-foot .prefs { margin-left: 1rem; }
 
 /* ---------- Accessibilité et tactile ---------- */
 

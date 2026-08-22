@@ -74,8 +74,10 @@ Details: [docs/security-model.md](docs/security-model.md).
 
 ## Languages
 
-English by default, French included — set `language: fr` in the config. Contributions of
-other languages are two JSON files away ([homeport/i18n/](homeport/i18n/)).
+English, French and Chinese (Simplified) — pick per browser from the footer selector,
+or set the server default with `language: fr` (or `zh`) in the config. The footer also
+offers a light / dark / auto theme choice per browser. Contributions of other languages
+are one JSON file away ([homeport/i18n/](homeport/i18n/)).
 
 ## License
 
