@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light dark">
   <title>{{ t("nav.journal") }} — Homeport</title>
+  <script>document.documentElement.dataset.theme = localStorage.getItem('homeport_theme') || 'auto';</script>
   <link rel="stylesheet" href="/static/style.css?v={{ version }}">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚓</text></svg>">
   <link rel="manifest" href="/static/manifest.json">
@@ -48,7 +49,8 @@
     <footer>
       <span id="refreshed">—</span>
       <span>Homeport v{{ version }}</span>
-    </footer>
+      {% include "_prefs.html" %}
+  </footer>
   </main>
 
   <script>window.HOMEPORT_I18N = {{ i18n_json|safe }};</script>

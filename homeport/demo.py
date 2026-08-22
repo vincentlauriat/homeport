@@ -48,7 +48,7 @@ _DEVICE_VENDORS = [
 ]
 
 
-async def build(hostname: str) -> dict:
+async def build(hostname: str, lang: str | None = None) -> dict:
     now = time.time()
     groups: dict[str, list] = {}
     counters = {"up": 0, "warn": 0, "down": 0, "unknown": 0}
@@ -71,7 +71,7 @@ async def build(hostname: str) -> dict:
             "icon": icon,
             "description": desc,
             "state": state,
-            "state_label": i18n.t(f"state.{state}", cfg.load_language()),
+            "state_label": i18n.t(f"state.{state}", lang or cfg.load_language()),
             "sources": sources,
             "extra": [],
             "uptime": f"{2 + i % 5} days" if docker else "",

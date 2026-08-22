@@ -20,8 +20,8 @@ def state_label(state: str, lang: str) -> str:
     return i18n.t(f"state.{state}", lang)
 
 _CACHE_TTL = 3.0
-_cache: dict = {}
-_cache_time = 0.0
+_cache: dict[str, dict] = {}  # un snapshot par langue (voir build)
+_cache_time: dict[str, float] = {}
 _lock = asyncio.Lock()
 
 
@@ -78,24 +78,29 @@ async def _probe_service(service: cfg.Service) -> str:
     return UP if alive else DOWN
 
 
-async def build(hostname: str) -> dict:
+async def build(hostname: str, lang: str | None = None) -> dict:
     """Construit l'état complet. Le résultat est mis en cache quelques secondes pour qu'un
-    onglet laissé ouvert (ou plusieurs) ne martèle pas le socket Docker et systemd."""
-    global _cache, _cache_time
+    onglet laissé ouvert (ou plusieurs) ne martèle pas le socket Docker et systemd.
+
+    Le cache est par langue : les libellés traduits (états, alertes) font partie du
+    snapshot, et deux navigateurs du foyer peuvent afficher deux langues (cookie). MQTT
+    appelle sans `lang` (langue de la config) et garde donc sa propre entrée, stable."""
+    lang = lang or cfg.load_language()
 
     async with _lock:
         now = time.monotonic()
-        if _cache and now - _cache_time < _CACHE_TTL:
-            snapshot = _cache
+        cached = _cache.get(lang)
+        if cached and now - _cache_time.get(lang, 0.0) < _CACHE_TTL:
+            snapshot = cached
         else:
-            snapshot = await _snapshot()
-            _cache, _cache_time = snapshot, now
+            snapshot = await _snapshot(lang)
+            _cache[lang], _cache_time[lang] = snapshot, now
 
     # Les liens dépendent de l'hôte de la requête : recalculés hors cache.
     return _with_links(snapshot, hostname)
 
 
-async def _snapshot() -> dict:
+async def _snapshot(lang: str | None = None) -> dict:
     groups = cfg.load_groups()
     services = cfg.all_services(groups)
     units = [s.systemd for s in services if s.systemd]
@@ -115,7 +120,7 @@ async def _snapshot() -> dict:
     availability_raw = background.snapshot().get("availability")
     availability = (availability_raw or {}).get("data") or {}
     cron_jobs = cron.collect()
-    lang = cfg.load_language()
+    lang = lang or cfg.load_language()
     ssh_sessions = _ssh_sessions()
     container_cpu = _container_cpu()
 
@@ -167,7 +172,7 @@ async def _snapshot() -> dict:
         "docker_available": await docker_api.is_available(),
         # Mesures lentes : simple lecture du dernier résultat des boucles de fond, jamais
         # d'attente. `None` signifie « pas encore mesuré », pas « rien à signaler ».
-        "health": _health(),
+        "health": _health(lang),
         "network": network_data,
         # Lecture d'un simple fichier JSON (écrit par le timer root), rapide : hors boucle de fond.
         "nvme": nvme.collect(cfg.NVME_PATH),
@@ -182,10 +187,10 @@ async def _snapshot() -> dict:
     }
 
 
-def _health() -> dict:
+def _health(lang: str | None = None) -> dict:
     """Assemble les mesures de fond en une section prête à afficher."""
     raw = background.snapshot()
-    lang = cfg.load_language()
+    lang = lang or cfg.load_language()
 
     def value(key):
         entry = raw.get(key)

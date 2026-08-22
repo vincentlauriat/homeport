@@ -344,5 +344,10 @@
   "ev.backup.stale": "Sauvegarde {subject} en retard",
   "ev.backup.ok": "Sauvegarde {subject} revenue à la normale",
   "ev.action.restart": "{subject} redémarré par l'admin",
-  "ev.action.wake": "Wake-on-LAN envoyé à {subject}"
+  "ev.action.wake": "Wake-on-LAN envoyé à {subject}",
+  "prefs.language": "Langue",
+  "prefs.theme": "Thème",
+  "prefs.theme_auto": "Auto",
+  "prefs.theme_light": "Clair",
+  "prefs.theme_dark": "Sombre"
 }

@@ -47,6 +47,8 @@ def test_plus_de_francais_en_dur_dans_les_sources():
             stripped = line.strip()
             if stripped.startswith(("//", "*", "/*", "#", "{#")):
                 continue  # les commentaires du code restent en français
+            if f.name == "_prefs.html" and "<option" in stripped:
+                continue  # autonymes du sélecteur de langue (« Français », « 中文 »)
             stripped = re.sub(r"//.*$", "", stripped)  # commentaire en fin de ligne
             if ACCENT.search(stripped):
                 offenders.append(f"{f.name}:{i}")
