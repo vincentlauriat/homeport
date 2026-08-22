@@ -115,6 +115,15 @@ actions:
 #   address: 192.168.100.1:9200
 
 # ---------------------------------------------------------------------------
+# livebox: — Orange Livebox monitoring (row on the dashboard + full /livebox page).
+# Reads the box's local "sysbus" API (POST /ws). On the Livebox W7 the two calls used
+# (DeviceInfo:get, NMC:getWANStatus) answer without authentication: no password needed,
+# no secret in this file. Off by default — no traffic to the box unless you opt in.
+# livebox:
+#   enabled: true
+#   address: 192.168.100.254
+
+# ---------------------------------------------------------------------------
 # mqtt: — publish the dashboard state to Home Assistant via MQTT discovery.
 # Credentials come from HOMEPORT_MQTT_USERNAME / HOMEPORT_MQTT_PASSWORD
 # (systemd loads them from /etc/homeport/mqtt.env, root-only), never from this file.

@@ -12,7 +12,7 @@ const setText = (id, value) => {
 
 const setBar = (metricEl, percent) => {
   const bar = metricEl?.querySelector('.bar i');
-  if (bar) bar.style.width = `${Math.min(percent, 100)}%`;
+  if (bar) bar.style.transform = `scaleX(${Math.min(percent, 100) / 100})`;
 };
 
 function applySystem(system) {
@@ -77,7 +77,7 @@ function applyServices(groups) {
         const cpuVal = card.querySelector('.cpu-val');
         if (cpuVal) cpuVal.textContent = `${service.cpu_percent} %`;
         const cpuBar = card.querySelector('.cpu-line .bar i');
-        if (cpuBar) cpuBar.style.width = `${Math.min(service.cpu_percent, 100)}%`;
+        if (cpuBar) cpuBar.style.transform = `scaleX(${Math.min(service.cpu_percent, 100) / 100})`;
       }
     }
   }
@@ -190,6 +190,21 @@ function applyWan(wan) {
   setText('wan-note', (wan.outages_24h
     ? Tn('net.outages_detail', wan.outages_24h) + ' · ' + T('index.outage_last', { count: wan.last_outage_minutes })
     : T('net.no_outage')) + ipSuffix);
+}
+
+function applyLivebox(livebox) {
+  const card = document.querySelector('[data-network="livebox"]');
+  if (!card || !livebox) return;
+  card.hidden = false;
+  card.classList.remove('state-up', 'state-down');
+  card.classList.add(livebox.online ? 'state-up' : 'state-down');
+  setText('lbx-card-value', livebox.online
+    ? T('net.online_latency', { latency: livebox.latency_ms })
+    : livebox.reachable ? T('livebox.wan_down') : T('livebox.offline'));
+  setText('lbx-card-note', T('livebox.card_note', {
+    model: livebox.model || 'Livebox',
+    link: (livebox.link_type || '?').toUpperCase(),
+  }));
 }
 
 function applyStarlink(starlink) {
@@ -341,6 +356,7 @@ async function refresh() {
     window.__publicIp = data.public_ip ? data.public_ip.ip : null;
     applyWan(data.wan);
     applyStarlink(data.starlink);
+    applyLivebox(data.livebox);
     applyNetwork(data.network);
     applyStatusFiles(data.status_files);
     applyUpdateBadge(data.update);

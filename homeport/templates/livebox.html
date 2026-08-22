@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="{{ lang }}" data-theme="auto">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Livebox — Homeport</title>
+  <script>document.documentElement.dataset.theme = localStorage.getItem('homeport_theme') || 'auto';</script>
+  <link rel="stylesheet" href="/static/style.css?v={{ version }}">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚓</text></svg>">
+  <link rel="manifest" href="/static/manifest.json">
+  <meta name="theme-color" content="#b8452f">
+</head>
+<body class="v-starlink">
+  <header class="topbar">
+    <div class="identity">
+      <span class="berry" aria-hidden="true">⚓</span>
+      <div>
+        <h1><a class="back-link" href="/">{{ hostname }}</a> · Livebox</h1>
+        <p class="sub" id="lbx-sub">{{ t("common.loading") }}</p>
+      </div>
+    </div>
+    <div class="sl-state" id="lbx-state"><span class="wall-halo" id="lbx-halo"></span><span id="lbx-state-text">…</span></div>
+    {% set nav_current = "livebox" %}{% include "_nav.html" %}
+  </header>
+
+  <main>
+  <section class="sl-cells">
+    <div class="sl-cell"><span class="t">{{ t("livebox.link") }}</span><b id="lbx-link">—</b><span class="foot" id="lbx-link-note">—</span></div>
+    <div class="sl-cell"><span class="t">{{ t("livebox.optical") }}</span><b id="lbx-gpon">—</b><span class="foot" id="lbx-gpon-note">—</span></div>
+    <div class="sl-cell"><span class="t">{{ t("livebox.connection") }}</span><b id="lbx-conn">—</b><span class="foot" id="lbx-conn-note">—</span></div>
+    <div class="sl-cell"><span class="t">IPv6</span><b id="lbx-ipv6">—</b><span class="foot" id="lbx-ipv6-note">—</span></div>
+    <div class="sl-cell"><span class="t">{{ t("livebox.latency") }}</span><b id="lbx-latency">—</b><span class="foot">{{ t("livebox.probe_note") }}</span></div>
+  </section>
+
+  <section class="hist-charts sl-charts">
+    <div class="hist-card">
+      <span class="health-label">{{ t("livebox.chart_latency") }}</span>
+      <svg class="hist-chart" aria-hidden="true" id="lbx-chart" viewBox="0 0 600 140" preserveAspectRatio="none"></svg>
+      <span class="health-note" id="lbx-chart-note"></span>
+    </div>
+    <div class="hist-card">
+      <span class="health-label">{{ t("livebox.identity") }}</span>
+      <div id="lbx-identity"></div>
+    </div>
+  </section>
+  </main>
+
+  <footer class="footer">
+    <span>Homeport v{{ version }}</span>
+    <span id="refreshed"></span>
+    {% include "_prefs.html" %}
+  </footer>
+
+  <script>window.HOMEPORT_I18N = {{ i18n_json|safe }};</script>
+  <script src="/static/i18n.js"></script>
+  <script src="/static/livebox.js?v={{ version }}"></script>
+</body>
+</html>

@@ -1,5 +1,6 @@
 """Le mode démo fournit le même contrat que status.build — sans aucun accès système."""
 import asyncio
+import time
 
 from homeport import demo
 
@@ -24,8 +25,11 @@ def test_demo_history_7_jours():
     samples = demo.history(hours=168)
     assert len(samples) > 500
     assert {"ts", "cpu_pct", "mem_pct", "temp_c", "nvme_temp_c"} <= set(samples[0])
-    # Déterministe : deux appels identiques.
-    assert samples[:10] == demo.history(hours=168)[:10]
+    # Valeurs déterministes entre deux appels ; les ts, eux, suivent l'horloge réelle.
+    strip = lambda s: {k: v for k, v in s.items() if k != "ts"}  # noqa: E731
+    assert [strip(s) for s in samples[:10]] == [strip(s) for s in demo.history(hours=168)[:10]]
+    # La fenêtre se termine « maintenant » (à un pas près) pour rester dans le champ du graphe.
+    assert abs(samples[-1]["ts"] - time.time()) <= 600
 
 
 def test_demo_devices_et_outages():

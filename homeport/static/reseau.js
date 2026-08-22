@@ -45,6 +45,7 @@ function startEditing(nameEl, device) {
   editing = true;
   const input = document.createElement("input");
   input.className = "net-name-input";
+  input.setAttribute("aria-label", T("reseau.rename_label", { name: device.display_name }));
   input.value = device.name || "";
   input.maxLength = 64;
   nameEl.replaceWith(input);
@@ -72,6 +73,7 @@ function renderDetails(device) {
 
   const note = document.createElement("textarea");
   note.placeholder = T("reseau.note_placeholder");
+  note.setAttribute("aria-label", T("reseau.note_label", { name: device.display_name }));
   note.value = device.note || "";
   note.maxLength = 500;
   const saveNote = document.createElement("button");
@@ -79,6 +81,7 @@ function renderDetails(device) {
   saveNote.addEventListener("click", () => patchDevice(device.mac, { note: note.value.trim() || null }));
 
   const select = document.createElement("select");
+  select.setAttribute("aria-label", T("reseau.category_label", { name: device.display_name }));
   for (const value of ["", ...CATEGORIES]) {
     const option = document.createElement("option");
     option.value = value;

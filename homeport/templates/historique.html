@@ -28,6 +28,7 @@
     {% set nav_current = "history" %}{% include "_nav.html" %}
   </header>
 
+  <main>
   <section class="hist-charts">
     <div class="hist-card">
       <span class="health-label">{{ t("metric.cpu") }} %</span>
@@ -52,6 +53,7 @@
   </section>
 
   <p class="health-note hist-legend">{{ t("hist.legend") }}</p>
+  </main>
 
   <footer class="footer">
     <span>Homeport v{{ version }}</span>

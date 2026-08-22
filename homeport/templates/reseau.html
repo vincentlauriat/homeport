@@ -26,6 +26,7 @@
     {% set nav_current = "network" %}{% include "_nav.html" %}
   </header>
 
+  <main>
   <section id="new-devices" class="net-new" hidden>
     <h2>{{ t("reseau.new_devices") }}</h2>
     <div id="new-list" class="net-list"></div>
@@ -46,6 +47,7 @@
     <h2>{{ t("reseau.peers") }}</h2>
     <div id="peers" class="peer-list"></div>
   </section>
+  </main>
 
   <footer class="footer">
     <span>Homeport v{{ version }}</span>

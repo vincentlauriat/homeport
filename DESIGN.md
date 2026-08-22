@@ -44,9 +44,41 @@ typography:
     fontFamily: "ui-monospace, 'SF Mono', Menlo, monospace"
     fontSize: "0.72rem"
     lineHeight: 1.45
+  scale:
+    micro-1: "0.6rem"
+    micro-2: "0.62rem"
+    micro-3: "0.66rem"
+    micro-4: "0.68rem"
+    micro-5: "0.6875rem"
+    micro-6: "0.7rem"
+    micro-7: "0.71rem"
+    micro-8: "0.72rem"
+    micro-9: "0.74rem"
+    micro-10: "0.75rem"
+    micro-11: "0.76rem"
+    dense-1: "0.78rem"
+    dense-2: "0.8125rem"
+    dense-3: "0.82rem"
+    dense-4: "0.85rem"
+    body: "0.875rem"
+    dense-5: "0.9rem"
+    dense-6: "0.9375rem"
+    dense-7: "0.95rem"
+    metric-1: "1rem"
+    metric-2: "1.15rem"
+    metric-3: "1.3rem"
+    metric-4: "1.4rem"
+    metric-5: "1.45rem"
+    title: "1.5rem"
+    count: "2.2rem"
+    wall-caption-max: "1.05rem"
+    wall-clock-max: "3.4rem"
 rounded:
+  bar: "2px"
+  tag: "5px"
   xs: "6px"
   sm: "8px"
+  tile: "9px"
   md: "12px"
   lg: "16px"
   pill: "999px"
@@ -160,14 +192,22 @@ numbers, wide-tracked uppercase micro-labels, and tabular numerals throughout.
 
 ### Hierarchy
 - **Display** (700, clamp(2rem, 6.5vh, 3rem), lh 1, -0.02em): the Wall's giant readings
-  and clock — sized in viewport-height units to stay readable across the room.
+  and clock — sized in viewport-height units to stay readable across the room. Wall
+  variants: clamp(2.2rem, 6vh, 3.4rem) for the clock, clamp(1rem, 2.6vh, 1.45rem) and
+  clamp(.85rem, 2vh, 1.05rem) for tile values and captions, 2.2rem for big counts.
 - **Headline** (700, clamp(2rem, 6vw, 2.9rem), lh 1.1, -0.02em): the Journal's verdict
   ("All is well."), colored by state.
-- **Title** (600, 1.5rem, -0.02em): the hostname in the topbar; section titles at 1rem.
-- **Body** (400, 0.875rem base, lh 1.5): default prose; dense views drop to 0.78–0.85rem.
-- **Label** (600, 0.62–0.75rem, uppercase, +0.06 to +0.12em): metric labels, group
+- **Title** (600, 1.5rem, -0.02em): the hostname in the topbar; intermediate numeric
+  titles and metric values at 1rem, 1.15rem, 1.3rem, 1.4rem and 1.45rem.
+- **Body** (400, 0.875rem base, lh 1.5): default prose; dense views step down through
+  0.95, 0.9375, 0.9, 0.85, 0.82, 0.8125 and 0.78rem.
+- **Label** (600, 0.6–0.76rem, uppercase, +0.06 to +0.12em): metric labels, group
   headings, tile captions — the denser or larger-format the view, the wider the tracking.
+  As-built steps: 0.6, 0.62, 0.66, 0.68, 0.6875, 0.7, 0.71, 0.72, 0.74, 0.75, 0.76rem.
 - **Mono** (0.72rem, lh 1.45): container logs, cron commands, MAC addresses, technical tags.
+
+The ramp is deliberately fine-grained: three device classes (wall, phone, desk) and very
+dense Operate views each earn quarter-step sizes rather than forcing a coarse scale.
 
 ### Named Rules
 **The Tabular Numbers Rule.** Any value that can change is set with

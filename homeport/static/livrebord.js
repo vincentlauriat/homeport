@@ -13,7 +13,7 @@ const el = (tag, className, text) => {
 const FAMILIES = {
   all: null,
   services: 'service.',
-  network: 'internet.,ip.,device.',
+  network: 'internet.,ip.,device.,livebox.',
   actions: 'action.',
   machine: 'boot,power.,temp.,backup.',
 };

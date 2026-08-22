@@ -147,6 +147,7 @@ async def build(hostname: str, lang: str | None = None) -> dict:
         "public_ip": {"ip": "203.0.113.42", "changed_ts": now - 12 * 86400},
         "update": {"current": "0.1.0", "latest": None, "available": False},
         "starlink": _starlink_status(now),
+        "livebox": _livebox_status(now),
         "status_files": [
             {"id": "offsite", "name": "Offsite backup", "status": "ok", "message": "",
              "age_hours": 11.0, "stale": False, "level": "up"},
@@ -170,6 +171,33 @@ def _starlink_status(now: float) -> dict:
     }
 
 
+def _livebox_status(now: float) -> dict:
+    return {
+        "reachable": True, "online": True,
+        "latency_ms": round(_wave(now, 75, 2.0, 5.5), 1),
+        "wan_state": "up", "link_type": "xgs-pon", "link_state": "up",
+        "gpon_state": "O5_Operation", "protocol": "dhcp",
+        "connection_state": "Bound", "connection_state_ipv6": "Bound",
+        "last_error": "None",
+        "model": "Livebox W7", "firmware": "SGW7-fr-G03.R08.C03_00",
+        "serial": "IG0000000000000",
+    }
+
+
+def livebox() -> dict:
+    now = time.time()
+    return {
+        "enabled": True,
+        "status": {
+            **_livebox_status(now),
+            "latency_history": [
+                round(_wave(_START + i * 15, 75, 2.0, 5.5) + _wave(_START + i * 15, 7, 0.0, 1.2), 1)
+                for i in range(480)
+            ],
+        },
+    }
+
+
 def starlink() -> dict:
     now = time.time()
     n = 900
@@ -190,14 +218,17 @@ def starlink() -> dict:
 
 
 def history(hours: float = 24.0) -> list[dict]:
-    """Échantillons toutes les 5 min, déterministes (base de temps fictive fixe)."""
+    """Échantillons toutes les 5 min. Les valeurs restent déterministes (base fictive),
+    mais l'horodatage est recalé sur la fenêtre réelle : historique.js fenêtre sur le
+    `now` du navigateur, des ts à l'époque fictive dessineraient la courbe hors champ."""
     step = 300
     count = int(hours * 3600 / step)
+    end = int(time.time()) // step * step
     samples = []
     for i in range(count):
         ts = _START + i * step
         samples.append({
-            "ts": ts,
+            "ts": end - (count - 1 - i) * step,
             "cpu_pct": round(_wave(ts, 7200, 3.0, 10.0) + _wave(ts, 947, 0.0, 14.0 if ts % 40000 < 2500 else 2.0), 1),
             "mem_pct": round(_wave(ts, 43200, 24.0, 31.0), 1),
             "temp_c": round(_wave(ts, 7200, 51.0, 58.5), 1),

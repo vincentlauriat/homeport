@@ -27,7 +27,7 @@ def test_cookie_inconnu_ignore():
 
 def test_selecteurs_presents_sur_toutes_les_pages():
     http = client()
-    for path in ("/", "/controle", "/journal", "/mur", "/reseau", "/historique", "/starlink", "/livre-de-bord"):
+    for path in ("/", "/controle", "/journal", "/mur", "/reseau", "/historique", "/starlink", "/livebox", "/livre-de-bord"):
         text = http.get(path).text
         assert 'id="pref-lang"' in text, path
         assert 'id="pref-theme"' in text, path

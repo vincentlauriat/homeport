@@ -129,6 +129,7 @@ DEFAULT_INTERVALS = {
     "starlink_status": 15,
     "starlink_history": 60,
     "starlink_map": 300,
+    "livebox_status": 15,
 }
 DEFAULT_HISTORY_RETENTION_DAYS = 7
 DEFAULT_LANGUAGE = "en"
@@ -187,6 +188,16 @@ def load_starlink(path: Path | None = None) -> dict:
     tout le monde n'a pas un dish, et l'API n'est joignable que depuis son LAN."""
     source = path or CONFIG_PATH
     return {**DEFAULT_STARLINK, **(_read_yaml(source).get("starlink") or {})}
+
+
+DEFAULT_LIVEBOX = {"enabled": False, "address": "192.168.100.254"}
+
+
+def load_livebox(path: Path | None = None) -> dict:
+    """Section `livebox:` — la box Orange est optionnelle et coupée par défaut.
+    L'API locale de la W7 répond sans mot de passe : la config ne porte aucun secret."""
+    source = path or CONFIG_PATH
+    return {**DEFAULT_LIVEBOX, **(_read_yaml(source).get("livebox") or {})}
 
 
 def load_mqtt(path: Path | None = None) -> dict:

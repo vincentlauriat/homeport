@@ -74,6 +74,28 @@ def wan(path: Path, online: bool, now: float | None = None) -> int:
     return 1
 
 
+def livebox(path: Path, online: bool, now: float | None = None) -> int:
+    """La box de secours suit le même contrat que le WAN : transitions seules,
+    durée de la coupure en détail à la reprise."""
+    ts = now if now is not None else time.time()
+    prev = _state.get("livebox_online")
+    _state["livebox_online"] = online
+    if prev is None:
+        if not online:
+            _state["livebox_down_ts"] = ts
+        return 0
+    if online == prev:
+        return 0
+    if not online:
+        _state["livebox_down_ts"] = ts
+        events.record(path, "livebox.down", "down", "livebox", now=now)
+    else:
+        down_ts = _state.pop("livebox_down_ts", None)
+        detail = f"{max(1, round((ts - down_ts) / 60))} min" if down_ts is not None else None
+        events.record(path, "livebox.up", "up", "livebox", detail=detail, now=now)
+    return 1
+
+
 def public_ip(path: Path, ip: str | None, now: float | None = None) -> int:
     prev = _state.get("public_ip")
     if ip:

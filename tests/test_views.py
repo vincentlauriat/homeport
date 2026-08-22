@@ -54,3 +54,21 @@ def test_nav_starlink_seulement_si_module_actif(client, tmp_path, monkeypatch):
     config.write_text("starlink: {enabled: true}\n", encoding="utf-8")
     monkeypatch.setattr(main.cfg, "CONFIG_PATH", config)
     assert 'href="/starlink"' in client.get("/reseau").text
+
+
+def test_nav_livebox_seulement_si_module_actif(client, tmp_path, monkeypatch):
+    assert 'href="/livebox"' not in client.get("/reseau").text
+    config = tmp_path / "services.yaml"
+    config.write_text("livebox: {enabled: true}\n", encoding="utf-8")
+    monkeypatch.setattr(main.cfg, "CONFIG_PATH", config)
+    assert 'href="/livebox"' in client.get("/reseau").text
+
+
+def test_page_livebox_repond(client):
+    text = client.get("/livebox").text
+    assert "lbx-chart" in text
+    assert 'id="lbx-state"' in text
+
+
+def test_api_livebox_desactive(client):
+    assert client.get("/api/livebox").json() == {"enabled": False, "status": None}

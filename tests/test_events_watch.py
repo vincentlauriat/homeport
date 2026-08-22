@@ -61,6 +61,16 @@ def test_wan_amorce_en_panne_donne_une_duree_au_retour(db: Path):
     assert rows[0]["detail"] == "4 min"
 
 
+def test_livebox_panne_puis_retour_avec_duree(db: Path):
+    assert events_watch.livebox(db, True, now=1000) == 0  # amorce : silencieux
+    assert events_watch.livebox(db, False, now=1300) == 1
+    assert events_watch.livebox(db, False, now=1360) == 0
+    assert events_watch.livebox(db, True, now=1540) == 1
+    rows = events.query(db, days=365, now=20_000)
+    assert [r["kind"] for r in rows] == ["livebox.up", "livebox.down"]
+    assert rows[0]["detail"] == "4 min"
+
+
 def test_public_ip_changement(db: Path):
     assert events_watch.public_ip(db, "203.0.113.42", now=1000) == 0
     assert events_watch.public_ip(db, "203.0.113.42", now=2000) == 0

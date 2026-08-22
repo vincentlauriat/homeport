@@ -141,6 +141,16 @@ function renderNetwork(data) {
       level: starlink.online ? 'ok' : 'down',
     });
   }
+  const livebox = data.livebox;
+  if (livebox) {
+    rows.push({
+      k: 'Livebox',
+      v: livebox.online
+        ? T('net.online_latency', { latency: livebox.latency_ms }) + ` · ${(livebox.link_type || '?').toUpperCase()}`
+        : T(livebox.reachable ? 'livebox.wan_down' : 'livebox.offline'),
+      level: livebox.online ? 'ok' : 'down',
+    });
+  }
   const net = data.network || {};
   const peers = net.tailscale_peers || [];
   const online = peers.filter((p) => p.online);
@@ -205,7 +215,7 @@ function renderServices(groups) {
       if (service.cpu_percent !== null && service.cpu_percent !== undefined) {
         const bar = el('div', 'bar');
         const fill = el('i');
-        fill.style.width = `${Math.min(service.cpu_percent, 100)}%`;
+        fill.style.transform = `scaleX(${Math.min(service.cpu_percent, 100) / 100})`;
         bar.appendChild(fill);
         cpu.appendChild(bar);
         cpu.appendChild(el('span', 'cpu-num', `${service.cpu_percent} %`));

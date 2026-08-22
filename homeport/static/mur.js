@@ -95,6 +95,11 @@ function render(data) {
     : starlink.online
       ? T('wall.starlink', { latency: starlink.latency_ms, down: Math.round(starlink.downlink_bps / 1e6) })
       : `Starlink — ${T('starlink.offline')}`);
+  const livebox = data.livebox;
+  setText('wf-livebox', !livebox ? ''
+    : livebox.online
+      ? T('wall.livebox', { latency: livebox.latency_ms })
+      : `Livebox — ${T(livebox.reachable ? 'livebox.wan_down' : 'livebox.offline')}`);
 
   // Le pied CPU de la cellule sparkline vient du statut, la courbe de /api/history.
   const cpuFoot = document.querySelector('#w-cpu .foot');
