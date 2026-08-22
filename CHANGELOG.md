@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.5.0
+
+- **Livebox module** — a sysbus collector polls the box directly (no credentials needed
+  on the Livebox W7), with a dedicated `/livebox` page, a status row in every view,
+  `livebox.up` / `livebox.down` events in the logbook, and en/fr/zh translations.
+- **Mobile navigation** — the view-switch nav scrolls in place with the current tab
+  centered; zero horizontal overflow at 320/390 px on all views.
+- **Accessibility** — aria-labels on the `/reseau` device controls, `<main>` landmarks on
+  four views, a single h1 on `/journal`, 44 px touch targets for prefs/summary/net-name
+  links on coarse pointers.
+- **Performance** — metric bars animate with `transform: scaleX` instead of `width`.
+- **Demo fix** — `/api/history` samples are re-anchored on the real clock (charts used to
+  draw off-window).
+
 ## v0.4.0
 
 - **Three languages** — Chinese (Simplified) joins English and French, and every browser
