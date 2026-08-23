@@ -77,10 +77,11 @@ container registries. No telemetry. Details: [docs/security-model.md](docs/secur
 
 ## Languages
 
-English, French and Chinese (Simplified) — pick per browser from the footer selector,
-or set the server default with `language: fr` (or `zh`) in the config. The footer also
-offers a light / dark / auto theme choice per browser. Contributions of other languages
-are one JSON file away ([homeport/i18n/](homeport/i18n/)).
+English and French — pick per browser from the footer selector, or set the server default
+with `language: fr` in the config. The footer also offers a light / dark / auto theme
+choice per browser. Contributions of other languages are one JSON file away
+([homeport/i18n/](homeport/i18n/)); note that the embedded fonts cover Latin only, so a
+script outside that range needs its own font subset.
 
 ## License
 
