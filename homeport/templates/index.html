@@ -16,6 +16,8 @@
   <meta name="theme-color" content="#121211" media="(prefers-color-scheme: dark)">
 </head>
 <body>
+  {# Premier élément focusable : sans lui, le clavier retraverse les 9 onglets de nav à chaque page. #}
+  <a class="skip-link" href="#main">{{ t("nav.skip") }}</a>
   <header class="topbar">
     <div class="identity">
       <span class="berry" aria-hidden="true">⚓</span>
@@ -267,7 +269,7 @@
     </div>
   </section>
 
-  <main id="groups">
+  <main id="main">
     {% for group in groups %}
     <section class="group">
       <h2>{{ group.name }}</h2>

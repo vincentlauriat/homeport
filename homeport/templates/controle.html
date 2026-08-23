@@ -16,6 +16,8 @@
   <meta name="theme-color" content="#121211" media="(prefers-color-scheme: dark)">
 </head>
 <body class="v-ctrl">
+  {# Premier élément focusable : sans lui, le clavier retraverse les 9 onglets de nav à chaque page. #}
+  <a class="skip-link" href="#main">{{ t("nav.skip") }}</a>
   <header class="topbar">
     <div class="identity">
       <span class="berry" aria-hidden="true">⚓</span>
@@ -34,7 +36,7 @@
     {% set nav_current = "control" %}{% include "_nav.html" %}
   </header>
 
-  <main class="ctrl-cols">
+  <main id="main" class="ctrl-cols">
     <div class="ctrl-left">
       <section class="ctrl-panel">
         <h2>{{ t("panel.machine") }}</h2>

@@ -376,5 +376,6 @@
   "prefs.theme": "Thème",
   "prefs.theme_auto": "Auto",
   "prefs.theme_light": "Clair",
-  "prefs.theme_dark": "Sombre"
+  "prefs.theme_dark": "Sombre",
+  "nav.skip": "Aller au contenu"
 }

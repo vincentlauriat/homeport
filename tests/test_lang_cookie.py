@@ -34,10 +34,25 @@ def test_cookie_inconnu_ignore():
     assert 'lang="klingon"' not in text  # repli sur la config serveur
 
 
+VUES = ("/", "/controle", "/journal", "/mur", "/reseau", "/historique", "/starlink", "/livebox", "/livre-de-bord")
+
+
 def test_selecteurs_presents_sur_toutes_les_pages():
     http = client()
-    for path in ("/", "/controle", "/journal", "/mur", "/reseau", "/historique", "/starlink", "/livebox", "/livre-de-bord"):
+    for path in VUES:
         text = http.get(path).text
         assert 'id="pref-lang"' in text, path
         assert 'id="pref-theme"' in text, path
         assert "homeport_theme" in text, path  # script anti-flash dans le <head>
+
+
+def test_lien_d_evitement_sur_toutes_les_pages():
+    """Sans lui, le clavier retraverse les neuf onglets de nav avant d'atteindre le
+    contenu, sur chaque page (WCAG 2.4.1). Il doit précéder la nav et viser un <main>
+    qui existe — un lien d'évitement pointant dans le vide est pire que pas de lien."""
+    http = client()
+    for path in VUES:
+        text = http.get(path).text
+        assert 'class="skip-link" href="#main"' in text, path
+        assert '<main id="main"' in text, path
+        assert text.index("skip-link") < text.index("view-switch"), path
