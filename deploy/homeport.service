@@ -32,6 +32,10 @@ RestartSec=3
 # ProtectSystem=full met /usr et /boot en lecture seule tout en laissant /var écrivable,
 # ce qui couvre l'essentiel sans toucher au chemin d'action.
 ProtectSystem=full
+# ProtectSystem=full couvre /usr et /boot, pas /opt : sans cette ligne, rien n'empêcherait
+# le service de réécrire son propre code si un déploiement oubliait de rendre /opt/homeport
+# à root. Le garde-fou tient même quand les permissions dérivent.
+ReadOnlyPaths=/opt/homeport
 ProtectHome=read-only
 PrivateTmp=yes
 ProtectKernelTunables=yes
