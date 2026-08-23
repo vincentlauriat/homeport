@@ -1,5 +1,23 @@
 # Changelog
 
+## v0.6.0
+
+- **New visual identity** — an editorial black-and-white frame punctuated by narrative
+  pastel blocks replaces the previous "Harbormaster's Desk" look: white canvas, ink text,
+  hairlines instead of drop shadows, pill-shaped actions, and the current tab rendered as
+  a filled ink pill. Service states keep a dedicated saturated triad that never mixes with
+  the pastel palette — the pastel narrates, the saturated signals.
+- **Fonts are now embedded** — Inter and JetBrains Mono ship as variable woff2 subsets
+  served by Homeport itself (176 KB total, SIL OFL licences included). Nothing is fetched
+  from a CDN; the offline-strict rule still holds.
+- **Metric bars were invisible and now work again** — since v0.5.0 the server-rendered
+  Classic view set an inline width on the bar fill while the stylesheet pinned it at
+  `transform: scaleX(0)`, so no bar ever showed. The template now emits the transform,
+  matching the JavaScript-driven views.
+- **Chinese is no longer offered** — the interface ships in English and French only. A
+  browser still carrying the old `homeport_lang=zh` cookie falls back to the server
+  language instead of rendering a half-translated page.
+
 ## v0.5.1
 
 - **Security hardening** — a same-origin (anti-CSRF) check now guards the restart and
