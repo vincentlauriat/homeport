@@ -26,6 +26,18 @@ Homeport reaches Docker **read-only** through
 whitelist exact commands (`docker restart homeassistant` — no wildcards, no shell). A
 compromised Homeport process can therefore restart your declared services, and nothing else.
 
+## The service cannot rewrite its own code
+
+`/opt/homeport` is owned by root and readable only by the service; everything Homeport
+writes lives in the data directory (`/var/lib/homeport` by default). A compromised process
+therefore cannot patch its own source to survive a restart. The unit also declares
+`ReadOnlyPaths=/opt/homeport`, so the guarantee holds even if an ownership change is missed
+during an update.
+
+This assumes the service runs as its own unprivileged user. If you override the unit to run
+Homeport as your login account, whatever sudo rights that account holds become the process's
+rights, and the whitelisted-commands guarantee above no longer applies.
+
 ## Outbound traffic
 
 Both disablable: the public IP check (`api.ipify.org`, hourly — `intervals: {public_ip: 0}`)
