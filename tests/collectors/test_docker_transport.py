@@ -5,7 +5,7 @@ from homeport.collectors import docker_api
 
 def test_client_par_defaut_passe_par_le_socket_unix(monkeypatch):
     monkeypatch.setattr(docker_api, "DOCKER_HOST", "unix:///var/run/docker.sock")
-    client = docker_api._client(timeout=5.0)
+    client = docker_api.open_client(timeout=5.0)
     try:
         # Le transport UDS impose la destination ; l'hôte de l'URL est décoratif.
         assert str(client.base_url) == "http://docker"
@@ -17,7 +17,7 @@ def test_client_par_defaut_passe_par_le_socket_unix(monkeypatch):
 
 def test_client_tcp_vise_le_proxy_loopback(monkeypatch):
     monkeypatch.setattr(docker_api, "DOCKER_HOST", "tcp://127.0.0.1:2375")
-    client = docker_api._client(timeout=5.0)
+    client = docker_api.open_client(timeout=5.0)
     try:
         assert str(client.base_url) == "http://127.0.0.1:2375"
     finally:

@@ -15,8 +15,14 @@ services:
       # Loopback uniquement : rien sur le LAN ni le tailnet n'atteint cette API.
       - "127.0.0.1:2375:2375"
     environment:
-      # Seule la famille /containers est autorisée (état, stats, logs). Tout le reste —
-      # POST, exec, images, volumes, réseaux, swarm — reste au 0 par défaut du proxy.
+      # État, stats et logs des conteneurs.
       CONTAINERS: 1
+      # Lecture des images : indispensable à la comparaison de fraîcheur, qui a besoin du
+      # `RepoDigests` local de chaque image (`GET /images/{ref}/json`) pour le confronter au
+      # digest publié par le registre. Sans cette ligne le proxy répond 403 et la
+      # fonctionnalité se déclare indisponible. N'ouvre que des GET : les POST — build, pull,
+      # suppression — restent refusés globalement, comme tout le reste (exec, volumes,
+      # réseaux, swarm), au 0 par défaut du proxy.
+      IMAGES: 1
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro

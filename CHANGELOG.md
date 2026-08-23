@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- **Docker image freshness works again — it never did behind the socket proxy.** The check
+  built its own client against `/var/run/docker.sock` instead of using the configured
+  transport, so on any host reaching Docker through the read-only proxy the call failed and
+  the feature quietly reported itself unavailable. It now uses the same transport as the rest
+  of the Docker integration. A proxy refusal is an HTTP 403 rather than an exception, so
+  images that cannot be read are reported as unknown instead of passing for locally built
+  ones, and when none can be read the feature says so rather than returning a list that
+  claims a check nobody ran. The bundled socket-proxy config now allows image reads
+  (`IMAGES: 1`); `POST` stays refused, so nothing can be built, pulled or removed through it.
+
 - **The application code now belongs to root, not to the service** — the installer used to
   hand `/opt/homeport` to the `homeport` user, so a compromised Homeport process could
   rewrite its own code and survive a restart. The tree is now owned by root and readable
