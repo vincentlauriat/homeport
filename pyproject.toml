@@ -1,6 +1,9 @@
 [tool.ruff]
 line-length = 110
 target-version = "py311"
+# Outillage tiers versionné dans le repo (skills BMAD) : pas notre code, pas notre style.
+# La CI ne vérifie que `homeport` et `tests` ; cet exclude aligne `ruff check .` en local.
+extend-exclude = [".agent", ".agents", ".claude", "_bmad", ".bmad-loop", "venv"]
 
 [tool.ruff.lint]
 # Volontairement resserré : erreurs réelles et imports, pas de style contestable.

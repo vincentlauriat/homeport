@@ -1,4 +1,4 @@
-"""Couche i18n : catalogues EN/FR/ZH à parité, variables, pluriels, repli sur la clé."""
+"""Couche i18n : catalogues EN/FR à parité, variables, pluriels, repli sur la clé."""
 from homeport import i18n
 
 
@@ -33,6 +33,8 @@ def test_etats_traduits():
     assert i18n.t("state.up", "en") == "Running"
 
 
-def test_zh_traduit():
-    assert i18n.t("state.up", "zh") == "运行中"
-    assert "个" in i18n.t("summary.up_count", "zh", count=3)
+def test_langue_retiree_retombe_sur_en():
+    # `zh` a été retiré des langues offertes : un catalogue absent doit retomber sur `en`,
+    # jamais lever — un cookie ancien ne doit pas casser la page.
+    assert "zh" not in i18n.SUPPORTED
+    assert i18n.t("state.up", "zh") == i18n.t("state.up", "en")
