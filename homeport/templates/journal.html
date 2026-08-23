@@ -16,6 +16,8 @@
   <meta name="theme-color" content="#121211" media="(prefers-color-scheme: dark)">
 </head>
 <body class="v-edit">
+  {# Premier élément focusable : sans lui, le clavier retraverse les 9 onglets de nav à chaque page. #}
+  <a class="skip-link" href="#main">{{ t("nav.skip") }}</a>
   <header class="topbar">
     <div class="identity">
       <span class="berry" aria-hidden="true">⚓</span>
@@ -26,7 +28,7 @@
     </div>
     {% set nav_current = "journal" %}{% include "_nav.html" %}
   </header>
-  <main class="edit-page">
+  <main id="main" class="edit-page">
 
     <p class="edit-verdict" id="j-verdict">…</p>
     {# Bloc narratif : couleur fixe, jamais l'état — le verdict au-dessus porte, lui, la couleur d'état. #}

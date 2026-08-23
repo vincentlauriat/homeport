@@ -16,6 +16,8 @@
   <meta name="theme-color" content="#121211" media="(prefers-color-scheme: dark)">
 </head>
 <body class="v-wall">
+  {# Premier élément focusable : sans lui, le clavier retraverse les 9 onglets de nav à chaque page. #}
+  <a class="skip-link" href="#main">{{ t("nav.skip") }}</a>
   <h1 class="sr-only">Homeport — {{ t("nav.wall") }}</h1>
   <header class="wall-head">
     <span class="wall-clock" id="w-clock">—:—</span>
@@ -24,7 +26,7 @@
     {% set nav_current = "wall" %}{% include "_nav.html" %}
   </header>
 
-  <main class="wall-grid">
+  <main id="main" class="wall-grid">
     <div class="wall-cell" id="w-services">
       <span class="t">{{ t("wall.services") }}</span>
       <span class="big">—</span>

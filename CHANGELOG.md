@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.6.2
+
+- **A skip link on every view** — the navigation puts nine tabs before the content, so a
+  keyboard user crossed all of them on each page load. The first thing focus reaches is
+  now a link straight to the content; it stays out of sight until focused.
+- **The design record matches what ships** — the amber used for degraded and the card
+  hairlines were darkened for contrast without the change reaching DESIGN.md, so the
+  document and the stylesheet disagreed on four colours. The document now records the
+  measured values.
+- The project page uses the same focus ring as the app.
+
 ## v0.6.1
 
 - **Service state no longer depends on colour alone** — in the Journal list and the Control

@@ -11,8 +11,8 @@ colors:
   inverse-canvas: '#000000'
   inverse-ink: '#ffffff'
   surface-soft: '#f7f7f5'
-  hairline: '#e6e6e6'
-  hairline-soft: '#f1f1f1'
+  hairline: '#cfcfcb'
+  hairline-soft: '#e6e6e4'
   # Rôle secondaire de texte — écart assumé vis-à-vis de l'import (voir Colors). [ASSUMPTION]
   ink-soft: '#5c5c57'
   # ----- Blocs pastel narratifs (hex de l'import, approximations fidèles) -----
@@ -27,7 +27,7 @@ colors:
   overlay-scrim: '#000000'
   # ----- Triade sémantique d'état (hors palette pastel — décision memlog) -----
   state-up: '#1ea64a'
-  state-warn: '#e8a013'      # [ASSUMPTION]
+  state-warn: '#c07f00'      # 3.35:1 sur le canevas — mesuré, pas supposé
   state-down: '#d92d20'      # [ASSUMPTION]
   state-unknown: '#8a8a85'   # [ASSUMPTION]
   # Variantes texte assises vers l'encre pour tenir AA en petit corps. [ASSUMPTION]
@@ -39,8 +39,8 @@ colors:
   ink-dark: '#f4f3f0'
   ink-soft-dark: '#a3a29b'
   surface-soft-dark: '#1c1c1a'
-  hairline-dark: '#2b2b29'
-  hairline-soft-dark: '#232321'
+  hairline-dark: '#3a3a37'
+  hairline-soft-dark: '#2b2b29'
   block-lime-dark: '#39411f'
   block-lilac-dark: '#352a52'
   block-cream-dark: '#3b3527'
