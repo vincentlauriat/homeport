@@ -923,10 +923,30 @@ a.n:hover { color: var(--accent); }
   min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column;
   padding: clamp(.9rem, 2.5vh, 2.2rem) clamp(1rem, 3vw, 2.6rem);
 }
-.wall-head { display: flex; align-items: baseline; gap: 1rem; flex-wrap: wrap; }
-.wall-clock { font-size: clamp(2.2rem, 6vh, 3.4rem); font-weight: 700; letter-spacing: -.02em; font-variant-numeric: tabular-nums; line-height: 1; }
+.wall-head { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+/* L'horloge redescend sous le verdict. Chaque téléphone, four et box de la pièce donne déjà
+   l'heure ; la question à laquelle ce mur existe pour répondre est « est-ce que tout va
+   bien ? », et elle arrivait en troisième par la taille, dans un coin. */
+.wall-clock { font-size: clamp(1.4rem, 3.2vh, 2rem); font-weight: 700; letter-spacing: -.02em; font-variant-numeric: tabular-nums; line-height: 1; }
 .wall-date { color: var(--muted); font-size: clamp(.85rem, 2vh, 1.05rem); }
-.wall-state { margin-left: auto; display: flex; align-items: center; gap: .7rem; font-size: clamp(1rem, 2.6vh, 1.45rem); font-weight: 700; color: var(--up-text); }
+/* Le seul bloc pastel du Mur, et sa seule marque d'identité : le Mur était la seule surface
+   du produit à n'utiliser aucun `--block-*`, ce qui le faisait ressembler à n'importe quel
+   tableau de bord d'observabilité. Le pastel raconte, il ne signale pas — d'où le texte en
+   encre pleine et non en couleur d'état : « la phrase porte le jugement, le dot porte le
+   signal » (DESIGN.md, composant `verdict`). */
+.wall-state {
+  margin-left: auto; display: flex; align-items: center; gap: .8rem;
+  font-size: clamp(1.15rem, 3.4vh, 1.9rem); font-weight: var(--fw-bold);
+  color: var(--text);
+}
+/* Le pastel n'habille QUE la phrase. Mesuré le 23/08 : posé sur `block-cream`, le halo
+   tombe à 2,70:1 (`up`, thème clair) contre les 3:1 qu'exige WCAG 1.4.11 pour un objet
+   graphique porteur de sens — il perd justement le contraste sur le fond qui devait le
+   mettre en valeur. Sur le canevas il tient (3,18:1 à 8,90:1 selon l'état et le thème). */
+.wall-state #w-state-text {
+  background: var(--block-cream); border-radius: var(--radius-lg);
+  padding: .45rem clamp(.9rem, 2vw, 1.4rem);
+}
 .wall-halo { width: 15px; height: 15px; border-radius: 50%; background: var(--up); box-shadow: 0 0 22px 4px color-mix(in srgb, var(--up) 45%, transparent); }
 .wall-halo.halo-warn { background: var(--warn); box-shadow: 0 0 22px 4px color-mix(in srgb, var(--warn) 45%, transparent); }
 .wall-halo.halo-down { background: var(--down); box-shadow: 0 0 22px 4px color-mix(in srgb, var(--down) 45%, transparent); }
@@ -975,8 +995,10 @@ a.n:hover { color: var(--accent); }
 
 .wall-foot { display: flex; gap: 1.6rem; flex-wrap: wrap; margin-top: clamp(.8rem, 2.5vh, 1.4rem); color: var(--muted); font-size: var(--fs-body-sm); border-top: none; padding-top: 0; }
 .wall-brand { margin-left: auto; }
-.wall-state.state-warn { color: var(--warn-text); }
-.wall-state.state-down { color: var(--down-text); }
+/* `state-warn` / `state-down` ne recolorent plus la phrase : sur un fond pastel, une couleur
+   d'état ferait porter le signal par le texte au lieu du dot, et le contraste dépendrait du
+   croisement de deux couleurs. `state-unknown` est la seule exception assumée — quand le
+   lien est rompu, le verdict doit lui-même avoir l'air éteint. */
 .wall-state.state-unknown { color: var(--muted); }
 .wall-halo.halo-unknown { background: var(--unknown); box-shadow: none; }
 

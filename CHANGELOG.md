@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.7.1
+
+- **The Wall carries the product's identity again.** It was the only surface using none of the
+  narrative pastel blocks, which left it looking like any observability dashboard. The verdict
+  — the line that answers "is everything fine?" — now sits in a cream block in full ink, and
+  the clock steps back to make room for it: every phone and appliance in the room already
+  gives the time, while the question this wall exists to answer was third by size and tucked in
+  a corner. The pastel narrates, it never signals: the phrase stays ink whatever the state.
+- The state halo deliberately stays outside that block. Measured: on cream it drops to 2.70:1
+  where WCAG asks 3:1 of a meaningful graphical object — the background meant to showcase it
+  takes its contrast away.
+
 ## v0.7.0
 
 - **The Wall no longer lies when the server dies.** It was the only view missing the node the

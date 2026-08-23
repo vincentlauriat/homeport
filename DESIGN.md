@@ -576,6 +576,22 @@ remplacée par « hors ligne depuis HH:MM ». Trois états, pas deux : *à jour*
 ancienne à conserver. Sans ce traitement le Mur garde un vert périmé pendant des heures
 pendant que l'horloge, découplée du sondage, certifie une fraîcheur inexistante.
 
+**Identité du Mur** — Le verdict est posé dans un bloc `{colors.block-cream}` arrondi en
+`{rounded.lg}`, texte en `{colors.ink}` pleine : c'est le **seul** pastel du Mur, et sa seule
+marque d'identité. Avant le 23/08 le Mur n'utilisait aucun `{colors.block-*}` — il était la
+seule surface du produit à esquiver l'identité, ce qui le rendait interchangeable avec
+n'importe quel tableau de bord d'observabilité. Le pastel raconte, il ne signale pas : la
+phrase reste en encre quel que soit l'état, conformément au composant `verdict`.
+
+⚠️ **Le halo reste sur le canevas, hors du bloc.** Mesuré : posé sur `{colors.block-cream}`,
+il tombe à 2,70:1 (`state-up`, thème clair) contre les 3:1 qu'exige WCAG 1.4.11 pour un objet
+graphique porteur de sens — le fond censé le mettre en valeur lui retire son contraste. Sur
+le canevas il tient de 3,18:1 à 8,90:1 selon l'état et le thème.
+
+L'horloge redescend à `clamp(1.4rem, 3.2vh, 2rem)` : elle était le plus gros objet de l'écran
+en portrait et l'égal des chiffres d'état en paysage, alors que chaque appareil de la pièce
+donne déjà l'heure. Le verdict prend sa place dans la hiérarchie.
+
 **Absence gracieuse** — Une tuile dont la source n'existe pas sur la machine (aucune
 sauvegarde déclarée, pas de sonde WAN, pas d'APT) **disparaît**. Elle ne porte pas un
 avertissement ambre : accuser un foyer de ne pas sauvegarder alors qu'il n'a rien configuré
