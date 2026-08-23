@@ -1063,7 +1063,7 @@ body.v-starlink .alerts { margin-top: 1rem; }
 @media (pointer: coarse) {
   .view-switch a, .net-filters button, .btn-restart, .btn-wake,
   .net-details-panel button, .net-details-panel select, .open, .update-chip,
-  .net-name, .back-link, .ctrl-link {
+  .net-name, .back-link, .ctrl-link, .ctrl-sparknote a {
     min-height: 44px; display: inline-flex; align-items: center;
   }
   .prefs select { min-height: 44px; }
