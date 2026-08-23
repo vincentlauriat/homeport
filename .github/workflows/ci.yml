@@ -2,6 +2,12 @@ name: CI
 on:
   push: {branches: [main]}
   pull_request:
+
+# Le jeton par défaut est en lecture seule : un workflow de test n'a jamais besoin
+# d'écrire dans le dépôt, et une action compromise ne peut donc rien pousser.
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -9,9 +15,25 @@ jobs:
       matrix:
         python: ["3.11", "3.12"]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      # Actions épinglées au SHA plutôt qu'au tag : un tag peut être redirigé vers
+      # un autre commit, un SHA non. Le commentaire garde la version lisible.
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with: {python-version: "${{ matrix.python }}"}
       - run: pip install -r requirements.txt pytest ruff
       - run: ruff check homeport tests
       - run: python -m pytest -q
+
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with: {python-version: "3.12"}
+      - run: pip install pip-audit
+      # Audite les dépendances déclarées du projet, pas l'environnement du runner —
+      # sinon le `pip` de GitHub remonte ses propres avis, qui ne nous concernent pas.
+      # Ne bloque pas la CI : Homeport n'a pas de mainteneur d'astreinte, et un avis
+      # publié un dimanche ne doit pas empêcher un correctif de passer. Le résultat se
+      # lit dans le résumé du job.
+      - run: pip-audit -r requirements.txt --progress-spinner off || true

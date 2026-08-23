@@ -1,0 +1,23 @@
+version: 2
+updates:
+  # Dépendances Python : Homeport en a peu et elles bougent lentement, donc un
+  # regroupement mensuel évite un flux de PR pour un projet auto-hébergé sans équipe.
+  - package-ecosystem: pip
+    directory: "/"
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      python:
+        patterns: ["*"]
+
+  # Les actions du workflow sont épinglées au SHA : sans Dependabot elles ne seraient
+  # jamais mises à jour, y compris pour un correctif de sécurité.
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: "chore(ci)"
