@@ -36,26 +36,26 @@
     <div class="metric">
       <span class="metric-label">{{ t("metric.cpu_load") }}</span>
       <span class="metric-value" id="m-cpu">{{ system.load.percent }} %</span>
-      <div class="bar"><i style="width: {{ system.load.percent }}%"></i></div>
+      <div class="bar"><i style="transform: scaleX({{ [(system.load.percent or 0) / 100, 1] | min | round(3) }})"></i></div>
       <span class="metric-note">{{ system.load.avg1 }} / {{ system.load.cores }} {{ t("metric.cores") }}</span>
     </div>
     <div class="metric">
       <span class="metric-label">{{ t("metric.memory") }}</span>
       <span class="metric-value" id="m-mem">{{ system.memory.percent }} %</span>
-      <div class="bar"><i style="width: {{ system.memory.percent }}%"></i></div>
+      <div class="bar"><i style="transform: scaleX({{ [(system.memory.percent or 0) / 100, 1] | min | round(3) }})"></i></div>
       <span class="metric-note">{{ system.memory.used_mb }} / {{ system.memory.total_mb }} {{ t("unit.mib") }}</span>
     </div>
     <div class="metric">
       <span class="metric-label">{{ t("index.temperature") }}</span>
       <span class="metric-value" id="m-temp">{{ system.temperature_c or "—" }} °C</span>
-      <div class="bar"><i style="width: {{ ((system.temperature_c or 0) / 85 * 100) | round(1) }}%"></i></div>
+      <div class="bar"><i style="transform: scaleX({{ [(system.temperature_c or 0) / 85, 1] | min | round(3) }})"></i></div>
       <span class="metric-note">{{ t("index.throttle_note") }}</span>
     </div>
     {% if system.storage_temperature_c is not none %}
     <div class="metric">
       <span class="metric-label">{{ t("metric.ssd") }}</span>
       <span class="metric-value" id="m-nvme">{{ system.storage_temperature_c }} °C</span>
-      <div class="bar"><i style="width: {{ (system.storage_temperature_c / 70 * 100) | round(1) }}%"></i></div>
+      <div class="bar"><i style="transform: scaleX({{ [(system.storage_temperature_c or 0) / 70, 1] | min | round(3) }})"></i></div>
       <span class="metric-note">
         {%- if system.fan_rpm %}{{ t("metric.fan", rpm=system.fan_rpm) }}{% else %}{{ t("index.disk_temp") }}{% endif %}
       </span>
@@ -65,7 +65,7 @@
     <div class="metric" id="metric-wear">
       <span class="metric-label">{{ t("metric.ssd_wear") }}</span>
       <span class="metric-value" id="m-wear">{{ nvme.percent_used }} %</span>
-      <div class="bar"><i style="width: {{ nvme.percent_used }}%"></i></div>
+      <div class="bar"><i style="transform: scaleX({{ [(nvme.percent_used or 0) / 100, 1] | min | round(3) }})"></i></div>
       <span class="metric-note" id="m-wear-note">
         {%- if nvme.written_gb is not none %}{{ t("metric.written", count=nvme.written_gb) }}{% endif %}
         {%- if nvme.power_on_hours is not none %} · {{ nvme.power_on_hours }} h{% endif %}
@@ -76,7 +76,7 @@
     <div class="metric">
       <span class="metric-label">{{ t("index.disk", mount=disk.mount) }}</span>
       <span class="metric-value">{{ disk.percent }} %</span>
-      <div class="bar"><i style="width: {{ disk.percent }}%"></i></div>
+      <div class="bar"><i style="transform: scaleX({{ [(disk.percent or 0) / 100, 1] | min | round(3) }})"></i></div>
       <span class="metric-note">{{ disk.used_gb }} / {{ disk.total_gb }} {{ t("unit.gib") }}</span>
     </div>
     {% endfor %}
@@ -306,7 +306,7 @@
             {% if service.cpu_percent is not none %}
             <div class="cpu-line">
               <span class="cpu-label">CPU</span>
-              <div class="bar"><i style="width: {{ service.cpu_percent }}%"></i></div>
+              <div class="bar"><i style="transform: scaleX({{ [(service.cpu_percent or 0) / 100, 1] | min | round(3) }})"></i></div>
               <span class="cpu-val">{{ service.cpu_percent }} %</span>
             </div>
             {% endif %}
