@@ -82,6 +82,7 @@ def test_public_ip_changement(db: Path):
 
 
 def test_backups_transitions(db: Path):
+    # Sans champ `file` (ancien contrat) : seules les transitions d'état comptent.
     ok = [{"name": "config", "state": "ok"}]
     stale = [{"name": "config", "state": "warn"}]
     assert events_watch.backups(db, ok, now=1000) == 0
@@ -89,6 +90,27 @@ def test_backups_transitions(db: Path):
     assert events_watch.backups(db, stale, now=3000) == 0
     assert events_watch.backups(db, ok, now=4000) == 1
     assert kinds(db) == ["backup.ok", "backup.stale"]
+
+
+def test_backups_nouveau_fichier_journalise_chaque_reussite(db: Path):
+    # Une sauvegarde saine reste « ok » : c'est l'apparition d'un NOUVEAU fichier qui prouve
+    # qu'une sauvegarde a tourné, et qui doit apparaître au livre de bord.
+    j1 = [{"name": "SSD", "state": "ok", "file": "cfg-20260823.tar.gz"}]
+    j2 = [{"name": "SSD", "state": "ok", "file": "cfg-20260824.tar.gz"}]
+    assert events_watch.backups(db, j1, now=1000) == 0  # amorce silencieuse
+    assert events_watch.backups(db, j1, now=2000) == 0  # même fichier : rien
+    assert events_watch.backups(db, j2, now=3000) == 1  # nouvelle sauvegarde
+    rows = events.query(db, days=365, now=20_000)
+    assert rows[0]["kind"] == "backup.ok"
+    assert rows[0]["detail"] == "cfg-20260824.tar.gz"
+
+
+def test_backups_nouveau_fichier_apres_stale_recupere_une_seule_fois(db: Path):
+    warn = [{"name": "SSD", "state": "warn", "file": "old.tar.gz"}]
+    ok_new = [{"name": "SSD", "state": "ok", "file": "new.tar.gz"}]
+    assert events_watch.backups(db, warn, now=1000) == 0  # amorce
+    assert events_watch.backups(db, ok_new, now=2000) == 1  # nouveau fichier + rétabli
+    assert kinds(db) == ["backup.ok"]  # un seul événement, pas de doublon
 
 
 def test_throttling_apparition_labels(db: Path):
