@@ -10,12 +10,21 @@ def client() -> TestClient:
     return TestClient(main.app)
 
 
-def test_cookie_zh_rend_la_page_en_chinois():
+def test_cookie_fr_rend_la_page_en_francais():
+    http = client()
+    http.cookies.set("homeport_lang", "fr")
+    text = http.get("/livre-de-bord").text
+    assert "Livre de bord" in text
+    assert 'lang="fr"' in text
+
+
+def test_cookie_zh_retire_est_ignore():
+    # `zh` n'est plus offert : un cookie posé avant le retrait doit être ignoré comme
+    # n'importe quelle langue inconnue, pas rendre une page à moitié traduite.
     http = client()
     http.cookies.set("homeport_lang", "zh")
     text = http.get("/livre-de-bord").text
-    assert "航海日志" in text
-    assert 'lang="zh"' in text
+    assert 'lang="zh"' not in text
 
 
 def test_cookie_inconnu_ignore():

@@ -11,7 +11,7 @@ from pathlib import Path
 _DIR = Path(__file__).resolve().parent
 DEFAULT_LANG = "en"
 # Les langues offertes par le sélecteur de l'interface ; un cookie hors liste est ignoré.
-SUPPORTED = ("en", "fr", "zh")
+SUPPORTED = ("en", "fr")
 
 
 @cache

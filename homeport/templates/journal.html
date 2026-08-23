@@ -12,7 +12,8 @@
   <link rel="apple-touch-icon" href="/static/icons/icon-192.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Homeport">
-  <meta name="theme-color" content="#b8452f">
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#121211" media="(prefers-color-scheme: dark)">
 </head>
 <body class="v-edit">
   <header class="topbar">
@@ -28,7 +29,10 @@
   <main class="edit-page">
 
     <p class="edit-verdict" id="j-verdict">…</p>
-    <p class="edit-story" id="j-story"></p>
+    {# Bloc narratif : couleur fixe, jamais l'état — le verdict au-dessus porte, lui, la couleur d'état. #}
+    <div class="story-block">
+      <p class="edit-story" id="j-story"></p>
+    </div>
 
     <div class="edit-attention" id="j-attention" hidden></div>
 
