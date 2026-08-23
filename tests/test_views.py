@@ -30,6 +30,21 @@ def test_les_trois_vues_portent_le_selecteur(client):
         assert 'class="view-switch"' in client.get(path).text
 
 
+def test_en_tetes_de_securite(client):
+    # Anti-clickjacking + cloisonnement des ressources sur toute réponse.
+    h = client.get("/controle").headers
+    assert h["x-frame-options"] == "DENY"
+    assert "frame-ancestors 'none'" in h["content-security-policy"]
+    assert h["x-content-type-options"] == "nosniff"
+    assert h["referrer-policy"] == "same-origin"
+
+
+def test_docs_openapi_desactivee_par_defaut(client):
+    # HOMEPORT_DOCS non positionné : Swagger ne doit pas être exposé.
+    assert client.get("/api/docs").status_code == 404
+    assert client.get("/openapi.json").status_code == 404
+
+
 # La nav partagée (_nav.html) : chaque page mène à toutes les autres — Vincent doit pouvoir
 # revenir à l'accueil depuis /reseau ou /starlink, et y aller depuis n'importe où.
 def test_toutes_les_pages_portent_la_nav_complete(client):

@@ -65,12 +65,15 @@ read-only dashboard; not a Raspberry Pi → the Pi-specific tiles simply disappe
 
 ## Security model (short version)
 
-The LAN is strictly **read-only**. Actions (restart, Wake-on-LAN) require both: the request
-arrives over Tailscale **and** `tailscale whois` maps it to the single admin identity
-declared in the config. Restarts go through exact-command sudo rules — never through the
-Docker socket, which Homeport only ever reaches read-only via a socket proxy. Homeport makes
-**one** outbound call (public IP via api.ipify.org), and you can disable it. No telemetry.
-Details: [docs/security-model.md](docs/security-model.md).
+From the LAN, everything is **read-only** except editing a device's own metadata (name, note,
+category). Every state-changing action (restart, Wake-on-LAN) requires both: the request
+arrives over Tailscale **and** `tailscale whois` maps it to the single admin identity declared
+in the config — and it must originate from a Homeport page (same-origin check, anti-CSRF).
+Restarts go through exact-command sudo rules — never through the Docker socket, which Homeport
+only ever reaches read-only via a socket proxy. Responses carry `X-Frame-Options: DENY` and a
+restrictive Content-Security-Policy. Homeport makes **one** required outbound call (public IP
+via api.ipify.org, disableable); Docker image-update checks additionally reach the relevant
+container registries. No telemetry. Details: [docs/security-model.md](docs/security-model.md).
 
 ## Languages
 

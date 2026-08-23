@@ -18,10 +18,17 @@ def client(tmp_path: Path, monkeypatch):
     return TestClient(main.app), db
 
 
-def test_fusion_events_et_actions_triee(client):
+def _allow(monkeypatch, allowed: bool):
+    async def fake_authorize(ip, login):
+        return allowed
+    monkeypatch.setattr(main.actions, "authorize", fake_authorize)
+
+
+def test_fusion_events_et_actions_triee(client, monkeypatch):
     http, db = client
     import time
 
+    _allow(monkeypatch, True)  # admin : l'identité (detail) est visible
     now = time.time()
     events.record(db, "service.down", "down", "gitea", now=now - 300)
     actions.record(db, "vincent@tailnet", "restart", "gitea", True, now=now - 200)
@@ -33,6 +40,18 @@ def test_fusion_events_et_actions_triee(client):
     assert action["subject"] == "gitea"
     assert action["detail"] == "vincent@tailnet"
     assert action["severity"] == "up"
+
+
+def test_identite_masquee_pour_lan(client, monkeypatch):
+    http, db = client
+    import time
+
+    _allow(monkeypatch, False)  # lecteur LAN non authentifié
+    actions.record(db, "vincent@tailnet", "restart", "gitea", True, now=time.time() - 100)
+    action = http.get("/api/events?days=1").json()["events"][0]
+    assert action["kind"] == "action.restart"
+    assert action["subject"] == "gitea"  # l'événement reste visible
+    assert action["detail"] is None       # mais pas l'identité de l'admin
 
 
 def test_filtre_kinds_exclut_les_actions(client):

@@ -23,7 +23,9 @@ def client(tmp_path: Path, monkeypatch):
         "      - {id: mq, name: MQ, docker: mosquitto}\n"
     )
     monkeypatch.setattr(main.cfg, "CONFIG_PATH", yaml_file)
-    return TestClient(main.app), db
+    # Origin par défaut = hôte de test : reproduit un `fetch` same-origin du navigateur, qui
+    # passe le contrôle anti-CSRF. Les tests CSRF surchargent (ou retirent) cet en-tête.
+    return TestClient(main.app, headers={"origin": "http://testserver"}), db
 
 
 def _allow(monkeypatch, allowed: bool):
@@ -94,3 +96,42 @@ def test_journal_expose(client, monkeypatch):
     actions.record(db, "admin@example.com", "restart", "ha", True, now=1000)
     body = http.get("/api/actions").json()
     assert body["actions"][0]["target"] == "ha"
+
+
+def test_csrf_origine_tierce_refusee(client, monkeypatch):
+    http, db = client
+    _allow(monkeypatch, True)  # identité valide, mais origine tierce
+    r = http.post("/api/actions/restart/ha", headers={"origin": "http://evil.example"})
+    assert r.status_code == 403
+    assert actions.recent(db) == []  # rien exécuté ni journalisé
+
+
+def test_csrf_sans_origine_ni_referer_refuse(tmp_path, monkeypatch):
+    # Client sans Origin par défaut : un POST cross-site sans en-tête d'origine est rejeté.
+    db = tmp_path / "t.db"
+    devices.init_db(db)
+    actions.init_db(db)
+    monkeypatch.setattr(main.cfg, "DB_PATH", db)
+    yaml_file = tmp_path / "services.yaml"
+    yaml_file.write_text(
+        "actions:\n  admin: admin@example.com\n"
+        "groups:\n  - name: G\n    services:\n"
+        "      - {id: ha, name: HA, docker: homeassistant, restartable: true}\n"
+    )
+    monkeypatch.setattr(main.cfg, "CONFIG_PATH", yaml_file)
+    _allow(monkeypatch, True)
+    http = TestClient(main.app)
+    assert http.post("/api/actions/restart/ha").status_code == 403
+
+
+def test_journal_masque_identite_pour_lan(client, monkeypatch):
+    http, db = client
+    actions.record(db, "admin@example.com", "restart", "ha", True, now=1000)
+    _allow(monkeypatch, False)  # lecteur LAN non authentifié
+    row = http.get("/api/actions").json()["actions"][0]
+    assert row["target"] == "ha"
+    assert "identity" not in row  # e-mail admin non divulgué
+
+    _allow(monkeypatch, True)  # admin : identité visible
+    row = http.get("/api/actions").json()["actions"][0]
+    assert row["identity"] == "admin@example.com"
