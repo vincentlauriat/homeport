@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.5.1
+
+- **Security hardening** — a same-origin (anti-CSRF) check now guards the restart and
+  Wake-on-LAN endpoints, every response carries security headers (Content-Security-Policy
+  with `frame-ancestors 'none'`, `X-Frame-Options`, `X-Content-Type-Options`,
+  `Referrer-Policy`), the admin's Tailscale identity is no longer exposed to unauthenticated
+  LAN readers, and the OpenAPI/Swagger docs are off unless `HOMEPORT_DOCS=1`.
+- **Logbook records successful backups** — a backup that stays healthy used to produce no
+  logbook entry at all; each new backup file now logs a `backup.ok` event with the filename.
+- **Off-site backup tile** — the "Sauvegarde hors-site" tile reflects the real cross-site
+  backup (config copied to the other house's Pi over Tailscale SSH) via a status file the
+  backup script writes, instead of an unrelated, uninitialised mechanism.
+
 ## v0.5.0
 
 - **Livebox module** — a sysbus collector polls the box directly (no credentials needed
