@@ -14,6 +14,7 @@ import sqlite3
 import time
 from contextlib import asynccontextmanager
 from pathlib import Path
+from urllib.parse import urlsplit
 
 from fastapi import Body, FastAPI, Request
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -49,6 +50,10 @@ BASE_DIR = Path(__file__).resolve().parent
 
 # HOMEPORT_DEMO=1 : tout le dashboard sur des données simulées (voir demo.py).
 DEMO = os.environ.get("HOMEPORT_DEMO") == "1"
+
+# La doc OpenAPI (Swagger) énumère toute la surface d'API : on ne l'expose pas par défaut,
+# seulement quand HOMEPORT_DOCS=1 (développement local).
+DOCS_ENABLED = os.environ.get("HOMEPORT_DOCS") == "1"
 
 # Uvicorn ne configure que ses propres loggers. Sans handler sur la racine, les messages de
 # Raspberry restent invisibles : seuls les WARNING passent, via le handler de dernier recours de
@@ -307,10 +312,59 @@ async def _throttling_and_watch() -> dict:
 
 
 app = FastAPI(
-    title="Homeport", version=__version__, docs_url="/api/docs", redoc_url=None, lifespan=lifespan
+    title="Homeport",
+    version=__version__,
+    docs_url="/api/docs" if DOCS_ENABLED else None,
+    # Sans openapi_url, /openapi.json resterait servi et énumérerait toute l'API même Swagger coupé.
+    openapi_url="/openapi.json" if DOCS_ENABLED else None,
+    redoc_url=None,
+    lifespan=lifespan,
 )
 app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
 templates = Jinja2Templates(directory=BASE_DIR / "templates")
+
+# Content-Security-Policy : `frame-ancestors 'none'` (doublé par X-Frame-Options) empêche le
+# clickjacking, `default-src 'self'` cloisonne les ressources au même hôte. `script-src`/`style-src`
+# gardent `'unsafe-inline'` car plusieurs pages portent des blocs inline (thème, catalogue i18n,
+# navigation) ; la discipline XSS côté JS (textContent systématique) reste la première ligne.
+_CSP = (
+    "default-src 'self'; "
+    "script-src 'self' 'unsafe-inline'; "
+    "style-src 'self' 'unsafe-inline'; "
+    "img-src 'self' data:; "
+    "connect-src 'self'; "
+    "base-uri 'self'; "
+    "form-action 'self'; "
+    "frame-ancestors 'none'"
+)
+
+
+@app.middleware("http")
+async def _security_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers.setdefault("Content-Security-Policy", _CSP)
+    response.headers.setdefault("X-Frame-Options", "DENY")
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    # `same-origin` (et non `no-referrer`) : conserve le `Referer` en same-origin — le repli du
+    # contrôle anti-CSRF reste donc opérant — tout en ne fuitant aucun référent vers un tiers.
+    response.headers.setdefault("Referrer-Policy", "same-origin")
+    return response
+
+
+def _same_origin(request: Request) -> bool:
+    """Protège les actions d'écriture contre le CSRF : l'appel doit provenir d'une page Homeport.
+
+    On compare l'hôte de l'en-tête `Origin` (ou `Referer` en repli) à l'hôte de la requête. Un
+    POST cross-site — formulaire piégé auto-soumis — porte l'`Origin` de l'attaquant et est rejeté ;
+    les `fetch` de l'app, eux, sont same-origin et le navigateur y attache l'`Origin`. Sans aucun
+    des deux en-têtes, on refuse."""
+    host = request.headers.get("host")
+    if not host:
+        return False
+    source = request.headers.get("origin") or request.headers.get("referer")
+    if not source:
+        return False
+    return urlsplit(source).netloc == host
 
 
 def _request_lang(request: Request | None) -> str | None:
@@ -332,7 +386,10 @@ def _i18n_context(request: Request | None = None) -> dict:
     return {
         "t": lambda key, **variables: i18n.t(key, lang, **variables),
         "lang": lang,
-        "i18n_json": json.dumps(i18n.catalog(lang), ensure_ascii=False),
+        # `<` échappé en < : une chaîne de traduction contenant « </script> » ne peut pas
+        # clore le bloc <script> inline où ce JSON est injecté (défense en profondeur ; le
+        # catalogue vient des fichiers serveur, jamais de l'utilisateur).
+        "i18n_json": json.dumps(i18n.catalog(lang), ensure_ascii=False).replace("<", "\\u003c"),
         "starlink_enabled": DEMO or cfg.load_starlink()["enabled"],
         "livebox_enabled": DEMO or cfg.load_livebox()["enabled"],
         # Identité affichée en haut à gauche de chaque page (nom court, sans domaine).
@@ -482,16 +539,23 @@ async def api_whoami(request: Request) -> JSONResponse:
 
 
 @app.get("/api/actions")
-async def api_actions() -> JSONResponse:
+async def api_actions(request: Request) -> JSONResponse:
     try:
         journal_rows = actions.recent(cfg.DB_PATH)
     except sqlite3.Error:
         journal_rows = []
+    # L'identité de l'admin (login Tailscale) n'est révélée qu'à l'admin lui-même : un lecteur
+    # LAN non authentifié ne doit pas récupérer l'e-mail ni la chronologie nominative des gestes.
+    if not await _can_act(request):
+        for row in journal_rows:
+            row.pop("identity", None)
     return JSONResponse({"actions": journal_rows})
 
 
 @app.post("/api/actions/restart/{service_id}")
 async def api_restart(service_id: str, request: Request) -> JSONResponse:
+    if not _same_origin(request):
+        return JSONResponse({"error": "origine de la requête invalide"}, status_code=403)
     if not await _can_act(request):
         return JSONResponse({"error": "action réservée à l'admin via Tailscale"}, status_code=403)
     restartables = {s.id: s for s in cfg.all_services(cfg.load_groups()) if s.restartable}
@@ -510,6 +574,8 @@ async def api_restart(service_id: str, request: Request) -> JSONResponse:
 
 @app.post("/api/actions/wake/{mac}")
 async def api_wake(mac: str, request: Request) -> JSONResponse:
+    if not _same_origin(request):
+        return JSONResponse({"error": "origine de la requête invalide"}, status_code=403)
     if not await _can_act(request):
         return JSONResponse({"error": "action réservée à l'admin via Tailscale"}, status_code=403)
     normalized = devices.normalize_mac(mac)
@@ -629,7 +695,9 @@ async def livre_de_bord(request: Request) -> HTMLResponse:
 
 
 @app.get("/api/events")
-async def api_events(days: float = 7, limit: int = 200, kinds: str | None = None) -> JSONResponse:
+async def api_events(
+    request: Request, days: float = 7, limit: int = 200, kinds: str | None = None
+) -> JSONResponse:
     """Le livre de bord : événements consignés + actions admin, fusionnés à la lecture.
 
     La table `actions` reste l'autorité des actions (elle sert aussi /api/actions) ; les
@@ -646,6 +714,8 @@ async def api_events(days: float = 7, limit: int = 200, kinds: str | None = None
         rows = []
     if prefixes is None or any(p.startswith("action") for p in prefixes):
         cutoff = time.time() - days * 86400
+        # `detail` porte le login Tailscale de l'admin : réservé à l'admin, masqué pour le LAN.
+        show_identity = await _can_act(request)
         try:
             for act in actions.recent(cfg.DB_PATH, limit=limit):
                 if act["ts"] < cutoff:
@@ -656,7 +726,7 @@ async def api_events(days: float = 7, limit: int = 200, kinds: str | None = None
                         "kind": f"action.{act['kind']}",
                         "severity": "up" if act["ok"] else "down",
                         "subject": act["target"],
-                        "detail": act["identity"],
+                        "detail": act["identity"] if show_identity else None,
                     }
                 )
         except sqlite3.Error:

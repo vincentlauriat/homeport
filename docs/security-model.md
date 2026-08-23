@@ -28,9 +28,19 @@ compromised Homeport process can therefore restart your declared services, and n
 
 ## Outbound traffic
 
-Two calls, both disablable: the public IP check (`api.ipify.org`, hourly —
-`intervals: {public_ip: 0}`) and the update check (GitHub Releases API, daily —
-`intervals: {update_check: 0}`). No telemetry, no CDN — all assets are served locally.
+Both disablable: the public IP check (`api.ipify.org`, hourly — `intervals: {public_ip: 0}`)
+and the update check (daily — `intervals: {update_check: 0}`). The update check queries the
+GitHub Releases API for Homeport itself **and**, for Docker image freshness, the relevant
+container registries (`ghcr.io`, `auth.docker.io` and image manifest endpoints). No telemetry,
+no CDN — all page assets are served locally.
+
+## Response headers
+
+Every response carries `X-Frame-Options: DENY` and `Content-Security-Policy` with
+`frame-ancestors 'none'` (anti-clickjacking), `default-src 'self'` (assets confined to the
+host), plus `X-Content-Type-Options: nosniff` and `Referrer-Policy: no-referrer`. The two
+action endpoints additionally enforce a same-origin check (`Origin`/`Referer`) so a third-party
+page cannot drive them via CSRF. The OpenAPI/Swagger docs are off unless `HOMEPORT_DOCS=1`.
 
 ## Reporting
 
