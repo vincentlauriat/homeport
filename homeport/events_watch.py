@@ -107,22 +107,36 @@ def public_ip(path: Path, ip: str | None, now: float | None = None) -> int:
 
 
 def backups(path: Path, entries: list[dict], now: float | None = None) -> int:
+    """Deux signaux : une sauvegarde qui RÉUSSIT (un nouveau fichier apparaît) et un état qui
+    se DÉGRADE ou se rétablit. Consigner chaque nouveau fichier — pas seulement les transitions
+    d'état — donne au livre de bord les sauvegardes quotidiennes, qui sinon resteraient « ok »
+    en silence pour toujours. L'amorçage note le fichier courant sans rien écrire : un restart
+    ne rejoue pas la dernière sauvegarde."""
     prev = _state.get("backups")
-    current = {e["name"]: e["state"] for e in entries}
+    current = {e["name"]: {"state": e["state"], "file": e.get("file")} for e in entries}
     _state["backups"] = current
     if prev is None:
         return 0
     written = 0
-    for name, state in current.items():
+    for name, cur in current.items():
         old = prev.get(name)
-        if old is None or state == old:
+        if old is None:
+            continue  # entrée ajoutée à la config : pas une transition vécue
+        # Un nouveau fichier de sauvegarde = une sauvegarde a effectivement tourné.
+        if cur["file"] is not None and cur["file"] != old.get("file") and cur["state"] == "ok":
+            events.record(path, "backup.ok", "up", name, detail=cur["file"], now=now)
+            written += 1
             continue
-        if state == "never":
-            events.record(path, "backup.failed", "down", name, now=now)
-        elif state == "warn":
-            events.record(path, "backup.stale", "warn", name, now=now)
-        elif state == "ok":
+        if cur["state"] == old.get("state"):
+            continue
+        # Transition d'état sans nouveau fichier (dégradation, ou rétablissement d'une entrée
+        # sans champ `file`) : le contrat historique.
+        if cur["state"] == "ok":
             events.record(path, "backup.ok", "up", name, now=now)
+        elif cur["state"] == "warn":
+            events.record(path, "backup.stale", "warn", name, now=now)
+        elif cur["state"] == "never":
+            events.record(path, "backup.failed", "down", name, now=now)
         else:
             continue
         written += 1
