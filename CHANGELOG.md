@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- **The application code now belongs to root, not to the service** — the installer used to
+  hand `/opt/homeport` to the `homeport` user, so a compromised Homeport process could
+  rewrite its own code and survive a restart. The tree is now owned by root and readable
+  only; everything the service writes already lives in the data directory. The unit adds
+  `ReadOnlyPaths=/opt/homeport` so the guarantee holds even if a deployment forgets the
+  ownership.
+
 ## v0.6.2
 
 - **A skip link on every view** — the navigation puts nine tabs before the content, so a

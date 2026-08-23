@@ -26,7 +26,13 @@ rsync -a --delete --exclude venv --exclude .git --exclude data --exclude config 
 echo "==> Python environment"
 [[ -d "$APP_DIR/venv" ]] || python3 -m venv "$APP_DIR/venv"
 "$APP_DIR/venv/bin/pip" install --quiet --upgrade -r "$APP_DIR/requirements.txt"
-chown -R homeport:homeport "$APP_DIR"
+
+# Le code appartient à root, pas au service : un Homeport compromis ne peut pas réécrire son
+# propre code pour se rendre persistant. Le service n'a besoin que de lire et d'exécuter —
+# tout ce qu'il écrit vit dans $DATA_DIR. Le chmod normalise ce que pip a pu poser en 640 :
+# sans lui, root:root transformerait un mode restrictif en échec au démarrage.
+chown -R root:root "$APP_DIR"
+chmod -R u=rwX,go=rX "$APP_DIR"
 
 echo "==> Configuration -> $CONFIG_DIR (existing files are kept)"
 mkdir -p "$CONFIG_DIR"
