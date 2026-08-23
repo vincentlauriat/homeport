@@ -1,7 +1,7 @@
 // Vue B — Le journal de la maison : verdict, récit, uniquement ce qui mérite attention.
 // Coquille HTML statique + rendu client depuis /api/status (pattern /reseau).
 
-const { setText, verdict, backupAge, startPolling } = window.RaspViews;
+const { setText, verdict, wanState, backupAge, startPolling } = window.RaspViews;
 
 const el = (tag, className, text) => {
   const node = document.createElement(tag);
@@ -29,16 +29,17 @@ function renderStory(data) {
     : Tn('journal.story_services_partial', s.up, { up: s.up, total: s.total }));
 
   const wan = data.wan;
-  if (wan && wan.online) {
+  const etat = wanState(wan);  // même lecture que le verdict : les deux ne peuvent pas diverger
+  if (etat === 'up') {
     parts.push(wan.outages_24h
       ? T('journal.story_wan_outages', {
         latency: wan.latency_ms,
         outages: Tn('journal.coupure', wan.outages_24h),
       })
       : T('journal.story_wan_ok', { latency: wan.latency_ms }));
-  } else if (wan && wan.online === false) {
+  } else if (etat === 'down') {
     parts.push(T('journal.story_wan_down'));
-  } else if (wan) {
+  } else if (etat === 'unknown') {
     parts.push(T('journal.story_wan_unknown'));
   }
 
@@ -116,13 +117,14 @@ function renderFacts(system) {
 function renderQuiet(data) {
   const rows = [];
   const wan = data.wan;
+  const etatWan = wanState(wan);
   if (wan) {
     const ip = data.public_ip ? ` · IP …${data.public_ip.ip.split('.').slice(2).join('.')}` : '';
     rows.push({
       k: T('net.internet'),
-      v: wan.online === null ? T('state.unknown') : wan.online
+      v: etatWan === 'unknown' ? T('state.unknown') : etatWan === 'up'
         ? `${wan.latency_ms} ms · ` + Tn('journal.coupure', wan.outages_24h || 0) + ip : T('net.offline'),
-      level: wan.online === null ? 'warn' : wan.online ? 'ok' : 'down',
+      level: etatWan === 'unknown' ? 'warn' : etatWan === 'up' ? 'ok' : 'down',
     });
   }
   const starlink = data.starlink;
@@ -219,12 +221,8 @@ function renderServices(data) {
       const dot = el('span', `edot edot-${service.state}`);
       dot.setAttribute('aria-hidden', 'true');
       const label = T(`state.${service.state}`);
-      if (service.state === 'up') {
-        line.append(dot, el('span', 'sr-only', `${label} · `));
-      } else {
-        trouble += 1;
-        line.append(dot, el('span', `st st-${service.state}`, label));
-      }
+      if (service.state !== 'up') trouble += 1;
+      line.append(dot, el('span', 'sr-only', `${label} · `));
 
       if (service.url) {
         const link = el('a', 'n');
@@ -245,7 +243,16 @@ function renderServices(data) {
       if (service.description) bits.push(service.description);
       if (service.cpu_percent !== null && service.cpu_percent !== undefined) bits.push(`CPU ${service.cpu_percent} %`);
       if (service.availability && service.availability.uptime_pct < 100) bits.push(T('svc.availability_7d', { pct: service.availability.uptime_pct }));
-      line.appendChild(el('span', 'd', bits.join(' · ')));
+      // Le mot d'état ouvre la colonne descriptive, pas la ligne : glissé avant le nom, il
+      // poussait la colonne des noms de 66 px sur la seule ligne qui mérite d'être alignée
+      // avec les autres. Ici la colonne est élastique, et elle reste visible sur téléphone —
+      // contrairement à la colonne de droite, masquée sous 640 px.
+      const detail = el('span', 'd');
+      if (service.state !== 'up') {
+        detail.append(el('span', `st st-${service.state}`, label), bits.length ? ' · ' : '');
+      }
+      detail.append(bits.join(' · '));
+      line.appendChild(detail);
 
       line.appendChild(el('span', 'a', service.uptime ? T('svc.started_ago', { uptime: service.uptime }) : ''));
       parts.push(line);
@@ -254,12 +261,18 @@ function renderServices(data) {
   container.replaceChildren(...parts);
 
   setText('j-services-summary', T('journal.services_show', { count: parts.length }));
-  // On ouvre dès qu'un service sort de `up` — un problème ne se cache jamais derrière un
-  // chevron. On ne referme qu'au premier rendu : au-delà, le pli appartient au lecteur, et
-  // le lui reprendre toutes les cinq secondes serait insupportable.
+  // On ouvre au DÉBUT d'un épisode, pas à chaque sondage : `renderServices` tourne toutes
+  // les 5 s, et un `open = true` inconditionnel reprendrait le pli au lecteur indéfiniment —
+  // d'autant qu'un service hors de `up` est l'état courant, pas l'exception. Le drapeau
+  // `forced` retient qu'on a déjà ouvert pour cet épisode ; il retombe quand tout rentre dans
+  // l'ordre, de sorte que le problème suivant rouvre bien la liste.
   const wrap = document.getElementById('j-services-wrap');
-  if (trouble) wrap.open = true;
-  else if (!wrap.dataset.settled) wrap.open = false;
+  if (trouble) {
+    if (!wrap.dataset.forced) { wrap.open = true; wrap.dataset.forced = '1'; }
+  } else {
+    delete wrap.dataset.forced;
+    if (!wrap.dataset.settled) wrap.open = false;  // le repli initial, une seule fois
+  }
   wrap.dataset.settled = '1';
 }
 

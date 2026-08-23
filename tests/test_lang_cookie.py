@@ -95,11 +95,14 @@ def test_le_journal_ne_saute_aucun_niveau_de_titre():
     http = client()
     journal = http.get("/journal").text
     section = journal.index('id="j-attention-section"')
-    machine = journal.index('journal.machine') if 'journal.machine' in journal else None
     assert '<h2 class="edit-h2">' in journal[section:section + 400], (
         "le bloc attention doit porter son propre h2 avant ses cartes h3"
     )
-    assert machine is None or section < machine
+    # Jinja rend `{{ t("journal.machine") }}` en clair : chercher la clé nue donnerait une
+    # assertion toujours vraie. On s'ancre donc sur le balisage rendu de la section suivante.
+    assert section < journal.index('class="edit-facts"'), (
+        "le bloc attention précède « La machine » : c'est bien lui qui ouvrirait le saut de niveau"
+    )
 
 
 def test_le_journal_n_a_qu_une_zone_vive():

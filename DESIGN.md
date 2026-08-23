@@ -640,9 +640,16 @@ une valeur en panne ne peuvent pas se ressembler.
 
 **La liste des services se replie** quand elle ne fait que confirmer son titre — qui porte
 déjà la disponibilité au pire. Elle s'ouvre d'office dès qu'un service sort de `up` : un
-problème ne se cache jamais derrière un chevron. Le pli n'est repris au lecteur qu'au premier
-rendu. Le mot d'état n'apparaît que sur les lignes non-`up` ; quinze « Actif » à l'écran
-noieraient le seul qui compte, mais le lecteur d'écran, lui, les entend tous.
+problème ne se cache jamais derrière un chevron — mais une seule fois par épisode : la vue se
+redessine toutes les 5 s, et un service hors de `up` est l'état courant plutôt que
+l'exception, si bien qu'une réouverture inconditionnelle reprendrait le pli au lecteur
+indéfiniment.
+
+Le mot d'état n'apparaît que sur les lignes non-`up` ; quinze « Actif » à l'écran noieraient
+le seul qui compte, mais le lecteur d'écran, lui, les entend tous. Il ouvre la **colonne
+descriptive**, pas la ligne : glissé avant le nom, il poussait la colonne des noms de 66 px
+sur la seule ligne qu'on a intérêt à laisser alignée avec les autres. La colonne de droite
+aurait évité le décalage mais disparaît sous 640 px — soit la couleur seule sur téléphone.
 
 ### Timeline
 
