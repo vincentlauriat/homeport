@@ -548,9 +548,38 @@ lignes.
 ~12% d'encre, bandes de coupure à ~22% de `{colors.state-down}`. Le graphe est
 monochrome ; seule la panne a droit à la couleur. [ASSUMPTION]
 
-**`wall-cell`** — Cellule du Mur : `{rounded.lg}`, étiquette `{typography.eyebrow}`, grand
-chiffre `{typography.data-xl}` en `clamp()`, pied `{typography.body-sm}`. En warn/down la
-bordure se teinte et le chiffre passe en `state-*-text` — lisible à travers la pièce.
+**`wall-cell`** — Cellule du Mur : `{rounded.lg}`, grand chiffre `{typography.data-xl}` en
+`clamp()`, pied `{typography.body-sm}`. En warn/down la bordure se teinte et le chiffre passe
+en `state-*-text`.
+
+**L'étiquette du Mur n'est PAS une `{typography.eyebrow}`** — écart délibéré au rôle, mesuré
+le 23/08. À la distance de conception (« readable from across a room », PRODUCT.md), une
+capitale de 11px en `{colors.ink-soft}` est une texture, pas du texte : le mur affichait six
+chiffres géants dont on ne pouvait lire aucun sujet. L'étiquette est donc de l'information de
+première classe — `clamp(1rem, 2.4vh, 1.4rem)`, `{typography.weight-strong}`, `{colors.ink}`,
+tracking .08em — et le suffixe d'unité quitte `{colors.ink-soft}` pour `{colors.ink}`, faute
+de quoi il s'éteint avant le chiffre et « 14 / 15 » se lit « 14 ».
+
+Chaque cellule porteuse d'état affiche en outre **un mot d'état visible** à côté de son
+étiquette, teinté en `state-*-text` : l'état ne peut pas tenir à la seule couleur du chiffre
+(WCAG 1.4.1). Le mot est propre à la tuile — *dégradé*, *en retard*, *en attente*,
+*nouveaux* — jamais dérivé du niveau : les cinq tuiles n'ont pas le même `warn`.
+
+Contenu **groupé au centre** de la cellule, pas écartelé haut/bas : un chiffre séparé de son
+étiquette par un vide de 60 % de la tuile se lit d'autant moins de loin.
+
+**Lien rompu** — Au-delà de deux cycles de sondage manqués, le Mur doit *avoir l'air* périmé
+de l'autre bout de la pièce : halo en `{colors.state-unknown}` sans lueur, chiffres et mots
+d'état désaturés vers `{colors.ink-soft}`, bordures rendues neutres, et la ligne de verdict
+remplacée par « hors ligne depuis HH:MM ». Trois états, pas deux : *à jour*, *périmé*, et
+*jamais chargé* — une tablette qui redémarre face à un serveur mort n'a aucune donnée
+ancienne à conserver. Sans ce traitement le Mur garde un vert périmé pendant des heures
+pendant que l'horloge, découplée du sondage, certifie une fraîcheur inexistante.
+
+**Absence gracieuse** — Une tuile dont la source n'existe pas sur la machine (aucune
+sauvegarde déclarée, pas de sonde WAN, pas d'APT) **disparaît**. Elle ne porte pas un
+avertissement ambre : accuser un foyer de ne pas sauvegarder alors qu'il n'a rien configuré
+est un mensonge, pas une alerte.
 
 ### Récit
 

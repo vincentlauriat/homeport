@@ -7,9 +7,12 @@ window.RaspViews = (() => {
   const REFRESH_MS = 5000;
   const HISTORY_REFRESH_MS = 60000;
 
+  // Réécrire un nœud texte identique reste une mutation du DOM : un lecteur d'écran
+  // réannoncerait la zone à chaque sondage, et le navigateur recalculerait la mise en page
+  // pour rien. On ne touche au nœud que si la valeur a vraiment changé.
   const setText = (id, value) => {
     const node = document.getElementById(id);
-    if (node) node.textContent = value;
+    if (node && node.textContent !== String(value)) node.textContent = value;
   };
 
   const setBar = (id, percent) => {
@@ -70,19 +73,43 @@ window.RaspViews = (() => {
     chip.textContent = T('update.available', { latest: update.latest });
   };
 
-  const startPolling = (render, renderHistory) => {
+  // Nombre de cycles manqués tolérés avant de déclarer la vue périmée. Un cycle raté peut
+  // n'être qu'un redémarrage du service ; deux, c'est que le lien est rompu.
+  const LINK_TOLERANCE = 2;
+
+  const startPolling = (render, renderHistory, onLink) => {
     const stamp = document.getElementById('refreshed');
+    // L'état du lien vit sur <body> pour que chaque vue le traite à sa mesure : une ligne
+    // discrète suffit sur un écran qu'on consulte, pas sur le Mur, qu'on regarde de loin
+    // sans jamais le toucher. Trois états, pas deux — « jamais chargé » n'est pas
+    // « périmé » : une tablette qui redémarre face à un serveur mort n'a aucune donnée
+    // ancienne à conserver, et resterait sinon figée sur ses tirets de gabarit.
+    let failures = 0;
+    let lastOk = null;
+    const publishLink = () => {
+      const state = lastOk === null
+        ? (failures ? 'never' : 'loading')
+        : (failures >= LINK_TOLERANCE ? 'stale' : 'ok');
+      document.body.dataset.link = state;
+      if (onLink) onLink(state, lastOk);
+    };
+    publishLink();
+
     const refresh = async () => {
       try {
         const response = await fetch('/api/status', { cache: 'no-store' });
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data = await response.json();
+        failures = 0;
+        lastOk = new Date();
         render(data);
         updateBadge(data.update);
-        if (stamp) stamp.textContent = T('common.refreshed_at', { time: new Date().toLocaleTimeString() });
+        if (stamp) stamp.textContent = T('common.refreshed_at', { time: lastOk.toLocaleTimeString() });
       } catch (error) {
+        failures += 1;
         if (stamp) stamp.textContent = T('common.offline_kept', { error: error.message });
       }
+      publishLink();
     };
     const refreshHistory = async () => {
       if (!renderHistory) return;

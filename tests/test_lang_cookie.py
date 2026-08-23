@@ -56,3 +56,33 @@ def test_lien_d_evitement_sur_toutes_les_pages():
         assert 'class="skip-link" href="#main"' in text, path
         assert '<main id="main"' in text, path
         assert text.index("skip-link") < text.index("view-switch"), path
+
+
+def test_le_mur_n_affiche_plus_l_ip_publique():
+    """Le Mur est l'écran le plus exposé du produit : allumé en permanence dans une pièce
+    partagée, visible des invités. Il était le seul à afficher l'IP publique en clair alors
+    que le produit masque par ailleurs l'identité LAN. Elle reste sur Contrôle et Réseau."""
+    http = client()
+    mur = http.get("/mur").text
+    assert 'id="wf-ip"' not in mur
+    assert 'id="wf-starlink"' not in mur
+    assert 'id="wf-livebox"' not in mur
+    # Toujours disponible là où l'écran n'est pas permanent et le texte se lit de près.
+    assert "public_ip" in http.get("/controle").text
+
+
+def test_le_mur_porte_un_mot_d_etat_par_tuile():
+    """L'état ne peut pas tenir à la seule couleur du chiffre (WCAG 1.4.1) : chaque tuile
+    porteuse d'état a un emplacement pour le mot, que `mur.js` remplit en `warn`/`down`."""
+    http = client()
+    mur = http.get("/mur").text
+    assert mur.count('class="cell-state"') == 5, "5 tuiles portent un état (la 6e est la sparkline CPU)"
+
+
+def test_le_mur_annonce_le_verdict_et_lui_seul():
+    """`aria-live` restreint à la ligne de verdict : le porter sur les tuiles ferait
+    réannoncer les six à chaque sondage de 5 s."""
+    http = client()
+    mur = http.get("/mur").text
+    assert 'id="w-state-text" aria-live="polite"' in mur
+    assert mur.count('aria-live') == 1
