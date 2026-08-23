@@ -1,0 +1,10 @@
+# GitHub Pages build configuration.
+# The site itself is plain HTML/Markdown; this file exists only to keep internal
+# working material out of the published site. `specs/` holds planning artifacts
+# (BMAD workspaces, design spines) that are versioned but not meant to be served.
+exclude:
+  - specs
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor
