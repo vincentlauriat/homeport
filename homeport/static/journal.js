@@ -169,7 +169,11 @@ function renderServices(data) {
   for (const group of data.groups) {
     for (const service of group.services) {
       const line = el('div', 'esvc');
-      line.appendChild(el('span', `edot edot-${service.state}`));
+      // Le point ne dit son état qu'en couleur : le libellé le redit en clair pour les
+      // lecteurs d'écran, et couvre le cas où la teinte ne suffit pas à distinguer warn.
+      const dot = el('span', `edot edot-${service.state}`);
+      dot.setAttribute('aria-hidden', 'true');
+      line.append(dot, el('span', 'sr-only', `${T(`state.${service.state}`)} · `));
 
       if (service.url) {
         const link = el('a', 'n');
