@@ -1,6 +1,26 @@
 # Changelog
 
-## Unreleased
+## v0.7.0
+
+- **The Wall no longer lies when the server dies.** It was the only view missing the node the
+  polling loop writes its failure into, so a dead Pi left the tablet showing the last known
+  verdict for as long as it stayed powered — while the clock, deliberately independent of
+  polling, went on making it look alive. The Wall now goes visibly stale from across the room:
+  grey halo, desaturated numbers, and a line saying since when. A tablet that reboots against
+  an already-dead server is treated as its own case rather than as stale data.
+- **You can read what the numbers mean again.** Tile labels and unit suffixes sat below the
+  legibility floor for a screen meant to be read across a room, so the Wall showed six giant
+  numbers with no readable subject and « 14 / 15 » read as « 14 ». Labels and suffixes are now
+  full-size ink, and each tile's content is grouped instead of split top and bottom.
+- **State is no longer carried by colour alone.** Every tile that can warn now shows its own
+  state word — degraded, late, pending, new — rather than relying on the colour of the number,
+  which is what the rest of the app stopped doing in v0.6.1.
+- **A missing integration disappears instead of accusing.** A home with no backups configured
+  was shown an amber Backup tile; tiles with no data source stayed frozen on placeholders.
+  They are now hidden.
+- **The public IP leaves the Wall**, along with Starlink and Livebox: it is the one screen that
+  stays lit in a shared room, and the only one that was showing it. All three remain on the
+  views where the screen is not permanent.
 
 - **Docker image freshness works again — it never did behind the socket proxy.** The check
   built its own client against `/var/run/docker.sock` instead of using the configured
