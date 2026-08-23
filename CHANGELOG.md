@@ -1,5 +1,30 @@
 # Changelog
 
+## v0.7.2
+
+- **The Journal's verdict reads the Internet.** It only looked at systemd units, so an outage
+  left "All is well." heading a story that announced the outage two lines below. A WAN that
+  cannot be read is now stated as such rather than passed over in silence — and it is reported
+  as degraded, never as unknown: that level already means "the link to the server is broken" on
+  the Wall, and the verdict is shared code, so reusing it would have made an uncertain
+  connection look exactly like a dead server.
+- **The Journal admits when it has lost the server.** The three link states shipped in v0.7.0
+  reached the Wall only; the Journal kept showing stale figures under a confident verdict. It
+  now says, under the verdict, what you are reading and when it was last read.
+- **The block whose job is to name problems now names them.** Services that are not running are
+  listed there, down before degraded — until now the verdict counted them and the service list
+  showed them fifteen screens below, with nothing in between. That block also gained its own
+  heading: its cards were slipping a level in the page outline.
+- The verdict matches the design spine again: display type in full ink preceded by an 8px state
+  dot, instead of a tinted phrase that put the judgment in colour alone. The quiet rows tint all
+  three states, not just the healthy one, with the level decided row by row — a new device on
+  the local network and an unreachable router do not weigh the same.
+- The fifteen-service list folds away when it only confirms its own heading, and opens on its
+  own as soon as a service leaves "running" — once per episode, so the fold stays the reader's.
+- The Docker images row reads "unknown" when the socket proxy refuses to answer, instead of
+  claiming everything is up to date. Zero outdated out of zero read is not a clean bill of
+  health.
+
 ## v0.7.1
 
 - **The Wall carries the product's identity again.** It was the only surface using none of the
