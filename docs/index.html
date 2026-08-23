@@ -38,7 +38,7 @@
        Voir docs/specs/ux-designs/ux-Homeport-2026-08-23/DESIGN.md. */
     :root {
       --canvas: #ffffff; --ink: #000000; --ink-soft: #5c5c57;
-      --surface-soft: #f7f7f5; --hairline: #e6e6e6;
+      --surface-soft: #f7f7f5; --hairline: #cfcfcb;
       --block-lime: #dceeb1; --block-cream: #f4ecd6; --block-navy: #1f1d3d;
       --inverse-ink: #f4f3f0;
       /* Encre posée sur les pastels : elle suit le thème, sinon un texte noir se retrouve
@@ -52,7 +52,7 @@
     @media (prefers-color-scheme: dark) {
       :root {
         --canvas: #121211; --ink: #f4f3f0; --ink-soft: #a3a29b;
-        --surface-soft: #1c1c1a; --hairline: #2b2b29;
+        --surface-soft: #1c1c1a; --hairline: #3a3a37;
         --block-lime: #39411f; --block-cream: #3b3527;
         --block-ink: #f4f3f0;
         --up: #4cc272;
@@ -172,13 +172,25 @@ cd homeport &amp;&amp; sudo ./deploy/install.sh</code>
     <div class="wrap">
       <span class="eyebrow">Four readings of the same truth</span>
       <div class="grid">
-        <figure class="shot"><img src="screenshots/classic.png" alt="The Classic view: metric cards, health tiles, 24-hour charts and expandable service cards" loading="lazy">
+        <figure class="shot"><picture>
+            <source srcset="screenshots/classic.webp" type="image/webp">
+            <img src="screenshots/classic.png" alt="The Classic view: metric cards, health tiles, 24-hour charts and expandable service cards" loading="lazy" decoding="async" width="1372" height="887">
+          </picture>
           <figcaption><b>Classic</b> — server-rendered cards with drill-down details, logs and restart buttons</figcaption></figure>
-        <figure class="shot"><img src="screenshots/control.png" alt="The Control view: summary pills, machine and health panels, and a dense service table" loading="lazy">
+        <figure class="shot"><picture>
+            <source srcset="screenshots/control.webp" type="image/webp">
+            <img src="screenshots/control.png" alt="The Control view: summary pills, machine and health panels, and a dense service table" loading="lazy" decoding="async" width="1372" height="887">
+          </picture>
           <figcaption><b>Control</b> — dense command center: pills, machine bars, service table</figcaption></figure>
-        <figure class="shot"><img src="screenshots/journal.png" alt="The Journal view: a large verdict headline above a narrative paragraph on a pastel block" loading="lazy">
+        <figure class="shot"><picture>
+            <source srcset="screenshots/journal.webp" type="image/webp">
+            <img src="screenshots/journal.png" alt="The Journal view: a large verdict headline above a narrative paragraph on a pastel block" loading="lazy" decoding="async" width="1372" height="887">
+          </picture>
           <figcaption><b>Journal</b> — a verdict, a narrative, and only what needs attention</figcaption></figure>
-        <figure class="shot"><img src="screenshots/wall.png" alt="The Wall view: a clock and six large cells with oversized numbers" loading="lazy">
+        <figure class="shot"><picture>
+            <source srcset="screenshots/wall.webp" type="image/webp">
+            <img src="screenshots/wall.png" alt="The Wall view: a clock and six large cells with oversized numbers" loading="lazy" decoding="async" width="1372" height="887">
+          </picture>
           <figcaption><b>Wall</b> — giant numbers readable from across the room, for a wall tablet</figcaption></figure>
       </div>
     </div>

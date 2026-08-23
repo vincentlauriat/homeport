@@ -104,7 +104,11 @@ function render(events) {
     }
     const row = el('div', 'lb-row');
     row.appendChild(el('span', 'lb-time', fmtTime.format(date)));
-    row.appendChild(el('span', `edot edot-${event.severity}`));
+    // Ici la phrase de l'événement porte déjà le sens : le point est décoratif, et un
+    // libellé caché en plus ne ferait que doubler la lecture au lecteur d'écran.
+    const sdot = el('span', `edot edot-${event.severity}`);
+    sdot.setAttribute('aria-hidden', 'true');
+    row.appendChild(sdot);
     const text = el('span', 'lb-text');
     text.appendChild(el('b', '', sentence(event)));
     if (event.detail) text.appendChild(el('span', 'lb-detail', ` · ${event.detail}`));

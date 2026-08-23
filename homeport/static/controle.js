@@ -167,7 +167,7 @@ function renderNetwork(data) {
   // La ligne « Appareils LAN » mène à l'inventaire — recréée à chaque cycle par renderKv.
   const last = document.querySelector('#c-network .ckv:last-child .v');
   if (last) {
-    const link = el('a', 'ctrl-link', ' ' + T('net.inventory_link'));
+    const link = el('a', 'ctrl-link', T('net.inventory_link'));
     link.href = '/reseau';
     last.appendChild(link);
   }
@@ -176,7 +176,7 @@ function renderNetwork(data) {
     const rows = document.querySelectorAll('#c-network .ckv .k');
     for (const key of rows) {
       if (key.textContent !== 'Starlink') continue;
-      const link = el('a', 'ctrl-link', ' ' + T('starlink.detail_link'));
+      const link = el('a', 'ctrl-link', T('starlink.detail_link'));
       link.href = '/starlink';
       key.parentElement.querySelector('.v').appendChild(link);
     }
@@ -194,7 +194,10 @@ function renderServices(groups) {
       const row = el('tr', `ctrl-row state-${service.state}`);
 
       const name = el('td', 'name');
-      name.appendChild(el('span', `cdot cdot-${service.state}`));
+      // Idem Journal : la couleur seule ne porte pas l'état (voir .sr-only).
+      const cdot = el('span', `cdot cdot-${service.state}`);
+      cdot.setAttribute('aria-hidden', 'true');
+      name.append(cdot, el('span', 'sr-only', `${T(`state.${service.state}`)} · `));
       if (service.url) {
         const link = el('a', '');
         const licon = el('span', '', service.icon);

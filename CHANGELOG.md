@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.6.1
+
+- **Service state no longer depends on colour alone** — in the Journal list and the Control
+  table the state dot was a bare span: a screen reader announced the service name and
+  nothing about its health. Each dot is now hidden from assistive tech and paired with the
+  translated state label, and the amber used for *degraded* was darkened so it clears the
+  3:1 contrast floor for graphical objects (it sat at 2.2:1).
+- **Card edges are easier to see** — with drop shadows gone, the hairline is the only thing
+  separating a card from the page; it was faint enough to disappear for low-vision readers.
+- **Lighter screenshots on the project page** — served as WebP with a PNG fallback, 468 KB
+  down to 184 KB.
+
 ## v0.6.0
 
 - **New visual identity** — an editorial black-and-white frame punctuated by narrative

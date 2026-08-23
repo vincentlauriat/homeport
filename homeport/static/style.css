@@ -59,8 +59,8 @@
   --bg: #ffffff;
   --surface: #ffffff;
   --surface-soft: #f7f7f5;
-  --border: #e6e6e6;
-  --border-soft: #f1f1f1;
+  --border: #cfcfcb;
+  --border-soft: #e6e6e4;
   --text: #000000;
   /* Écart assumé au système importé, qui proscrit tout gris moyen : un tableau de bord
      dense ne tient pas avec la seule graisse comme hiérarchie. Borné au texte auxiliaire
@@ -73,7 +73,7 @@
   /* Triade d'état — saturée, hors palette pastel. Seul point de contact entre la couleur
      et les surfaces (rail gauche 3px, points, halo du Mur). */
   --up: #1ea64a;
-  --warn: #e8a013;
+  --warn: #c07f00;
   --down: #d92d20;
   --unknown: #8a8a85;
   /* Variantes texte : les tokens pleins passent sous 4.5:1 en petit corps. Assises vers
@@ -131,8 +131,8 @@
     --bg: #121211;
     --surface: #121211;
     --surface-soft: #1c1c1a;
-    --border: #2b2b29;
-    --border-soft: #232321;
+    --border: #3a3a37;
+    --border-soft: #2b2b29;
     --text: #f4f3f0;
     --muted: #a3a29b;
     --accent: #f4f3f0;
@@ -157,8 +157,8 @@
   --bg: #121211;
   --surface: #121211;
   --surface-soft: #1c1c1a;
-  --border: #2b2b29;
-  --border-soft: #232321;
+  --border: #3a3a37;
+  --border-soft: #2b2b29;
   --text: #f4f3f0;
   --muted: #a3a29b;
   --accent: #f4f3f0;
@@ -825,7 +825,10 @@ footer {
 .ckv .k { color: var(--muted); }
 .ckv .v { font-variant-numeric: tabular-nums; text-align: right; }
 .ckv .v.ok { color: var(--up-text); } .ckv .v.warn { color: var(--warn-text); } .ckv .v.down { color: var(--down-text); }
-.ctrl-link { color: var(--muted); }
+/* Le lien suit une valeur qui peut être longue (« online · 19 ms · ↓ 79 · ↑ 7 Mb/s ») :
+   il lui faut une marge propre plutôt qu'une espace dans la chaîne, et il ne doit jamais
+   se couper en deux — la flèche ↗ orpheline sur la ligne suivante. */
+.ctrl-link { color: var(--muted); margin-left: .45rem; white-space: nowrap; }
 
 .ctrl-services { padding: .3rem .55rem .55rem; }
 .ctrl-grp { margin: .55rem .35rem .15rem; font-size: var(--fs-eyebrow); text-transform: uppercase; letter-spacing: .1em; color: var(--accent); }
