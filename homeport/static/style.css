@@ -860,8 +860,22 @@ footer {
 
 .v-edit { font-size: var(--fs-body); }
 .edit-page { max-width: 58rem; margin: 0 auto; padding: .8rem 0 2rem; }
-.edit-verdict { margin: 1.3rem 0 0; font-size: clamp(2rem, 6vw, 2.9rem); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
-.verdict-up { color: var(--up-text); } .verdict-warn { color: var(--warn-text); } .verdict-down { color: var(--down-text); }
+/* Le verdict suit le composant `verdict` du spine : encre pleine sur le canevas, display
+   40 px / 540, le signal porté par un point d'état de 8 px. La phrase teintée en up/warn/down
+   confiait le jugement à la seule couleur (WCAG 1.4.1) et disputait au bloc narratif la
+   hiérarchie que le spine lui accorde. Le pastel du Mur ne se copie pas ici : c'est l'identité
+   du Mur, et le point sur canevas y garde ses 3,18–4,83:1 de contraste. */
+.edit-verdict {
+  margin: 1.3rem 0 0; display: flex; align-items: baseline; gap: .6rem;
+  font-size: var(--fs-display); font-weight: var(--fw-strong);
+  letter-spacing: -.8px; line-height: 1.1; color: var(--text);
+}
+.verdict-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; align-self: center; }
+/* Le démenti du lien se tient sous le verdict, pas au pied de page : une page figée qui
+   continue d'afficher « Tout va bien » ment tant que le démenti est hors du regard. */
+.edit-link { margin: .5rem 0 0; color: var(--down-text); font-size: var(--fs-body-sm); font-weight: var(--fw-strong); }
+.v-edit[data-link="stale"] .edit-verdict,
+.v-edit[data-link="never"] .edit-verdict { opacity: .55; }
 /* Bloc narratif pastel — au plus un par écran, couleur fixe par usage, jamais corrélée
    à l'état. Le texte y repasse en encre pleine : dans un bloc, la hiérarchie est portée
    par le fond, pas par un gris. */
@@ -902,18 +916,38 @@ footer {
 }
 .erow .k { color: var(--muted); }
 .erow .v { font-variant-numeric: tabular-nums; text-align: right; }
+/* Les trois états, pas seulement le bon : `ok` était seul teinté, donc une Livebox injoignable
+   et une Livebox en ligne se ressemblaient à la couleur près du texte voisin. */
 .erow .v.ok { color: var(--up-text); }
+.erow .v.warn { color: var(--warn-text); }
+.erow .v.down { color: var(--down-text); }
 
 .esvc { display: flex; align-items: baseline; gap: .6rem; padding: .5rem 0; border-bottom: 1px dotted var(--border); }
 .esvc:last-child { border-bottom: none; }
 .edot { width: 8px; height: 8px; border-radius: 50%; flex: none; align-self: center; }
 .edot-up { background: var(--up); } .edot-warn { background: var(--warn); }
 .edot-down { background: var(--down); } .edot-unknown { background: var(--unknown); }
+/* L'état en toutes lettres, mais seulement quand il n'est pas `up` : un point de 8 px teinté
+   est le seul signal sur quinze lignes vertes, et il ne suffit pas à distinguer warn de down
+   quand on ne voit pas les couleurs. La ligne saine reste muette — répéter « Actif » quinze
+   fois noierait la seule qui compte. */
+.esvc .st { font-size: var(--fs-caption); font-weight: var(--fw-strong); white-space: nowrap; }
+.esvc .st-warn { color: var(--warn-text); }
+.esvc .st-down { color: var(--down-text); }
+.esvc .st-unknown { color: var(--muted); }
 .esvc .n { font-weight: 540; min-width: 11rem; color: inherit; text-decoration: none; }
 a.n:hover { color: var(--accent); }
 .esvc .d { color: var(--muted); font-size: var(--fs-caption); flex: 1; }
 .esvc .a { color: var(--muted); font-size: var(--fs-caption); font-variant-numeric: tabular-nums; white-space: nowrap; }
 @media (max-width: 640px) { .esvc .a { display: none; } .esvc .n { min-width: 8rem; } }
+
+/* Le titre de section porte déjà la disponibilité au pire : la liste des quinze services se
+   replie tant qu'elle ne fait que confirmer. 44 px de haut — c'est une cible tactile. */
+.edit-services > summary {
+  display: flex; align-items: center; min-height: 44px; margin-top: .4rem;
+  cursor: pointer; color: var(--muted); font-size: var(--fs-body-sm);
+}
+.edit-services[open] > summary { border-bottom: 1px dotted var(--border); }
 
 .v-edit footer { margin-top: 2.5rem; }
 

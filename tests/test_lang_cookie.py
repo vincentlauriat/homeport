@@ -86,3 +86,39 @@ def test_le_mur_annonce_le_verdict_et_lui_seul():
     mur = http.get("/mur").text
     assert 'id="w-state-text" aria-live="polite"' in mur
     assert mur.count('aria-live') == 1
+
+
+def test_le_journal_ne_saute_aucun_niveau_de_titre():
+    """Le bloc « À regarder » émet des `h3` ; sans titre de section il les glissait entre le
+    `h1` de la page et son premier `h2` (WCAG 1.3.1). Y injecter les services en panne
+    aggravait le saut au lieu de le corriger — d'où le `h2` propre au bloc."""
+    http = client()
+    journal = http.get("/journal").text
+    section = journal.index('id="j-attention-section"')
+    machine = journal.index('journal.machine') if 'journal.machine' in journal else None
+    assert '<h2 class="edit-h2">' in journal[section:section + 400], (
+        "le bloc attention doit porter son propre h2 avant ses cartes h3"
+    )
+    assert machine is None or section < machine
+
+
+def test_le_journal_n_a_qu_une_zone_vive():
+    """`role="status"` sur le seul verdict. Le bloc attention se reconstruit entièrement à
+    chaque sondage : l'y poser ferait réannoncer toutes ses cartes toutes les 5 s."""
+    http = client()
+    journal = http.get("/journal").text
+    assert journal.count('role="status"') == 1
+    assert 'aria-live' not in journal
+
+
+def test_le_journal_replie_les_services_mais_dit_le_lien_rompu():
+    """Deux décisions liées : la liste des quinze services se replie quand elle ne fait que
+    confirmer le titre, et le démenti du lien vit sous le verdict — au pied de page, une
+    tablette figée sur « Tout va bien » mentirait hors du regard."""
+    http = client()
+    journal = http.get("/journal").text
+    assert '<details class="edit-services"' in journal
+    assert 'id="j-services-summary"' in journal
+    lien = journal.index('id="j-link"')
+    pied = journal.index("<footer>")
+    assert lien < pied, "la ligne de lien appartient au verdict, pas au pied de page"

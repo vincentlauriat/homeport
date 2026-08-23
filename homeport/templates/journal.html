@@ -30,13 +30,28 @@
   </header>
   <main id="main" class="edit-page">
 
-    <p class="edit-verdict" id="j-verdict">…</p>
+    {# Le verdict est typographique : le point porte le signal, la phrase porte le jugement.
+     # role="status" l'annonce aux lecteurs d'écran — c'est la seule zone vive de la page, et
+     # elle passe par setText, qui ne réécrit que si la valeur a changé : pas de réannonce
+     # toutes les 5 secondes. #}
+    <p class="edit-verdict" role="status">
+      <span class="verdict-dot" id="j-verdict-dot" aria-hidden="true"></span>
+      <span id="j-verdict">…</span>
+    </p>
+    {# Le lien rompu se dit sous le verdict, pas dans le pied de page : une page figée qui
+     # continue d'afficher « Tout va bien » ment tant que le démenti est hors du regard. #}
+    <p class="edit-link" id="j-link" hidden></p>
     {# Bloc narratif : couleur fixe, jamais l'état — le verdict au-dessus porte, lui, la couleur d'état. #}
     <div class="story-block">
       <p class="edit-story" id="j-story"></p>
     </div>
 
-    <div class="edit-attention" id="j-attention" hidden></div>
+    {# Le bloc porte son propre h2 : ses cartes sont des h3, et sans titre de section elles
+     # tomberaient entre le h1 et le premier h2 de la page (saut de niveau). #}
+    <section id="j-attention-section" hidden>
+      <h2 class="edit-h2">{{ t("journal.attention") }}</h2>
+      <div class="edit-attention" id="j-attention"></div>
+    </section>
 
     <h2 class="edit-h2">{{ t("journal.machine") }}</h2>
     <div class="edit-facts">
@@ -50,7 +65,13 @@
     <div class="edit-quiet" id="j-quiet"></div>
 
     <h2 class="edit-h2" id="j-svc-title">{{ t("journal.services") }}</h2>
-    <div id="j-services"></div>
+    {# Le titre porte déjà le verdict d'ensemble (disponibilité au pire) : la liste complète
+     # reste repliée quand tout tourne. Elle s'ouvre d'office dès qu'un service sort de `up` —
+     # un problème ne se cache jamais derrière un chevron. #}
+    <details class="edit-services" id="j-services-wrap">
+      <summary id="j-services-summary">{{ t("journal.services") }}</summary>
+      <div id="j-services"></div>
+    </details>
 
     <footer>
       <span id="refreshed">—</span>
