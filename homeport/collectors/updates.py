@@ -17,8 +17,9 @@ from pathlib import Path
 
 import httpx
 
+from . import docker_api
+
 APT_LISTS = Path("/var/lib/apt/lists")
-DOCKER_SOCKET = "/var/run/docker.sock"
 
 # Un registre peut répondre avec l'un ou l'autre de ces types ; les demander tous évite
 # d'obtenir un digest qui ne correspondra jamais à celui stocké localement.
@@ -133,26 +134,41 @@ async def docker_images() -> dict:
 
     Une image construite localement (`claudebox`) n'a pas de `RepoDigests` : elle est ignorée
     proprement et signalée comme « locale », jamais comptée comme à mettre à jour.
+
+    Passe par le transport partagé (`HOMEPORT_DOCKER_HOST`) comme le reste de l'intégration
+    Docker. **Le socket-proxy doit exposer `IMAGES: 1`** : sous le seul `CONTAINERS: 1` il
+    refuse `/images/…` par un 403, et la fonction rend `available: False` — l'inspection des
+    conteneurs, elle, continue de marcher.
     """
-    transport = httpx.AsyncHTTPTransport(uds=DOCKER_SOCKET)
     try:
-        async with httpx.AsyncClient(transport=transport, timeout=10.0) as docker:
-            containers = (await docker.get("http://docker/containers/json")).json()
+        async with docker_api.open_client(timeout=10.0) as docker:
+            containers = (await docker.get("/containers/json")).json()
             images = sorted({c["Image"] for c in containers})
             details = await asyncio.gather(
-                *(docker.get(f"http://docker/images/{i}/json") for i in images),
+                *(docker.get(f"/images/{i}/json") for i in images),
                 return_exceptions=True,
             )
     except Exception:
         return {"available": False, "outdated": 0, "checked": 0, "images": []}
 
+    # Un refus du proxy est un 403, pas une exception : sans cette distinction, chaque image
+    # illisible passerait pour « construite localement » et la vue annoncerait un contrôle
+    # qui n'a jamais eu lieu. Digest absent (image locale) et image illisible sont deux
+    # choses différentes, et une seule des deux est une vérité sur la machine.
     local: dict[str, str | None] = {}
+    unreadable: set[str] = set()
     for reference, response in zip(images, details, strict=True):
         if isinstance(response, Exception) or response.status_code != 200:
             local[reference] = None
+            unreadable.add(reference)
             continue
         digests = response.json().get("RepoDigests") or []
         local[reference] = digests[0].split("@", 1)[1] if digests else None
+
+    # Aucune image lisible = l'accès aux images n'est pas ouvert. Mieux vaut déclarer la
+    # fonctionnalité indisponible que rendre une liste entièrement fausse.
+    if images and len(unreadable) == len(images):
+        return {"available": False, "outdated": 0, "checked": 0, "images": []}
 
     results = []
     async with httpx.AsyncClient() as client:
@@ -162,7 +178,9 @@ async def docker_images() -> dict:
 
     for reference, remote in zip(images, remotes, strict=True):
         current = local[reference]
-        if current is None:
+        if reference in unreadable:
+            state = "unknown"        # image non lisible (proxy restreint), pas « locale »
+        elif current is None:
             state = "local"          # image construite sur place, pas de registre
         elif remote is None:
             state = "unknown"        # registre injoignable ou non géré

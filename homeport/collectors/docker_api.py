@@ -18,7 +18,7 @@ import httpx
 DOCKER_HOST = os.environ.get("HOMEPORT_DOCKER_HOST", "unix:///var/run/docker.sock")
 
 
-def _client(timeout: float) -> httpx.AsyncClient:
+def open_client(timeout: float) -> httpx.AsyncClient:
     """Client httpx pointant vers Docker, quel que soit le transport configuré."""
     if DOCKER_HOST.startswith("unix://"):
         transport = httpx.AsyncHTTPTransport(uds=DOCKER_HOST.removeprefix("unix://"))
@@ -50,7 +50,7 @@ async def collect() -> dict[str, dict]:
     reste utilisable, les services Docker apparaissent simplement en état inconnu.
     """
     try:
-        async with _client(timeout=5.0) as client:
+        async with open_client(timeout=5.0) as client:
             response = await client.get("/containers/json", params={"all": "1"})
             response.raise_for_status()
             containers = response.json()
@@ -77,7 +77,7 @@ async def collect() -> dict[str, dict]:
 async def is_available() -> bool:
     """Le socket Docker est-il joignable ?"""
     try:
-        async with _client(timeout=3.0) as client:
+        async with open_client(timeout=3.0) as client:
             response = await client.get("/_ping")
             return response.status_code == 200
     except Exception:
@@ -135,7 +135,7 @@ async def logs(name: str, tail: int = 100) -> str:
     """Dernières `tail` lignes de log d'un conteneur. Appel ponctuel (à la demande d'un clic),
     pas une boucle de fond : rapide car borné par `tail`, sans streaming."""
     try:
-        async with _client(timeout=10.0) as client:
+        async with open_client(timeout=10.0) as client:
             response = await client.get(
                 f"/containers/{name}/logs",
                 params={"stdout": "1", "stderr": "1", "tail": str(tail), "timestamps": "0"},
@@ -164,7 +164,7 @@ async def stats(names: list[str]) -> dict[str, float]:
             return None
 
     try:
-        async with _client(timeout=10.0) as client:
+        async with open_client(timeout=10.0) as client:
             results = await asyncio.gather(*(one(client, n) for n in names))
     except Exception:
         return {}
