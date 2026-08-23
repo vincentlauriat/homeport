@@ -39,11 +39,32 @@ window.RaspViews = (() => {
   };
 
   // Verdict global : le pire état visible l'emporte. Utilisé par les vues B et C.
+  // Le verdict de la maison. Il lisait `summary` et `health.alerts` seulement : une coupure
+  // Internet laisse les services systemd debout, donc le titre annonçait « tout va bien »
+  // au-dessus d'un paragraphe disant que le net est coupé. Le WAN entre donc ici.
+  //
+  // ⚠️ Le niveau `unknown` est DÉJÀ pris : le Mur s'en sert pour « le lien avec le serveur
+  // est rompu ». Un WAN inconnu rendrait alors le Mur pixel pour pixel identique à un
+  // serveur mort — deux vérités, une seule apparence. Un WAN qu'on ne sait pas lire est
+  // donc un `warn` avec sa propre phrase : dégradé, pas éteint, et jamais vert.
+  // Une sonde muette (`null`) et un champ absent (`undefined`) sont la même vérité : on ne
+  // sait pas. Les deux lecteurs du WAN passent par ici, sinon l'un peut annoncer « tout va
+  // bien » pendant que l'autre dit « on ne sait pas ».
+  const wanState = (wan) => {
+    if (!wan) return null;
+    if (wan.online === true) return 'up';
+    if (wan.online === false) return 'down';
+    return 'unknown';
+  };
+
   const verdict = (data) => {
     const s = data.summary;
     const alerts = ((data.health || {}).alerts || []).length;
+    const wan = wanState(data.wan);
     if (s.down) return { level: 'down', text: Tn('journal.verdict_down', s.down) };
+    if (wan === 'down') return { level: 'down', text: T('journal.verdict_wan_down') };
     if (s.warn) return { level: 'warn', text: Tn('journal.verdict_warn', s.warn) };
+    if (wan === 'unknown') return { level: 'warn', text: T('journal.verdict_wan_unknown') };
     if (alerts) return { level: 'warn', text: T('journal.verdict_almost') };
     return { level: 'up', text: T('journal.verdict_ok') };
   };
@@ -127,5 +148,5 @@ window.RaspViews = (() => {
     });
   };
 
-  return { setText, setBar, drawSpark, verdict, backupAge, startPolling };
+  return { setText, setBar, drawSpark, verdict, wanState, backupAge, startPolling };
 })();

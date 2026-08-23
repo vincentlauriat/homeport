@@ -72,7 +72,7 @@ typography:
     fontWeight: 340
     lineHeight: 1.08
     letterSpacing: -0.78px
-  display:               # Verdict du Journal, état du Mur. [ASSUMPTION]
+  display:               # Verdict du Journal, état du Mur. Honoré tel quel par le code.
     fontFamily: Inter
     fontSize: 40px
     fontWeight: 540
@@ -601,13 +601,55 @@ est un mensonge, pas une alerte.
 
 **`verdict`** — Le « Tout va bien. » du Journal : `{typography.display}` en pur
 `{colors.ink}`, précédé d'un `state-dot`. Le verdict est typographique, pas coloré — la
-phrase porte le jugement, le dot porte le signal. [ASSUMPTION]
+phrase porte le jugement, le dot porte le signal. Le code a longtemps teint la phrase
+elle-même en `{colors.state-*}` : le jugement tenait alors à la seule couleur (WCAG 1.4.1) et
+disputait au `story-block` la hiérarchie que ce spine lui accorde. Aligné.
+
+Le verdict **lit le WAN**. Il ne regardait que les unités systemd, si bien qu'une coupure
+Internet laissait « Tout va bien. » en tête d'un récit annonçant la coupure deux lignes plus
+bas. Un WAN illisible se dit `warn` — jamais `unknown` : ce niveau appartient déjà au lien
+rompu du Mur, et le réutiliser rendrait un WAN incertain pixel pour pixel identique à un
+serveur mort. Deux vérités ne partagent pas une apparence.
 
 **`story-block`** — Le paragraphe narratif du Journal et les états vides habités (livre de
 bord vierge) : petit bloc pastel `{rounded.lg}` — crème par défaut, lime pour un livre de
 bord vierge — texte `{typography.body-lg}` en encre. C'est le descendant direct des
 color-blocks de l'import, à l'échelle du dashboard. Jamais plus d'un par écran ; jamais
 corrélé à l'état. [ASSUMPTION]
+
+Le pastel du verdict **appartient au Mur** et ne se copie pas ici. Sur le Journal, le verdict
+reste sur `{colors.canvas}`, où le `state-dot` de 8 px mesure 3,18–4,83:1 selon l'état — le
+seuil de 3:1 des objets graphiques (WCAG 1.4.11) est tenu. Posé sur crème, il tombait à 2,70:1.
+
+**Ce qui mérite attention** — Le bloc porte son propre titre de section : ses cartes sont des
+`h3`, et sans `h2` elles se glissaient entre le `h1` de la page et son premier `h2`. Il nomme
+les services qui ne sont pas `up`, pannes avant dégradations. Le seul bloc dont le métier est
+de nommer les problèmes ne les nommait pas : le verdict les comptait, la liste des services
+les montrait quinze écrans plus bas, et l'entre-deux était vide.
+
+**Le lien rompu se dit sous le verdict**, jamais au pied de page. Une tablette figée qui
+continue d'afficher « Tout va bien. » ment tant que le démenti est hors du regard ; le
+verdict passe alors à 55 % d'opacité et la ligne date ce qu'on lit. Les trois états
+(`ok`, `stale`, `never`) valent pour **toutes** les vues, pas seulement le Mur.
+
+**Le niveau d'une ligne se décide ligne par ligne.** Un appareil inconnu sur le réseau local
+et une Livebox injoignable ne pèsent pas le même poids ; dériver le niveau d'une règle
+mécanique peint « en panne » sur ce qui n'est que notable, et un faux signal coûte plus cher
+que pas de signal. Les trois niveaux sont teintés, pas seulement `ok` : une valeur saine et
+une valeur en panne ne peuvent pas se ressembler.
+
+**La liste des services se replie** quand elle ne fait que confirmer son titre — qui porte
+déjà la disponibilité au pire. Elle s'ouvre d'office dès qu'un service sort de `up` : un
+problème ne se cache jamais derrière un chevron — mais une seule fois par épisode : la vue se
+redessine toutes les 5 s, et un service hors de `up` est l'état courant plutôt que
+l'exception, si bien qu'une réouverture inconditionnelle reprendrait le pli au lecteur
+indéfiniment.
+
+Le mot d'état n'apparaît que sur les lignes non-`up` ; quinze « Actif » à l'écran noieraient
+le seul qui compte, mais le lecteur d'écran, lui, les entend tous. Il ouvre la **colonne
+descriptive**, pas la ligne : glissé avant le nom, il poussait la colonne des noms de 66 px
+sur la seule ligne qu'on a intérêt à laisser alignée avec les autres. La colonne de droite
+aurait évité le décalage mais disparaît sous 640 px — soit la couleur seule sur téléphone.
 
 ### Timeline
 
