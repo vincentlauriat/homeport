@@ -13,6 +13,8 @@
   <meta name="theme-color" content="#121211" media="(prefers-color-scheme: dark)">
 </head>
 <body class="v-starlink">
+  {# Premier élément focusable : sans lui, le clavier retraverse les 9 onglets de nav à chaque page. #}
+  <a class="skip-link" href="#main">{{ t("nav.skip") }}</a>
   <header class="topbar">
     <div class="identity">
       <span class="berry" aria-hidden="true">⚓</span>
@@ -25,7 +27,7 @@
     {% set nav_current = "livebox" %}{% include "_nav.html" %}
   </header>
 
-  <main>
+  <main id="main">
   <section class="sl-cells">
     <div class="sl-cell"><span class="t">{{ t("livebox.link") }}</span><b id="lbx-link">—</b><span class="foot" id="lbx-link-note">—</span></div>
     <div class="sl-cell"><span class="t">{{ t("livebox.optical") }}</span><b id="lbx-gpon">—</b><span class="foot" id="lbx-gpon-note">—</span></div>

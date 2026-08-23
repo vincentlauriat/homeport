@@ -23,5 +23,25 @@ ExecStart=/bin/sh -c 'exec /opt/homeport/venv/bin/uvicorn homeport.main:app --ho
 Restart=on-failure
 RestartSec=3
 
+# Confinement. Volontairement modéré : les actions de redémarrage passent par sudo avec
+# des commandes exactes (voir sudoers.example), et sudo est SUID. Les directives qui
+# cassent ce chemin sont donc écartées sciemment :
+#   NoNewPrivileges=yes    → interdit l'élévation, sudo échoue
+#   RestrictSUIDSGID=yes   → même effet sur le binaire sudo
+#   ProtectSystem=strict   → /var en lecture seule, sudo ne peut plus écrire son horodatage
+# ProtectSystem=full met /usr et /boot en lecture seule tout en laissant /var écrivable,
+# ce qui couvre l'essentiel sans toucher au chemin d'action.
+ProtectSystem=full
+# ProtectSystem=full couvre /usr et /boot, pas /opt : sans cette ligne, rien n'empêcherait
+# le service de réécrire son propre code si un déploiement oubliait de rendre /opt/homeport
+# à root. Le garde-fou tient même quand les permissions dérivent.
+ReadOnlyPaths=/opt/homeport
+ProtectHome=read-only
+PrivateTmp=yes
+ProtectKernelTunables=yes
+ProtectControlGroups=yes
+RestrictNamespaces=yes
+LockPersonality=yes
+
 [Install]
 WantedBy=multi-user.target

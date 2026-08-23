@@ -1,5 +1,92 @@
 # Changelog
 
+## v0.7.2
+
+- **The Journal's verdict reads the Internet.** It only looked at systemd units, so an outage
+  left "All is well." heading a story that announced the outage two lines below. A WAN that
+  cannot be read is now stated as such rather than passed over in silence — and it is reported
+  as degraded, never as unknown: that level already means "the link to the server is broken" on
+  the Wall, and the verdict is shared code, so reusing it would have made an uncertain
+  connection look exactly like a dead server.
+- **The Journal admits when it has lost the server.** The three link states shipped in v0.7.0
+  reached the Wall only; the Journal kept showing stale figures under a confident verdict. It
+  now says, under the verdict, what you are reading and when it was last read.
+- **The block whose job is to name problems now names them.** Services that are not running are
+  listed there, down before degraded — until now the verdict counted them and the service list
+  showed them fifteen screens below, with nothing in between. That block also gained its own
+  heading: its cards were slipping a level in the page outline.
+- The verdict matches the design spine again: display type in full ink preceded by an 8px state
+  dot, instead of a tinted phrase that put the judgment in colour alone. The quiet rows tint all
+  three states, not just the healthy one, with the level decided row by row — a new device on
+  the local network and an unreachable router do not weigh the same.
+- The fifteen-service list folds away when it only confirms its own heading, and opens on its
+  own as soon as a service leaves "running" — once per episode, so the fold stays the reader's.
+- The Docker images row reads "unknown" when the socket proxy refuses to answer, instead of
+  claiming everything is up to date. Zero outdated out of zero read is not a clean bill of
+  health.
+
+## v0.7.1
+
+- **The Wall carries the product's identity again.** It was the only surface using none of the
+  narrative pastel blocks, which left it looking like any observability dashboard. The verdict
+  — the line that answers "is everything fine?" — now sits in a cream block in full ink, and
+  the clock steps back to make room for it: every phone and appliance in the room already
+  gives the time, while the question this wall exists to answer was third by size and tucked in
+  a corner. The pastel narrates, it never signals: the phrase stays ink whatever the state.
+- The state halo deliberately stays outside that block. Measured: on cream it drops to 2.70:1
+  where WCAG asks 3:1 of a meaningful graphical object — the background meant to showcase it
+  takes its contrast away.
+
+## v0.7.0
+
+- **The Wall no longer lies when the server dies.** It was the only view missing the node the
+  polling loop writes its failure into, so a dead Pi left the tablet showing the last known
+  verdict for as long as it stayed powered — while the clock, deliberately independent of
+  polling, went on making it look alive. The Wall now goes visibly stale from across the room:
+  grey halo, desaturated numbers, and a line saying since when. A tablet that reboots against
+  an already-dead server is treated as its own case rather than as stale data.
+- **You can read what the numbers mean again.** Tile labels and unit suffixes sat below the
+  legibility floor for a screen meant to be read across a room, so the Wall showed six giant
+  numbers with no readable subject and « 14 / 15 » read as « 14 ». Labels and suffixes are now
+  full-size ink, and each tile's content is grouped instead of split top and bottom.
+- **State is no longer carried by colour alone.** Every tile that can warn now shows its own
+  state word — degraded, late, pending, new — rather than relying on the colour of the number,
+  which is what the rest of the app stopped doing in v0.6.1.
+- **A missing integration disappears instead of accusing.** A home with no backups configured
+  was shown an amber Backup tile; tiles with no data source stayed frozen on placeholders.
+  They are now hidden.
+- **The public IP leaves the Wall**, along with Starlink and Livebox: it is the one screen that
+  stays lit in a shared room, and the only one that was showing it. All three remain on the
+  views where the screen is not permanent.
+
+- **Docker image freshness works again — it never did behind the socket proxy.** The check
+  built its own client against `/var/run/docker.sock` instead of using the configured
+  transport, so on any host reaching Docker through the read-only proxy the call failed and
+  the feature quietly reported itself unavailable. It now uses the same transport as the rest
+  of the Docker integration. A proxy refusal is an HTTP 403 rather than an exception, so
+  images that cannot be read are reported as unknown instead of passing for locally built
+  ones, and when none can be read the feature says so rather than returning a list that
+  claims a check nobody ran. The bundled socket-proxy config now allows image reads
+  (`IMAGES: 1`); `POST` stays refused, so nothing can be built, pulled or removed through it.
+
+- **The application code now belongs to root, not to the service** — the installer used to
+  hand `/opt/homeport` to the `homeport` user, so a compromised Homeport process could
+  rewrite its own code and survive a restart. The tree is now owned by root and readable
+  only; everything the service writes already lives in the data directory. The unit adds
+  `ReadOnlyPaths=/opt/homeport` so the guarantee holds even if a deployment forgets the
+  ownership.
+
+## v0.6.2
+
+- **A skip link on every view** — the navigation puts nine tabs before the content, so a
+  keyboard user crossed all of them on each page load. The first thing focus reaches is
+  now a link straight to the content; it stays out of sight until focused.
+- **The design record matches what ships** — the amber used for degraded and the card
+  hairlines were darkened for contrast without the change reaching DESIGN.md, so the
+  document and the stylesheet disagreed on four colours. The document now records the
+  measured values.
+- The project page uses the same focus ring as the app.
+
 ## v0.6.1
 
 - **Service state no longer depends on colour alone** — in the Journal list and the Control

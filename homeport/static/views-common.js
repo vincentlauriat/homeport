@@ -7,9 +7,12 @@ window.RaspViews = (() => {
   const REFRESH_MS = 5000;
   const HISTORY_REFRESH_MS = 60000;
 
+  // Réécrire un nœud texte identique reste une mutation du DOM : un lecteur d'écran
+  // réannoncerait la zone à chaque sondage, et le navigateur recalculerait la mise en page
+  // pour rien. On ne touche au nœud que si la valeur a vraiment changé.
   const setText = (id, value) => {
     const node = document.getElementById(id);
-    if (node) node.textContent = value;
+    if (node && node.textContent !== String(value)) node.textContent = value;
   };
 
   const setBar = (id, percent) => {
@@ -36,11 +39,32 @@ window.RaspViews = (() => {
   };
 
   // Verdict global : le pire état visible l'emporte. Utilisé par les vues B et C.
+  // Le verdict de la maison. Il lisait `summary` et `health.alerts` seulement : une coupure
+  // Internet laisse les services systemd debout, donc le titre annonçait « tout va bien »
+  // au-dessus d'un paragraphe disant que le net est coupé. Le WAN entre donc ici.
+  //
+  // ⚠️ Le niveau `unknown` est DÉJÀ pris : le Mur s'en sert pour « le lien avec le serveur
+  // est rompu ». Un WAN inconnu rendrait alors le Mur pixel pour pixel identique à un
+  // serveur mort — deux vérités, une seule apparence. Un WAN qu'on ne sait pas lire est
+  // donc un `warn` avec sa propre phrase : dégradé, pas éteint, et jamais vert.
+  // Une sonde muette (`null`) et un champ absent (`undefined`) sont la même vérité : on ne
+  // sait pas. Les deux lecteurs du WAN passent par ici, sinon l'un peut annoncer « tout va
+  // bien » pendant que l'autre dit « on ne sait pas ».
+  const wanState = (wan) => {
+    if (!wan) return null;
+    if (wan.online === true) return 'up';
+    if (wan.online === false) return 'down';
+    return 'unknown';
+  };
+
   const verdict = (data) => {
     const s = data.summary;
     const alerts = ((data.health || {}).alerts || []).length;
+    const wan = wanState(data.wan);
     if (s.down) return { level: 'down', text: Tn('journal.verdict_down', s.down) };
+    if (wan === 'down') return { level: 'down', text: T('journal.verdict_wan_down') };
     if (s.warn) return { level: 'warn', text: Tn('journal.verdict_warn', s.warn) };
+    if (wan === 'unknown') return { level: 'warn', text: T('journal.verdict_wan_unknown') };
     if (alerts) return { level: 'warn', text: T('journal.verdict_almost') };
     return { level: 'up', text: T('journal.verdict_ok') };
   };
@@ -70,19 +94,43 @@ window.RaspViews = (() => {
     chip.textContent = T('update.available', { latest: update.latest });
   };
 
-  const startPolling = (render, renderHistory) => {
+  // Nombre de cycles manqués tolérés avant de déclarer la vue périmée. Un cycle raté peut
+  // n'être qu'un redémarrage du service ; deux, c'est que le lien est rompu.
+  const LINK_TOLERANCE = 2;
+
+  const startPolling = (render, renderHistory, onLink) => {
     const stamp = document.getElementById('refreshed');
+    // L'état du lien vit sur <body> pour que chaque vue le traite à sa mesure : une ligne
+    // discrète suffit sur un écran qu'on consulte, pas sur le Mur, qu'on regarde de loin
+    // sans jamais le toucher. Trois états, pas deux — « jamais chargé » n'est pas
+    // « périmé » : une tablette qui redémarre face à un serveur mort n'a aucune donnée
+    // ancienne à conserver, et resterait sinon figée sur ses tirets de gabarit.
+    let failures = 0;
+    let lastOk = null;
+    const publishLink = () => {
+      const state = lastOk === null
+        ? (failures ? 'never' : 'loading')
+        : (failures >= LINK_TOLERANCE ? 'stale' : 'ok');
+      document.body.dataset.link = state;
+      if (onLink) onLink(state, lastOk);
+    };
+    publishLink();
+
     const refresh = async () => {
       try {
         const response = await fetch('/api/status', { cache: 'no-store' });
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data = await response.json();
+        failures = 0;
+        lastOk = new Date();
         render(data);
         updateBadge(data.update);
-        if (stamp) stamp.textContent = T('common.refreshed_at', { time: new Date().toLocaleTimeString() });
+        if (stamp) stamp.textContent = T('common.refreshed_at', { time: lastOk.toLocaleTimeString() });
       } catch (error) {
+        failures += 1;
         if (stamp) stamp.textContent = T('common.offline_kept', { error: error.message });
       }
+      publishLink();
     };
     const refreshHistory = async () => {
       if (!renderHistory) return;
@@ -100,5 +148,5 @@ window.RaspViews = (() => {
     });
   };
 
-  return { setText, setBar, drawSpark, verdict, backupAge, startPolling };
+  return { setText, setBar, drawSpark, verdict, wanState, backupAge, startPolling };
 })();

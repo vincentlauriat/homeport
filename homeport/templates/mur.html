@@ -16,27 +16,30 @@
   <meta name="theme-color" content="#121211" media="(prefers-color-scheme: dark)">
 </head>
 <body class="v-wall">
+  {# Premier élément focusable : sans lui, le clavier retraverse les 9 onglets de nav à chaque page. #}
+  <a class="skip-link" href="#main">{{ t("nav.skip") }}</a>
   <h1 class="sr-only">Homeport — {{ t("nav.wall") }}</h1>
   <header class="wall-head">
     <span class="wall-clock" id="w-clock">—:—</span>
     <span class="wall-date" id="w-date">—</span>
-    <span class="wall-state" id="w-state"><span class="wall-halo" id="w-halo"></span><span id="w-state-text">…</span></span>
+    {# aria-live restreint à cette seule ligne : la porter sur les tuiles ferait réannoncer les six à chaque sondage. #}
+    <span class="wall-state" id="w-state"><span class="wall-halo" id="w-halo" aria-hidden="true"></span><span id="w-state-text" aria-live="polite">…</span></span>
     {% set nav_current = "wall" %}{% include "_nav.html" %}
   </header>
 
-  <main class="wall-grid">
+  <main id="main" class="wall-grid">
     <div class="wall-cell" id="w-services">
-      <span class="t">{{ t("wall.services") }}</span>
+      <span class="t">{{ t("wall.services") }}<span class="cell-state" hidden></span></span>
       <span class="big">—</span>
       <span class="foot">—</span>
     </div>
     <div class="wall-cell" id="w-internet">
-      <span class="t">{{ t("wall.internet") }}</span>
+      <span class="t">{{ t("wall.internet") }}<span class="cell-state" hidden></span></span>
       <span class="big">—</span>
       <span class="foot">—</span>
     </div>
     <div class="wall-cell" id="w-backup">
-      <span class="t">{{ t("wall.backup") }}</span>
+      <span class="t">{{ t("wall.backup") }}<span class="cell-state" hidden></span></span>
       <span class="big">—</span>
       <span class="foot">—</span>
     </div>
@@ -46,12 +49,12 @@
       <span class="foot">—</span>
     </div>
     <div class="wall-cell" id="w-updates">
-      <span class="t">{{ t("wall.updates") }}</span>
+      <span class="t">{{ t("wall.updates") }}<span class="cell-state" hidden></span></span>
       <span class="big">—</span>
       <span class="foot">—</span>
     </div>
     <div class="wall-cell" id="w-lan">
-      <span class="t">{{ t("wall.lan") }}</span>
+      <span class="t">{{ t("wall.lan") }}<span class="cell-state" hidden></span></span>
       <span class="big">—</span>
       <span class="foot">—</span>
     </div>
@@ -61,9 +64,6 @@
     <span id="wf-ssd">—</span>
     <span id="wf-mem">—</span>
     <span id="wf-power">—</span>
-    <span id="wf-ip">—</span>
-    <span id="wf-starlink"></span>
-    <span id="wf-livebox"></span>
     <span class="wall-brand"><span aria-hidden="true">⚓</span> <span id="w-hostname">—</span> · v{{ version }}</span>
     {% include "_prefs.html" %}
   </footer>

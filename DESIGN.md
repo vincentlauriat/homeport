@@ -11,8 +11,8 @@ colors:
   inverse-canvas: '#000000'
   inverse-ink: '#ffffff'
   surface-soft: '#f7f7f5'
-  hairline: '#e6e6e6'
-  hairline-soft: '#f1f1f1'
+  hairline: '#cfcfcb'
+  hairline-soft: '#e6e6e4'
   # Rôle secondaire de texte — écart assumé vis-à-vis de l'import (voir Colors). [ASSUMPTION]
   ink-soft: '#5c5c57'
   # ----- Blocs pastel narratifs (hex de l'import, approximations fidèles) -----
@@ -27,7 +27,7 @@ colors:
   overlay-scrim: '#000000'
   # ----- Triade sémantique d'état (hors palette pastel — décision memlog) -----
   state-up: '#1ea64a'
-  state-warn: '#e8a013'      # [ASSUMPTION]
+  state-warn: '#c07f00'      # 3.35:1 sur le canevas — mesuré, pas supposé
   state-down: '#d92d20'      # [ASSUMPTION]
   state-unknown: '#8a8a85'   # [ASSUMPTION]
   # Variantes texte assises vers l'encre pour tenir AA en petit corps. [ASSUMPTION]
@@ -39,8 +39,8 @@ colors:
   ink-dark: '#f4f3f0'
   ink-soft-dark: '#a3a29b'
   surface-soft-dark: '#1c1c1a'
-  hairline-dark: '#2b2b29'
-  hairline-soft-dark: '#232321'
+  hairline-dark: '#3a3a37'
+  hairline-soft-dark: '#2b2b29'
   block-lime-dark: '#39411f'
   block-lilac-dark: '#352a52'
   block-cream-dark: '#3b3527'
@@ -72,7 +72,7 @@ typography:
     fontWeight: 340
     lineHeight: 1.08
     letterSpacing: -0.78px
-  display:               # Verdict du Journal, état du Mur. [ASSUMPTION]
+  display:               # Verdict du Journal, état du Mur. Honoré tel quel par le code.
     fontFamily: Inter
     fontSize: 40px
     fontWeight: 540
@@ -548,21 +548,108 @@ lignes.
 ~12% d'encre, bandes de coupure à ~22% de `{colors.state-down}`. Le graphe est
 monochrome ; seule la panne a droit à la couleur. [ASSUMPTION]
 
-**`wall-cell`** — Cellule du Mur : `{rounded.lg}`, étiquette `{typography.eyebrow}`, grand
-chiffre `{typography.data-xl}` en `clamp()`, pied `{typography.body-sm}`. En warn/down la
-bordure se teinte et le chiffre passe en `state-*-text` — lisible à travers la pièce.
+**`wall-cell`** — Cellule du Mur : `{rounded.lg}`, grand chiffre `{typography.data-xl}` en
+`clamp()`, pied `{typography.body-sm}`. En warn/down la bordure se teinte et le chiffre passe
+en `state-*-text`.
+
+**L'étiquette du Mur n'est PAS une `{typography.eyebrow}`** — écart délibéré au rôle, mesuré
+le 23/08. À la distance de conception (« readable from across a room », PRODUCT.md), une
+capitale de 11px en `{colors.ink-soft}` est une texture, pas du texte : le mur affichait six
+chiffres géants dont on ne pouvait lire aucun sujet. L'étiquette est donc de l'information de
+première classe — `clamp(1rem, 2.4vh, 1.4rem)`, `{typography.weight-strong}`, `{colors.ink}`,
+tracking .08em — et le suffixe d'unité quitte `{colors.ink-soft}` pour `{colors.ink}`, faute
+de quoi il s'éteint avant le chiffre et « 14 / 15 » se lit « 14 ».
+
+Chaque cellule porteuse d'état affiche en outre **un mot d'état visible** à côté de son
+étiquette, teinté en `state-*-text` : l'état ne peut pas tenir à la seule couleur du chiffre
+(WCAG 1.4.1). Le mot est propre à la tuile — *dégradé*, *en retard*, *en attente*,
+*nouveaux* — jamais dérivé du niveau : les cinq tuiles n'ont pas le même `warn`.
+
+Contenu **groupé au centre** de la cellule, pas écartelé haut/bas : un chiffre séparé de son
+étiquette par un vide de 60 % de la tuile se lit d'autant moins de loin.
+
+**Lien rompu** — Au-delà de deux cycles de sondage manqués, le Mur doit *avoir l'air* périmé
+de l'autre bout de la pièce : halo en `{colors.state-unknown}` sans lueur, chiffres et mots
+d'état désaturés vers `{colors.ink-soft}`, bordures rendues neutres, et la ligne de verdict
+remplacée par « hors ligne depuis HH:MM ». Trois états, pas deux : *à jour*, *périmé*, et
+*jamais chargé* — une tablette qui redémarre face à un serveur mort n'a aucune donnée
+ancienne à conserver. Sans ce traitement le Mur garde un vert périmé pendant des heures
+pendant que l'horloge, découplée du sondage, certifie une fraîcheur inexistante.
+
+**Identité du Mur** — Le verdict est posé dans un bloc `{colors.block-cream}` arrondi en
+`{rounded.lg}`, texte en `{colors.ink}` pleine : c'est le **seul** pastel du Mur, et sa seule
+marque d'identité. Avant le 23/08 le Mur n'utilisait aucun `{colors.block-*}` — il était la
+seule surface du produit à esquiver l'identité, ce qui le rendait interchangeable avec
+n'importe quel tableau de bord d'observabilité. Le pastel raconte, il ne signale pas : la
+phrase reste en encre quel que soit l'état, conformément au composant `verdict`.
+
+⚠️ **Le halo reste sur le canevas, hors du bloc.** Mesuré : posé sur `{colors.block-cream}`,
+il tombe à 2,70:1 (`state-up`, thème clair) contre les 3:1 qu'exige WCAG 1.4.11 pour un objet
+graphique porteur de sens — le fond censé le mettre en valeur lui retire son contraste. Sur
+le canevas il tient de 3,18:1 à 8,90:1 selon l'état et le thème.
+
+L'horloge redescend à `clamp(1.4rem, 3.2vh, 2rem)` : elle était le plus gros objet de l'écran
+en portrait et l'égal des chiffres d'état en paysage, alors que chaque appareil de la pièce
+donne déjà l'heure. Le verdict prend sa place dans la hiérarchie.
+
+**Absence gracieuse** — Une tuile dont la source n'existe pas sur la machine (aucune
+sauvegarde déclarée, pas de sonde WAN, pas d'APT) **disparaît**. Elle ne porte pas un
+avertissement ambre : accuser un foyer de ne pas sauvegarder alors qu'il n'a rien configuré
+est un mensonge, pas une alerte.
 
 ### Récit
 
 **`verdict`** — Le « Tout va bien. » du Journal : `{typography.display}` en pur
 `{colors.ink}`, précédé d'un `state-dot`. Le verdict est typographique, pas coloré — la
-phrase porte le jugement, le dot porte le signal. [ASSUMPTION]
+phrase porte le jugement, le dot porte le signal. Le code a longtemps teint la phrase
+elle-même en `{colors.state-*}` : le jugement tenait alors à la seule couleur (WCAG 1.4.1) et
+disputait au `story-block` la hiérarchie que ce spine lui accorde. Aligné.
+
+Le verdict **lit le WAN**. Il ne regardait que les unités systemd, si bien qu'une coupure
+Internet laissait « Tout va bien. » en tête d'un récit annonçant la coupure deux lignes plus
+bas. Un WAN illisible se dit `warn` — jamais `unknown` : ce niveau appartient déjà au lien
+rompu du Mur, et le réutiliser rendrait un WAN incertain pixel pour pixel identique à un
+serveur mort. Deux vérités ne partagent pas une apparence.
 
 **`story-block`** — Le paragraphe narratif du Journal et les états vides habités (livre de
 bord vierge) : petit bloc pastel `{rounded.lg}` — crème par défaut, lime pour un livre de
 bord vierge — texte `{typography.body-lg}` en encre. C'est le descendant direct des
 color-blocks de l'import, à l'échelle du dashboard. Jamais plus d'un par écran ; jamais
 corrélé à l'état. [ASSUMPTION]
+
+Le pastel du verdict **appartient au Mur** et ne se copie pas ici. Sur le Journal, le verdict
+reste sur `{colors.canvas}`, où le `state-dot` de 8 px mesure 3,18–4,83:1 selon l'état — le
+seuil de 3:1 des objets graphiques (WCAG 1.4.11) est tenu. Posé sur crème, il tombait à 2,70:1.
+
+**Ce qui mérite attention** — Le bloc porte son propre titre de section : ses cartes sont des
+`h3`, et sans `h2` elles se glissaient entre le `h1` de la page et son premier `h2`. Il nomme
+les services qui ne sont pas `up`, pannes avant dégradations. Le seul bloc dont le métier est
+de nommer les problèmes ne les nommait pas : le verdict les comptait, la liste des services
+les montrait quinze écrans plus bas, et l'entre-deux était vide.
+
+**Le lien rompu se dit sous le verdict**, jamais au pied de page. Une tablette figée qui
+continue d'afficher « Tout va bien. » ment tant que le démenti est hors du regard ; le
+verdict passe alors à 55 % d'opacité et la ligne date ce qu'on lit. Les trois états
+(`ok`, `stale`, `never`) valent pour **toutes** les vues, pas seulement le Mur.
+
+**Le niveau d'une ligne se décide ligne par ligne.** Un appareil inconnu sur le réseau local
+et une Livebox injoignable ne pèsent pas le même poids ; dériver le niveau d'une règle
+mécanique peint « en panne » sur ce qui n'est que notable, et un faux signal coûte plus cher
+que pas de signal. Les trois niveaux sont teintés, pas seulement `ok` : une valeur saine et
+une valeur en panne ne peuvent pas se ressembler.
+
+**La liste des services se replie** quand elle ne fait que confirmer son titre — qui porte
+déjà la disponibilité au pire. Elle s'ouvre d'office dès qu'un service sort de `up` : un
+problème ne se cache jamais derrière un chevron — mais une seule fois par épisode : la vue se
+redessine toutes les 5 s, et un service hors de `up` est l'état courant plutôt que
+l'exception, si bien qu'une réouverture inconditionnelle reprendrait le pli au lecteur
+indéfiniment.
+
+Le mot d'état n'apparaît que sur les lignes non-`up` ; quinze « Actif » à l'écran noieraient
+le seul qui compte, mais le lecteur d'écran, lui, les entend tous. Il ouvre la **colonne
+descriptive**, pas la ligne : glissé avant le nom, il poussait la colonne des noms de 66 px
+sur la seule ligne qu'on a intérêt à laisser alignée avec les autres. La colonne de droite
+aurait évité le décalage mais disparaît sous 640 px — soit la couleur seule sur téléphone.
 
 ### Timeline
 

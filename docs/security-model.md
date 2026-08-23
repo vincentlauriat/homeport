@@ -22,9 +22,23 @@ No admin declared (`admin: ~`, the default) → all actions disabled.
 
 Homeport reaches Docker **read-only** through
 [tecnativa/docker-socket-proxy](https://github.com/Tecnativa/docker-socket-proxy) bound to
-127.0.0.1 (`CONTAINERS=1`, everything else off). Restarts go through sudo rules that
+127.0.0.1 (`CONTAINERS=1` and `IMAGES=1`, everything else off — image reads are what the
+freshness comparison needs; every `POST` is refused, so nothing can be built, pulled, started
+or removed through the proxy). Restarts go through sudo rules that
 whitelist exact commands (`docker restart homeassistant` — no wildcards, no shell). A
 compromised Homeport process can therefore restart your declared services, and nothing else.
+
+## The service cannot rewrite its own code
+
+`/opt/homeport` is owned by root and readable only by the service; everything Homeport
+writes lives in the data directory (`/var/lib/homeport` by default). A compromised process
+therefore cannot patch its own source to survive a restart. The unit also declares
+`ReadOnlyPaths=/opt/homeport`, so the guarantee holds even if an ownership change is missed
+during an update.
+
+This assumes the service runs as its own unprivileged user. If you override the unit to run
+Homeport as your login account, whatever sudo rights that account holds become the process's
+rights, and the whitelisted-commands guarantee above no longer applies.
 
 ## Outbound traffic
 

@@ -13,6 +13,8 @@
   <meta name="theme-color" content="#121211" media="(prefers-color-scheme: dark)">
 </head>
 <body class="v-starlink">
+  {# Premier élément focusable : sans lui, le clavier retraverse les 9 onglets de nav à chaque page. #}
+  <a class="skip-link" href="#main">{{ t("nav.skip") }}</a>
   <header class="topbar">
     <div class="identity">
       <span class="berry" aria-hidden="true">⚓</span>
@@ -25,7 +27,7 @@
     {% set nav_current = "starlink" %}{% include "_nav.html" %}
   </header>
 
-  <main>
+  <main id="main">
   <section class="alerts" id="sl-alerts" hidden></section>
 
   <section class="sl-cells">
