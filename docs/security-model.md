@@ -22,7 +22,9 @@ No admin declared (`admin: ~`, the default) → all actions disabled.
 
 Homeport reaches Docker **read-only** through
 [tecnativa/docker-socket-proxy](https://github.com/Tecnativa/docker-socket-proxy) bound to
-127.0.0.1 (`CONTAINERS=1`, everything else off). Restarts go through sudo rules that
+127.0.0.1 (`CONTAINERS=1` and `IMAGES=1`, everything else off — image reads are what the
+freshness comparison needs; every `POST` is refused, so nothing can be built, pulled, started
+or removed through the proxy). Restarts go through sudo rules that
 whitelist exact commands (`docker restart homeassistant` — no wildcards, no shell). A
 compromised Homeport process can therefore restart your declared services, and nothing else.
 
