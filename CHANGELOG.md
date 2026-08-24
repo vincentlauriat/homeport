@@ -1,5 +1,24 @@
 # Changelog
 
+## v0.8.0
+
+- **A versioned API, so the Mac app can read this Pi without scraping it.** `/api/v1/capabilities`,
+  `/api/v1/events` and `/api/v1/metrics` serve the contract HomePortManager consumes, alongside the
+  unversioned routes that feed the web dashboard — those have not moved. The handshake announces a
+  semver contract version and the surfaces actually mounted, so a client learns what this server can
+  do instead of guessing from a 404.
+- **Events are paged by a cursor that survives a restore.** A client reads events after the last id
+  it saw. Each answer carries the identity of the current history and its highest id, so a database
+  that was replaced with a shorter one is noticed rather than silently skipped over.
+- **Four metric scales, kept small.** 24 h at one minute, 7 days at five, 30 days at the hour, a
+  year at the day — pre-aggregated into buckets that hold a sum and a count per series. Storage is
+  bounded by construction, under 4 600 rows however long the Pi runs, and a machine with no thermal
+  sensor serves an empty temperature series rather than a series of zeros.
+- **The Historique graph no longer hides a spike.** Sampling moved to once a minute to feed the
+  24-hour scale, which would have sent the web view five times more points per request. The graph
+  now returns one point per five-minute slice, averaged over that slice — so it reads every measure
+  taken, where it previously plotted one in five and ignored the rest.
+
 ## v0.7.2
 
 - **The Journal's verdict reads the Internet.** It only looked at systemd units, so an outage
