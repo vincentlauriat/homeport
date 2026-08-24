@@ -116,7 +116,9 @@ DEFAULT_INTERVALS = {
     "throttling": 60,
     "apt": 1800,
     "docker_images": 3600,
-    "history": 300,
+    # 60 s, et non 300 : l'échelle 24 h de l'API v1 a un pas d'une minute, et un échantillonnage
+    # plus lent y laisserait quatre seaux vides sur cinq. Surchargeable par `intervals.history`.
+    "history": 60,
     "network": 60,
     "sessions": 60,
     "docker_stats": 30,
