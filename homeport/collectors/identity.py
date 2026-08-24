@@ -2,17 +2,25 @@
 
 Le contrat API v1 (voir `docs/api/homeport-api-v1.md` dans HomePortManager) fait de l'epoch la
 moitié gauche du curseur `(epoch, id)` d'un client. Sa règle : deux générations distinctes de
-l'historique ne partagent jamais un epoch, et toute restauration en produit une nouvelle.
+l'historique ne partagent jamais un epoch.
 
 Homeport n'a pas de chemin de restauration à lui — c'est `hpm restore` qui remet la base en place,
 depuis une autre machine. L'epoch ne peut donc pas être régénéré par un geste local : il doit
-**constater** la substitution. D'où le fichier sentinelle posé à côté de la base : restaurer
-`history.db` ramène l'epoch de l'archive, mais laisse la sentinelle intacte. Les deux divergent, et
-c'est ce désaccord — pas une notification — qui déclenche la régénération.
+**constater** la substitution. D'où le fichier sentinelle posé à côté de la base : quand les deux
+copies de l'epoch divergent, c'est qu'on a changé de base sous les pieds du serveur, et c'est ce
+désaccord — pas une notification — qui déclenche la régénération.
 
-Les deux copies ne peuvent redevenir cohérentes à tort que si la restauration remplace la base
-*et* la sentinelle. `latest_id`, servi à chaque réponse d'événements, reste le garde-fou de ce
-dernier cas : un identifiant qui recule invalide le curseur du client même sous un epoch familier.
+Ce que la sentinelle couvre, et ce qu'elle ne couvre pas. Elle attrape la base déposée seule :
+un `scp history.db`, une base ancienne remise en place à la main, une base recréée à vide. Elle
+n'attrape **pas** `hpm restore`, qui fait `rm -rf /var/lib/homeport` puis `cp -a` du répertoire
+entier — la sentinelle voyage dans l'archive avec la base, les deux copies se retrouvent d'accord,
+et la substitution passe sous un epoch familier. C'est le chemin de restauration normal, donc le
+cas non couvert est le cas courant, pas une bizarrerie.
+
+`latest_id`, servi à chaque réponse d'événements, est le garde-fou de ce cas-là : un identifiant
+qui recule invalide le curseur du client même sous un epoch inchangé. Fermer le trou pour de bon
+demanderait que `hpm restore` régénère l'epoch lui-même — une décision qui engage les deux dépôts,
+consignée dans `deferred-work.md` de HomePortManager plutôt que tranchée ici.
 """
 
 from __future__ import annotations

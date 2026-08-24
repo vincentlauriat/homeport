@@ -48,13 +48,30 @@ def prune(path: Path, retention_days: int, now: float | None = None) -> int:
         return cursor.rowcount
 
 
+#: Pas de restitution du graphe, en secondes. Découplé de la fréquence d'échantillonnage : la
+#: cadence d'écriture a suivi le besoin de l'API v1 (un point par minute pour l'échelle 24 h),
+#: alors que le tracé, lui, n'a pas gagné en lisibilité à recevoir cinq fois plus de points.
+#: Sans ce pas, la fenêtre 7 jours du front passerait de 2 016 à 10 080 points par requête.
+GRAPH_STEP_S = 300
+
+
 def query_range(path: Path, hours: float, now: float | None = None) -> list[dict]:
-    """Échantillons des `hours` dernières heures, du plus ancien au plus récent."""
+    """Échantillons des `hours` dernières heures, du plus ancien au plus récent.
+
+    Un représentant par tranche de `GRAPH_STEP_S`, et non la totalité des lignes : le tracé garde
+    la même densité quelle que soit la cadence d'écriture. Le représentant est le plus ancien
+    échantillon de sa tranche — un choix stable, qui ne change pas d'une requête à l'autre pour
+    une tranche déjà close.
+    """
     cutoff = int((now if now is not None else time.time()) - hours * 3600)
     with sqlite3.connect(path) as conn:
         conn.row_factory = sqlite3.Row
+        # `MIN(ts)` fait des autres colonnes des « bare columns » : SQLite garantit alors qu'elles
+        # portent les valeurs de la ligne qui réalise ce minimum. Une tranche ne peut donc rendre
+        # qu'une ligne, même si deux échantillons partagent la même seconde.
         rows = conn.execute(
-            "SELECT ts, cpu_pct, mem_pct, temp_c, nvme_temp_c FROM samples WHERE ts >= ? ORDER BY ts ASC",
-            (cutoff,),
+            "SELECT MIN(ts) AS ts, cpu_pct, mem_pct, temp_c, nvme_temp_c FROM samples "
+            "WHERE ts >= ? GROUP BY ts / ? ORDER BY ts ASC",
+            (cutoff, GRAPH_STEP_S),
         ).fetchall()
     return [dict(row) for row in rows]

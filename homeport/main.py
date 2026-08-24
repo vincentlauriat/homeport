@@ -774,6 +774,20 @@ async def api_logs(name: str, tail: int = 100) -> JSONResponse:
 #: Version du contrat servi. À incrémenter avec le document, jamais séparément.
 API_V1_CONTRACT = "1.0.0"
 
+#: Annoncée par `capabilities`, mais jamais écrite à la main : le contrat interdit d'annoncer une
+#: surface qui répondrait 404, et une liste littérale se désynchronise au premier retrait de route.
+#: La dériver des routes réellement montées rend cet écart impossible plutôt que détectable.
+_V1_PREFIX = "/api/v1/"
+
+
+def _v1_features() -> list[str]:
+    noms = {
+        route.path[len(_V1_PREFIX):]
+        for route in app.routes
+        if getattr(route, "path", "").startswith(_V1_PREFIX)
+    }
+    return sorted(noms - {"capabilities"})
+
 _V1_UNAVAILABLE = {"error": "historique indisponible"}
 
 
@@ -802,7 +816,7 @@ async def api_v1_capabilities() -> JSONResponse:
             "contract": API_V1_CONTRACT,
             "server": __version__,
             "epoch": current,
-            "features": ["events", "metrics"],
+            "features": _v1_features(),
         }
     )
 

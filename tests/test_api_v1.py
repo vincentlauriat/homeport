@@ -224,3 +224,36 @@ def test_base_inaccessible_repond_503_pas_une_trace(client, monkeypatch):
         reponse = http.get(route)
         assert reponse.status_code == 503, route
         assert "error" in reponse.json(), route
+
+
+def test_toute_surface_annoncee_repond(client):
+    """§8 du contrat : annoncer une surface qui répond 404 est une faute serveur. La liste étant
+    dérivée des routes montées, ce test échouerait si la dérivation se remettait à mentir."""
+    http, _ = client
+    for nom in http.get("/api/v1/capabilities").json()["features"]:
+        assert http.get(f"/api/v1/{nom}").status_code != 404, nom
+
+
+def test_aucune_route_v1_servie_n_est_tue(client):
+    """L'autre sens : une route ajoutée sans être annoncée resterait invisible au client."""
+    http, _ = client
+    annoncees = set(http.get("/api/v1/capabilities").json()["features"])
+    montees = {
+        route.path[len("/api/v1/"):]
+        for route in main.app.routes
+        if getattr(route, "path", "").startswith("/api/v1/")
+    } - {"capabilities"}
+    assert annoncees == montees
+
+
+def test_la_version_de_contrat_est_un_semver_strict(client):
+    """hpm refuse une version qu'il ne sait pas lire, et n'accepte ni pré-version ni zéro initial.
+    Servir « 1.0 » ou « 01.0.0 » ferait échouer la poignée de main côté client."""
+    http, _ = client
+    contrat = http.get("/api/v1/capabilities").json()["contract"]
+    morceaux = contrat.split(".")
+    assert len(morceaux) == 3, contrat
+    for morceau in morceaux:
+        assert morceau.isdigit(), contrat
+        assert morceau == "0" or not morceau.startswith("0"), contrat
+    assert int(morceaux[0]) >= 1, "la plage consommée par hpm commence à 1.0.0"
