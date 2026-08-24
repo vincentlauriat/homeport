@@ -16,7 +16,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from urllib.parse import urlsplit
 
-from fastapi import Body, FastAPI, Request
+from fastapi import Body, FastAPI, Query, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -30,9 +30,11 @@ from .collectors import (
     events,
     hardware,
     history,
+    identity,
     journal,
     livebox,
     mdns,
+    metrics,
     network,
     oui,
     public_ip,
@@ -87,6 +89,8 @@ async def lifespan(_: FastAPI):
         service_history.init_db(cfg.DB_PATH)
         public_ip.init_db(cfg.DB_PATH)
         events.init_db(cfg.DB_PATH)
+        identity.init_db(cfg.DB_PATH)
+        metrics.init_db(cfg.DB_PATH)
     except OSError as exc:
         log.warning("inventaire appareils désactivé : %s", exc)
 
@@ -286,6 +290,22 @@ def _record_history_sample(path: Path, retention_days: int) -> None:
         },
     )
     history.prune(path, retention_days)
+    # Les seaux de l'API v1 sont nourris par le même instantané : un second collecteur
+    # produirait deux vérités sur la même mesure.
+    try:
+        racine = next((d for d in sample["disks"] if d["mount"] == "/"), None)
+        metrics.record(
+            path,
+            {
+                "cpu_pct": sample["load"]["percent"],
+                "mem_pct": sample["memory"]["percent"],
+                "disk_pct": racine["percent"] if racine else None,
+                "temp_c": sample["temperature_c"],
+            },
+        )
+        metrics.prune(path)
+    except (sqlite3.Error, OSError) as exc:
+        log.warning("métriques agrégées indisponibles : %s", exc)
     try:
         events_watch.temperature(path, sample["temperature_c"])
     except (sqlite3.Error, OSError) as exc:
@@ -742,6 +762,116 @@ async def api_logs(name: str, tail: int = 100) -> JSONResponse:
         return JSONResponse({"error": "conteneur inconnu"}, status_code=404)
     tail = max(1, min(tail, 1000))
     return JSONResponse({"logs": await docker_api.logs(name, tail)})
+
+
+# — API v1 —————————————————————————————————————————————————————————————————————
+#
+# Contrat inter-dépôts : `docs/api/homeport-api-v1.md` dans HomePortManager, dont ce dépôt garde
+# la source de vérité. Ces routes s'ajoutent aux routes non versionnées ci-dessus, qui servent le
+# front web et ne bougent pas. `/healthz` reste indépendant de `capabilities` : le premier est le
+# diagnostic interrogé par SSH, le second la poignée de main du contrat HTTP.
+
+#: Version du contrat servi. À incrémenter avec le document, jamais séparément.
+API_V1_CONTRACT = "1.0.0"
+
+#: Annoncée par `capabilities`, mais jamais écrite à la main : le contrat interdit d'annoncer une
+#: surface qui répondrait 404, et une liste littérale se désynchronise au premier retrait de route.
+#: La dériver des routes réellement montées rend cet écart impossible plutôt que détectable.
+_V1_PREFIX = "/api/v1/"
+
+
+def _v1_features() -> list[str]:
+    noms = {
+        route.path[len(_V1_PREFIX):]
+        for route in app.routes
+        if getattr(route, "path", "").startswith(_V1_PREFIX)
+    }
+    return sorted(noms - {"capabilities"})
+
+_V1_UNAVAILABLE = {"error": "historique indisponible"}
+
+
+def _int_param(raw: str | None, default: int, low: int, high: int) -> int:
+    """Le contrat impose de ramener dans les bornes plutôt que de rejeter, et de retomber sur le
+    défaut si la valeur est illisible. D'où des paramètres reçus en texte : la validation
+    automatique de FastAPI répondrait 422 là où le contrat exige une réponse servie."""
+    if raw is None:
+        return default
+    try:
+        value = int(raw)
+    except (TypeError, ValueError):
+        return default
+    return max(low, min(value, high))
+
+
+@app.get("/api/v1/capabilities")
+async def api_v1_capabilities() -> JSONResponse:
+    try:
+        current = identity.epoch(cfg.DB_PATH)
+    except (sqlite3.Error, OSError) as exc:
+        log.warning("capabilities indisponible : %s", exc)
+        return JSONResponse(_V1_UNAVAILABLE, status_code=503)
+    return JSONResponse(
+        {
+            "contract": API_V1_CONTRACT,
+            "server": __version__,
+            "epoch": current,
+            "features": _v1_features(),
+        }
+    )
+
+
+@app.get("/api/v1/events")
+async def api_v1_events(
+    since_id: str | None = None,
+    since_epoch: str | None = None,
+    limit: str | None = None,
+    severity: str | None = None,
+) -> JSONResponse:
+    """Lecture par curseur : identifiants croissants, `latest_id` à chaque réponse.
+
+    Les actions administratives ne sont pas fusionnées ici, contrairement à `/api/events` : elles
+    portent leur propre séquence d'identifiants, et les mêler casserait la monotonie sur laquelle
+    le curseur d'un client repose.
+    """
+    cursor = _int_param(since_id, 0, 0, 2**63 - 1)
+    page = _int_param(limit, 200, 1, 1000)
+    severities = [s.strip() for s in severity.split(",") if s.strip()] if severity else None
+
+    try:
+        current = identity.epoch(cfg.DB_PATH)
+        # Un curseur d'une autre génération ne veut rien dire ici : on sert depuis le début et
+        # on annonce l'epoch courant, au client d'en tirer les conséquences. Jamais une erreur.
+        if since_epoch is not None and since_epoch != current:
+            cursor = 0
+        # Une ligne de plus que demandé : `has_more` devient exact, filtre compris.
+        rows = events.query_since(cfg.DB_PATH, since_id=cursor, limit=page + 1, severities=severities)
+        newest = events.latest_id(cfg.DB_PATH)
+    except (sqlite3.Error, OSError) as exc:
+        log.warning("événements v1 indisponibles : %s", exc)
+        return JSONResponse(_V1_UNAVAILABLE, status_code=503)
+
+    has_more = len(rows) > page
+    return JSONResponse(
+        {"epoch": current, "latest_id": newest, "events": rows[:page], "has_more": has_more}
+    )
+
+
+@app.get("/api/v1/metrics")
+async def api_v1_metrics(scale: str = Query("24h", alias="range")) -> JSONResponse:
+    """Une plage inconnue est le seul 400 du contrat : aucune valeur voisine n'aurait de sens."""
+    if scale not in metrics.SCALES:
+        connues = ", ".join(metrics.SCALES)
+        return JSONResponse(
+            {"error": f"range inconnu : {scale} (attendu : {connues})"}, status_code=400
+        )
+    try:
+        current = identity.epoch(cfg.DB_PATH)
+        data = metrics.series(cfg.DB_PATH, scale)
+    except (sqlite3.Error, OSError) as exc:
+        log.warning("métriques v1 indisponibles : %s", exc)
+        return JSONResponse(_V1_UNAVAILABLE, status_code=503)
+    return JSONResponse({"epoch": current, **data})
 
 
 @app.get("/healthz")

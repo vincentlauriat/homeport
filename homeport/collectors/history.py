@@ -48,13 +48,42 @@ def prune(path: Path, retention_days: int, now: float | None = None) -> int:
         return cursor.rowcount
 
 
+#: Pas de restitution du graphe, en secondes. Découplé de la fréquence d'échantillonnage : la
+#: cadence d'écriture a suivi le besoin de l'API v1 (un point par minute pour l'échelle 24 h),
+#: alors que le tracé, lui, n'a pas gagné en lisibilité à recevoir cinq fois plus de points.
+#: Sans ce pas, la fenêtre 7 jours du front passerait de 2 016 à 10 080 points par requête.
+GRAPH_STEP_S = 300
+
+
 def query_range(path: Path, hours: float, now: float | None = None) -> list[dict]:
-    """Échantillons des `hours` dernières heures, du plus ancien au plus récent."""
+    """Échantillons des `hours` dernières heures, du plus ancien au plus récent.
+
+    Un point par tranche de `GRAPH_STEP_S`, et non la totalité des lignes : le tracé garde la même
+    densité quelle que soit la cadence d'écriture.
+
+    Le point est la **moyenne** de sa tranche, pas un échantillon choisi parmi les autres. Retenir
+    le premier et jeter les quatre suivants rendrait invisible un pic tombé dans les quatre — un
+    biais qui n'existait pas avant, quand la cadence d'écriture valait déjà 300 s. La moyenne
+    atténue le pic au lieu de le supprimer, et voit les cinq mesures là où l'ancien tracé n'en
+    voyait qu'une sur cinq : à densité égale, il en dit davantage qu'avant. L'amplitude exacte
+    reste lisible dans les seaux de l'API v1 et dans la table elle-même.
+    """
     cutoff = int((now if now is not None else time.time()) - hours * 3600)
     with sqlite3.connect(path) as conn:
         conn.row_factory = sqlite3.Row
+        # `AVG` ignore les NULL colonne par colonne : un Pi sans capteur NVMe garde une série vide
+        # au lieu de se voir attribuer des zéros — la même propriété que les compteurs par série
+        # de `metrics.py`. L'instant rendu, lui, reste celui d'une mesure réelle (`MIN(ts)`).
         rows = conn.execute(
-            "SELECT ts, cpu_pct, mem_pct, temp_c, nvme_temp_c FROM samples WHERE ts >= ? ORDER BY ts ASC",
-            (cutoff,),
+            "SELECT MIN(ts) AS ts, AVG(cpu_pct) AS cpu_pct, AVG(mem_pct) AS mem_pct, "
+            "AVG(temp_c) AS temp_c, AVG(nvme_temp_c) AS nvme_temp_c FROM samples "
+            "WHERE ts >= ? GROUP BY ts / ? ORDER BY ts ASC",
+            (cutoff, GRAPH_STEP_S),
         ).fetchall()
-    return [dict(row) for row in rows]
+    return [
+        {
+            key: (round(value, 1) if isinstance(value, float) else value)
+            for key, value in dict(row).items()
+        }
+        for row in rows
+    ]
