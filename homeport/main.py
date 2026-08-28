@@ -114,6 +114,10 @@ async def lifespan(_: FastAPI):
             "throttling": (_throttling_and_watch, intervals["throttling"]),
             "apt": (updates.apt, intervals["apt"]),
             "docker_images": (updates.docker_images, intervals["docker_images"]),
+            # Binaires absents sur Linux : `updates.softwareupdate`/`brew_outdated` échouent
+            # proprement (`available: False`) au lieu de planter, même patron qu'`apt` sur macOS.
+            "softwareupdate": (updates.softwareupdate, intervals["softwareupdate"]),
+            "brew_outdated": (updates.brew_outdated, intervals["brew_outdated"]),
             "history": (
                 lambda: _to_async(_record_history_sample, cfg.DB_PATH, health["history_retention_days"]),
                 intervals["history"],

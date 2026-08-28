@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 import time
 from pathlib import Path
 
@@ -200,6 +201,61 @@ async def docker_images() -> dict:
 
 async def _noop() -> None:
     return None
+
+
+# --------------------------------------------------------------------------- macOS
+
+
+def parse_softwareupdate_stderr(text: str) -> list[str]:
+    """`softwareupdate -l` écrit son résultat sur **stderr**, jamais stdout — vérifié
+    directement sur un vrai Mac avant d'écrire ce module ; lire stdout renverrait toujours
+    « aucune mise à jour », quel que soit l'état réel de la machine."""
+    return [
+        line.split("Label:", 1)[1].strip().rstrip(",")
+        for line in text.splitlines()
+        if line.strip().startswith("* Label:")
+    ]
+
+
+async def softwareupdate() -> dict:
+    try:
+        process = await asyncio.create_subprocess_exec(
+            "softwareupdate", "-l",
+            stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.PIPE,
+        )
+        _, stderr = await asyncio.wait_for(process.communicate(), timeout=60.0)
+    except Exception:
+        return {"available": False, "total": 0, "packages": []}
+
+    packages = parse_softwareupdate_stderr(stderr.decode("utf-8", "replace"))
+    return {"available": True, "total": len(packages), "packages": packages[:10]}
+
+
+def parse_brew_outdated(raw_json: str) -> list[str]:
+    try:
+        data = json.loads(raw_json)
+    except json.JSONDecodeError:
+        return []
+    return [pkg["name"] for pkg in data.get("formulae", []) + data.get("casks", [])]
+
+
+async def brew_outdated() -> dict:
+    """`HOMEBREW_NO_AUTO_UPDATE=1` est impératif : sans lui, `brew outdated` met à jour
+    Homebrew et ses taps avant de répondre (fetch/rebase de plusieurs dépôts git, texte
+    parasite sur stdout avant le JSON) — un effet de bord réseau qu'un tableau de bord en
+    lecture seule ne doit jamais déclencher. Vérifié directement sur un vrai Mac."""
+    env = {**os.environ, "HOMEBREW_NO_AUTO_UPDATE": "1", "HOMEBREW_NO_ENV_HINTS": "1"}
+    try:
+        process = await asyncio.create_subprocess_exec(
+            "brew", "outdated", "--json",
+            stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.DEVNULL, env=env,
+        )
+        stdout, _ = await asyncio.wait_for(process.communicate(), timeout=30.0)
+    except Exception:
+        return {"available": False, "total": 0, "packages": []}
+
+    packages = parse_brew_outdated(stdout.decode("utf-8", "replace"))
+    return {"available": True, "total": len(packages), "packages": packages[:10]}
 
 
 # --- Nouvelle version de Homeport (GitHub Releases) -------------------------------------

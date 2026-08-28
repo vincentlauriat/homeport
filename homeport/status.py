@@ -230,6 +230,8 @@ def _health(lang: str | None = None) -> dict:
     apt = value("apt")
     images = value("docker_images")
     throttling = value("throttling")
+    softwareupdate = value("softwareupdate")
+    brew_outdated = value("brew_outdated")
 
     alerts = []
     for backup in backups:
@@ -267,6 +269,12 @@ def _health(lang: str | None = None) -> dict:
         "apt_measured_at": measured_at("apt"),
         "images": images,
         "images_measured_at": measured_at("docker_images"),
+        # `None` sur toute machine sans `softwareupdate`/`brew` (donc tous les Pi) — absence
+        # gracieuse, même patron que `thermal_pressure`.
+        "softwareupdate": softwareupdate,
+        "softwareupdate_measured_at": measured_at("softwareupdate"),
+        "brew_outdated": brew_outdated,
+        "brew_outdated_measured_at": measured_at("brew_outdated"),
         "throttling": throttling,
         "alerts": alerts,
     }
