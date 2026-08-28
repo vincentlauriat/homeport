@@ -1,7 +1,11 @@
-"""Métriques de la machine, lues directement dans /proc et /sys.
+"""Métriques de la machine, lues directement dans /proc et /sys sur Linux.
 
 Aucune dépendance (pas de psutil) : chaque dépendance en moins est une ligne en moins à figer
-dans requirements.txt, et ces fichiers-là ne changent pas de format.
+dans requirements.txt, et ces fichiers-là ne changent pas de format. macOS n'a pas de `/proc` :
+`uptime()`/`memory()` y basculent sur `sysctl`/`vm_stat`, aussi rapides qu'une lecture de
+fichier — pas la classe de commandes lentes que `background.py` sort du chemin de la requête.
+`load()` n'a pas besoin de cette bascule : `os.getloadavg()` est POSIX, disponible et
+équivalent à `/proc/loadavg` sur les deux OS.
 """
 
 from __future__ import annotations
@@ -10,6 +14,8 @@ import os
 import re
 import shutil
 import socket
+import subprocess
+import sys
 import time
 from pathlib import Path
 
@@ -34,13 +40,8 @@ def _unit(key: str) -> str:
     return i18n.t(key, cfg.load_language())
 
 
-def uptime(path: str = "/proc/uptime") -> dict:
-    text = _read(path)
-    if text is None:
-        return {"seconds": None, "human": None}
-    raw = text.split()
-    seconds = float(raw[0]) if raw else 0.0
-    days, rest = divmod(int(seconds), 86400)
+def _format_uptime(seconds: int) -> dict:
+    days, rest = divmod(seconds, 86400)
     hours, rest = divmod(rest, 3600)
     minutes = rest // 60
     parts = []
@@ -49,10 +50,85 @@ def uptime(path: str = "/proc/uptime") -> dict:
     if hours or days:
         parts.append(f"{hours} {_unit('unit.hours')}")
     parts.append(f"{minutes} {_unit('unit.minutes')}")
-    return {"seconds": int(seconds), "human": " ".join(parts)}
+    return {"seconds": seconds, "human": " ".join(parts)}
 
 
-def memory(path: str = "/proc/meminfo") -> dict:
+def _run(*args: str) -> str | None:
+    """`None` si le binaire est absent, échoue ou dépasse le délai — jamais d'exception."""
+    try:
+        result = subprocess.run(args, capture_output=True, text=True, timeout=2)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    return result.stdout if result.returncode == 0 else None
+
+
+_BOOTTIME_RE = re.compile(r"sec\s*=\s*(\d+)")
+
+
+def _boottime_seconds(text: str) -> int | None:
+    match = _BOOTTIME_RE.search(text)
+    return int(match.group(1)) if match else None
+
+
+def _uptime_macos() -> dict:
+    text = _run("sysctl", "-n", "kern.boottime")
+    boot = _boottime_seconds(text) if text is not None else None
+    if boot is None:
+        return {"seconds": None, "human": None}
+    return _format_uptime(max(int(time.time()) - boot, 0))
+
+
+def _uptime_from_proc(path: str = "/proc/uptime") -> dict:
+    text = _read(path)
+    if text is None:
+        return {"seconds": None, "human": None}
+    raw = text.split()
+    seconds = int(float(raw[0])) if raw else 0
+    return _format_uptime(seconds)
+
+
+def uptime() -> dict:
+    if sys.platform == "darwin":
+        return _uptime_macos()
+    return _uptime_from_proc()
+
+
+_VM_STAT_FIELD_RE = re.compile(r"^([A-Za-z][\w \"]*?):\s+(\d+)\.", re.MULTILINE)
+_VM_STAT_PAGE_SIZE_RE = re.compile(r"page size of (\d+) bytes")
+
+
+def _parse_vm_stat(text: str) -> tuple[int, dict[str, int]]:
+    """`vm_stat` : un en-tête donnant la taille de page (4096 en repli si absent, valeur
+    historique avant les pages 16 Ko d'Apple Silicon), puis un compte de pages par ligne."""
+    size_match = _VM_STAT_PAGE_SIZE_RE.search(text)
+    page_size = int(size_match.group(1)) if size_match else 4096
+    pages = {name: int(count) for name, count in _VM_STAT_FIELD_RE.findall(text)}
+    return page_size, pages
+
+
+def _memory_macos() -> dict:
+    """Mémoire « disponible » au sens où `free`/`inactive` (pages libérables sans E/S) comptent
+    comme libres — la même convention que psutil sur macOS, faute de `MemAvailable` natif."""
+    hw = _run("sysctl", "-n", "hw.memsize")
+    vm = _run("vm_stat")
+    if hw is None or vm is None:
+        return {"total_mb": None, "used_mb": None, "percent": None}
+    try:
+        total_bytes = int(hw.strip())
+    except ValueError:
+        return {"total_mb": None, "used_mb": None, "percent": None}
+    page_size, pages = _parse_vm_stat(vm)
+    available_bytes = (pages.get("Pages free", 0) + pages.get("Pages inactive", 0)) * page_size
+    total_mb = total_bytes // (1024 * 1024)
+    used_mb = (total_bytes - available_bytes) // (1024 * 1024)
+    return {
+        "total_mb": total_mb,
+        "used_mb": used_mb,
+        "percent": round(used_mb / total_mb * 100, 1) if total_mb else None,
+    }
+
+
+def _memory_from_proc(path: str = "/proc/meminfo") -> dict:
     """Mémoire en Mio. `MemAvailable` est la bonne mesure du libre réel, pas `MemFree`."""
     text = _read(path)
     if text is None:
@@ -72,19 +148,26 @@ def memory(path: str = "/proc/meminfo") -> dict:
     }
 
 
-def load(path: str = "/proc/loadavg") -> dict:
+def memory() -> dict:
+    if sys.platform == "darwin":
+        return _memory_macos()
+    return _memory_from_proc()
+
+
+def load() -> dict:
+    """`os.getloadavg()` est équivalent à `/proc/loadavg` sur Linux (même appel système) et
+    fonctionne aussi sur macOS : une seule implémentation pour les deux OS."""
     cores = os.cpu_count() or 1
-    text = _read(path)
-    if text is None:
+    try:
+        avg1, avg5, avg15 = os.getloadavg()
+    except OSError:
         return {"avg1": None, "avg5": None, "avg15": None, "cores": cores, "percent": None}
-    raw = text.split()
-    one = float(raw[0]) if raw else 0.0
     return {
-        "avg1": one,
-        "avg5": float(raw[1]) if len(raw) > 1 else 0.0,
-        "avg15": float(raw[2]) if len(raw) > 2 else 0.0,
+        "avg1": avg1,
+        "avg5": avg5,
+        "avg15": avg15,
         "cores": cores,
-        "percent": round(min(one / cores * 100, 100), 1),
+        "percent": round(min(avg1 / cores * 100, 100), 1),
     }
 
 
