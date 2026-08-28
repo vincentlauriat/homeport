@@ -37,9 +37,9 @@ function renderPills(data) {
 }
 
 function renderMachine(system, nvme) {
-  setText('v-cpu', `${system.load.percent} %`);
+  setText('v-cpu', system.load.percent === null ? '— %' : `${system.load.percent} %`);
   setBar('b-cpu', system.load.percent);
-  setText('v-mem', `${system.memory.percent} %`);
+  setText('v-mem', system.memory.percent === null ? '— %' : `${system.memory.percent} %`);
   setBar('b-mem', system.memory.percent);
   setText('v-temp', system.temperature_c === null ? '—' : `${system.temperature_c} °C`);
   setBar('b-temp', ((system.temperature_c ?? 0) / 85) * 100);
@@ -238,7 +238,7 @@ function renderServices(groups) {
 
 function render(data) {
   setText('c-hostname', data.system.hostname);
-  setText('c-sub', T('hero.subtitle', { uptime: data.system.uptime.human }));
+  setText('c-sub', T('hero.subtitle', { uptime: data.system.uptime.human ?? '—' }));
   renderPills(data);
   renderMachine(data.system, data.nvme);
   renderHealth(data);

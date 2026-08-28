@@ -143,7 +143,7 @@ function render(data) {
   const nvme = data.nvme;
   const wear = nvme && nvme.percent_used !== null && nvme.percent_used !== undefined ? ' · ' + T('wall.ssd_wear', { pct: nvme.percent_used }) : '';
   setText('wf-ssd', sys.storage_temperature_c === null ? '' : T('wall.ssd', { temp: sys.storage_temperature_c }) + wear);
-  setText('wf-mem', T('wall.mem', { pct: sys.memory.percent }));
+  setText('wf-mem', sys.memory.percent === null ? '' : T('wall.mem', { pct: sys.memory.percent }));
   const power = (data.health || {}).throttling;
   setText('wf-power', sys.undervoltage ? T('wall.power_undervoltage')
     : power && power.available ? T('wall.power', { state: T(power.healthy ? 'health.power_ok' : 'health.power_incident') }) : '');
@@ -157,7 +157,8 @@ function render(data) {
   const cpuFoot = document.querySelector('#w-cpu .foot');
   if (cpuFoot) {
     const temp = sys.temperature_c === null ? '' : ` · ${sys.temperature_c} °C`;
-    cpuFoot.textContent = `${sys.load.percent} %${window.__cpuPeak !== undefined ? ' · ' + T('wall.peak', { pct: window.__cpuPeak }) : ''}${temp}`;
+    const cpuPct = sys.load.percent === null ? '—' : sys.load.percent;
+    cpuFoot.textContent = `${cpuPct} %${window.__cpuPeak !== undefined ? ' · ' + T('wall.peak', { pct: window.__cpuPeak }) : ''}${temp}`;
   }
 }
 

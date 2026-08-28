@@ -172,10 +172,10 @@ def temperature(path: Path, temp_c: float | None, now: float | None = None) -> i
     return 0
 
 
-def boot(path: Path, uptime_seconds: float, now: float | None = None) -> int:
+def boot(path: Path, uptime_seconds: float | None, now: float | None = None) -> int:
     """Appelé une fois au démarrage de l'app : un uptime machine plus jeune que le seuil
     signifie que ce démarrage suit un boot, pas un simple restart du service."""
-    if uptime_seconds >= _BOOT_MAX_UPTIME_S:
+    if uptime_seconds is None or uptime_seconds >= _BOOT_MAX_UPTIME_S:
         return 0
     events.record(path, "boot", "warn", "system", now=now)
     return 1

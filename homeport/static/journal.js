@@ -96,12 +96,12 @@ function renderAttention(data) {
 }
 
 function renderFacts(system) {
-  setText('f-cpu', `${system.load.percent} %`);
-  setText('f-cpu-note', T('journal.fact_cpu', { load: system.load.avg1, cores: system.load.cores }));
+  setText('f-cpu', system.load.percent === null ? '— %' : `${system.load.percent} %`);
+  setText('f-cpu-note', system.load.avg1 === null ? '—' : T('journal.fact_cpu', { load: system.load.avg1, cores: system.load.cores }));
   setText('f-temp', system.temperature_c === null ? '—' : `${system.temperature_c} °C`);
   setText('f-temp-note', system.storage_temperature_c === null ? T('journal.fact_temp_cpu') : T('journal.fact_temp_both', { temp: system.storage_temperature_c }));
-  setText('f-mem', `${system.memory.percent} %`);
-  setText('f-mem-note', T('journal.fact_mem', { used: (system.memory.used_mb / 1024).toFixed(1), total: (system.memory.total_mb / 1024).toFixed(0) }));
+  setText('f-mem', system.memory.percent === null ? '— %' : `${system.memory.percent} %`);
+  setText('f-mem-note', system.memory.used_mb === null ? '—' : T('journal.fact_mem', { used: (system.memory.used_mb / 1024).toFixed(1), total: (system.memory.total_mb / 1024).toFixed(0) }));
   const root = (system.disks || []).find((d) => d.mount === '/');
   const ssd = (system.disks || []).find((d) => d.mount !== '/');
   if (root) {
