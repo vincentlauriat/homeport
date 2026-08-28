@@ -1,5 +1,67 @@
 
 
+# --- mises à jour macOS : softwareupdate écrit son résultat sur STDERR, pas STDOUT (piège
+# vérifié directement sur un vrai Mac avant d'écrire ce parseur — sinon on lirait toujours
+# "aucune mise à jour" quel que soit l'état réel de la machine).
+
+# Sortie stderr réelle sur ce Mac (2026-08-28, à jour) : `softwareupdate -l 2>&1 1>/dev/null`.
+SOFTWAREUPDATE_UP_TO_DATE = "No new software available.\n"
+
+# Format documenté de longue date pour le cas « mises à jour disponibles » (non observé sur
+# cette machine, qui est à jour au moment d'écrire ce module — non revérifié en pratique).
+SOFTWAREUPDATE_WITH_UPDATES = (
+    "Software Update Tool\n\nFinding available software\n"
+    "* Label: Safari18.2-18.2\n"
+    "\tTitle: Safari, Version: 18.2, Size: 43000K, Recommended: YES,\n"
+    "* Label: macOS Sequoia 15.2-24C101\n"
+    "\tTitle: macOS Sequoia 15.2, Version: 15.2, Size: 3000000K, Recommended: YES, Action: restart,\n"
+)
+
+
+def test_parse_softwareupdate_stderr_returns_empty_list_when_up_to_date():
+    from homeport.collectors import updates
+    assert updates.parse_softwareupdate_stderr(SOFTWAREUPDATE_UP_TO_DATE) == []
+
+
+def test_parse_softwareupdate_stderr_extracts_labels():
+    from homeport.collectors import updates
+    assert updates.parse_softwareupdate_stderr(SOFTWAREUPDATE_WITH_UPDATES) == [
+        "Safari18.2-18.2",
+        "macOS Sequoia 15.2-24C101",
+    ]
+
+
+# --- mises à jour Homebrew : `HOMEBREW_NO_AUTO_UPDATE=1` est impératif (vérifié : sans lui,
+# `brew outdated` met à jour Homebrew et ses taps avant de répondre — effet de bord réseau
+# qu'un tableau de bord en lecture seule ne doit jamais déclencher).
+
+# Sortie réelle (tronquée) de `HOMEBREW_NO_AUTO_UPDATE=1 brew outdated --json` sur ce Mac
+# (2026-08-28) : deux clés top-level, `formulae` et `casks`, même forme d'entrée.
+BREW_OUTDATED_SAMPLE = """{
+  "formulae": [
+    {"name": "abseil", "installed_versions": ["20260107.1"], "current_version": "20260817.0", "pinned": false, "pinned_version": null}
+  ],
+  "casks": [
+    {"name": "agentsview", "installed_versions": ["0.40.1"], "current_version": "0.41.1", "pinned": false, "pinned_version": null}
+  ]
+}"""
+
+
+def test_parse_brew_outdated_lists_formulae_and_casks():
+    from homeport.collectors import updates
+    assert updates.parse_brew_outdated(BREW_OUTDATED_SAMPLE) == ["abseil", "agentsview"]
+
+
+def test_parse_brew_outdated_returns_empty_list_when_unparseable():
+    from homeport.collectors import updates
+    assert updates.parse_brew_outdated("pas du json") == []
+
+
+def test_parse_brew_outdated_returns_empty_list_when_nothing_outdated():
+    from homeport.collectors import updates
+    assert updates.parse_brew_outdated('{"formulae": [], "casks": []}') == []
+
+
 # --- vérification de nouvelle version (system de mise à jour, opt-out) ---
 
 def test_parse_latest_release():

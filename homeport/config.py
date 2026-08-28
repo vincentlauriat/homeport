@@ -122,6 +122,9 @@ DEFAULT_INTERVALS = {
     "throttling": 60,
     "apt": 1800,
     "docker_images": 3600,
+    # Absents sur Linux (binaires introuvables, échec silencieux) — cadence macOS seulement.
+    "softwareupdate": 3600,
+    "brew_outdated": 3600,
     # 60 s, et non 300 : l'échelle 24 h de l'API v1 a un pas d'une minute, et un échantillonnage
     # plus lent y laisserait quatre seaux vides sur cinq. Surchargeable par `intervals.history`.
     "history": 60,
