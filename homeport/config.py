@@ -32,6 +32,12 @@ DB_PATH = Path(os.environ.get("HOMEPORT_DB_PATH", DATA_DIR / "history.db"))
 # Écrit par le timer root `homeport-nvme.timer` (voir collectors/nvme.py), lu seulement.
 NVME_PATH = Path(os.environ.get("HOMEPORT_NVME_PATH", DATA_DIR / "nvme.json"))
 
+# Écrit par le LaunchDaemon root macOS (voir deploy/macos/ et collectors/thermal_pressure.py),
+# lu seulement. N'existe jamais sur Linux — le champ reste `None`, absence gracieuse.
+THERMAL_PRESSURE_PATH = Path(
+    os.environ.get("HOMEPORT_THERMAL_PRESSURE_PATH", DATA_DIR / "thermal_pressure.txt")
+)
+
 
 
 def _read_yaml(source: Path) -> dict:

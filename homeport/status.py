@@ -8,7 +8,18 @@ import time
 
 from . import __version__, background, i18n
 from . import config as cfg
-from .collectors import cron, devices, docker_api, nvme, oui, probes, statusfile, system, wan
+from .collectors import (
+    cron,
+    devices,
+    docker_api,
+    nvme,
+    oui,
+    probes,
+    statusfile,
+    system,
+    thermal_pressure,
+    wan,
+)
 from .collectors import systemd as systemd_collector
 from .collectors import updates as updates_collector
 from .links import build_url
@@ -176,6 +187,9 @@ async def _snapshot(lang: str | None = None) -> dict:
         "network": network_data,
         # Lecture d'un simple fichier JSON (écrit par le timer root), rapide : hors boucle de fond.
         "nvme": nvme.collect(cfg.NVME_PATH),
+        # Même patron côté macOS : `None` sur toute machine sans LaunchDaemon root (donc sur
+        # tous les Pi), absence gracieuse plutôt qu'un champ Linux qui n'aurait pas de sens.
+        "thermal_pressure": thermal_pressure.collect(cfg.THERMAL_PRESSURE_PATH),
         "wan": _wan_summary(),
         "public_ip": (background.snapshot().get("public_ip") or {}).get("data"),
         "starlink": (background.snapshot().get("starlink_status") or {}).get("data")
