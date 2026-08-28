@@ -23,7 +23,7 @@
       <span class="berry" aria-hidden="true">⚓</span>
       <div>
         <h1>{{ system.hostname }}</h1>
-        <p class="sub">{{ t("hero.subtitle", uptime=system.uptime.human) }}</p>
+        <p class="sub">{{ t("hero.subtitle", uptime=system.uptime.human or "—") }}</p>
       </div>
     </div>
     <div class="summary" id="summary">
@@ -37,15 +37,15 @@
   <section class="metrics" id="metrics">
     <div class="metric">
       <span class="metric-label">{{ t("metric.cpu_load") }}</span>
-      <span class="metric-value" id="m-cpu">{{ system.load.percent }} %</span>
+      <span class="metric-value" id="m-cpu">{{ system.load.percent if system.load.percent is not none else "—" }} %</span>
       <div class="bar"><i style="transform: scaleX({{ [(system.load.percent or 0) / 100, 1] | min | round(3) }})"></i></div>
-      <span class="metric-note">{{ system.load.avg1 }} / {{ system.load.cores }} {{ t("metric.cores") }}</span>
+      <span class="metric-note">{{ system.load.avg1 if system.load.avg1 is not none else "—" }} / {{ system.load.cores }} {{ t("metric.cores") }}</span>
     </div>
     <div class="metric">
       <span class="metric-label">{{ t("metric.memory") }}</span>
-      <span class="metric-value" id="m-mem">{{ system.memory.percent }} %</span>
+      <span class="metric-value" id="m-mem">{{ system.memory.percent if system.memory.percent is not none else "—" }} %</span>
       <div class="bar"><i style="transform: scaleX({{ [(system.memory.percent or 0) / 100, 1] | min | round(3) }})"></i></div>
-      <span class="metric-note">{{ system.memory.used_mb }} / {{ system.memory.total_mb }} {{ t("unit.mib") }}</span>
+      <span class="metric-note">{{ system.memory.used_mb if system.memory.used_mb is not none else "—" }} / {{ system.memory.total_mb if system.memory.total_mb is not none else "—" }} {{ t("unit.mib") }}</span>
     </div>
     <div class="metric">
       <span class="metric-label">{{ t("index.temperature") }}</span>

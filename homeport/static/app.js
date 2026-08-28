@@ -17,8 +17,8 @@ const setBar = (metricEl, percent) => {
 
 function applySystem(system) {
   const metrics = document.querySelectorAll('#metrics .metric');
-  setText('m-cpu', `${system.load.percent} %`);
-  setText('m-mem', `${system.memory.percent} %`);
+  setText('m-cpu', system.load.percent === null ? '— %' : `${system.load.percent} %`);
+  setText('m-mem', system.memory.percent === null ? '— %' : `${system.memory.percent} %`);
   setText('m-temp', system.temperature_c === null ? '—' : `${system.temperature_c} °C`);
   setBar(metrics[0], system.load.percent);
   setBar(metrics[1], system.memory.percent);
@@ -34,8 +34,8 @@ function applySystem(system) {
   }
 
   const notes = document.querySelectorAll('#metrics .metric-note');
-  if (notes[0]) notes[0].textContent = `${system.load.avg1} / ${system.load.cores} ${T('metric.cores')}`;
-  if (notes[1]) notes[1].textContent = `${system.memory.used_mb} / ${system.memory.total_mb} ${T('unit.mib')}`;
+  if (notes[0]) notes[0].textContent = `${system.load.avg1 === null ? '—' : system.load.avg1} / ${system.load.cores} ${T('metric.cores')}`;
+  if (notes[1]) notes[1].textContent = `${system.memory.used_mb === null ? '—' : system.memory.used_mb} / ${system.memory.total_mb === null ? '—' : system.memory.total_mb} ${T('unit.mib')}`;
 }
 
 function applyServices(groups) {

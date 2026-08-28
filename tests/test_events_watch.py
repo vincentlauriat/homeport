@@ -137,6 +137,12 @@ def test_boot_selon_uptime(db: Path):
     assert kinds(db) == ["boot"]
 
 
+def test_boot_avec_uptime_inconnu_ne_leve_pas(db: Path):
+    """Un uptime introuvable (macOS sans /proc) ne doit ni planter ni fabriquer un boot."""
+    assert events_watch.boot(db, uptime_seconds=None) == 0
+    assert kinds(db) == []
+
+
 def test_devices_new(db: Path):
     n = events_watch.devices_new(db, [{"mac": "aa:bb:cc:dd:ee:ff", "ip": "192.168.1.50"}], now=1000)
     assert n == 1

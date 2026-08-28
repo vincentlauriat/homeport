@@ -14,11 +14,14 @@ import time
 from pathlib import Path
 
 
-def _read(path: str) -> str:
+def _read(path: str) -> str | None:
+    """`None` distingue une source absente d'une source présente mais vide — un appelant
+    qui confondrait les deux rendrait un zéro là où la bonne réponse est « je ne sais pas »
+    (ex. `/proc/*` n'existe pas sur macOS)."""
     try:
         return Path(path).read_text(encoding="utf-8")
     except OSError:
-        return ""
+        return None
 
 
 def hostname() -> str:
@@ -31,8 +34,11 @@ def _unit(key: str) -> str:
     return i18n.t(key, cfg.load_language())
 
 
-def uptime() -> dict:
-    raw = _read("/proc/uptime").split()
+def uptime(path: str = "/proc/uptime") -> dict:
+    text = _read(path)
+    if text is None:
+        return {"seconds": None, "human": None}
+    raw = text.split()
     seconds = float(raw[0]) if raw else 0.0
     days, rest = divmod(int(seconds), 86400)
     hours, rest = divmod(rest, 3600)
@@ -46,10 +52,13 @@ def uptime() -> dict:
     return {"seconds": int(seconds), "human": " ".join(parts)}
 
 
-def memory() -> dict:
+def memory(path: str = "/proc/meminfo") -> dict:
     """Mémoire en Mio. `MemAvailable` est la bonne mesure du libre réel, pas `MemFree`."""
+    text = _read(path)
+    if text is None:
+        return {"total_mb": None, "used_mb": None, "percent": None}
     values: dict[str, int] = {}
-    for line in _read("/proc/meminfo").splitlines():
+    for line in text.splitlines():
         match = re.match(r"^(\w+):\s+(\d+) kB", line)
         if match:
             values[match.group(1)] = int(match.group(2))
@@ -63,9 +72,12 @@ def memory() -> dict:
     }
 
 
-def load() -> dict:
-    raw = _read("/proc/loadavg").split()
+def load(path: str = "/proc/loadavg") -> dict:
     cores = os.cpu_count() or 1
+    text = _read(path)
+    if text is None:
+        return {"avg1": None, "avg5": None, "avg15": None, "cores": cores, "percent": None}
+    raw = text.split()
     one = float(raw[0]) if raw else 0.0
     return {
         "avg1": one,
@@ -76,32 +88,36 @@ def load() -> dict:
     }
 
 
-def temperature() -> float | None:
+def temperature(path: str = "/sys/class/thermal/thermal_zone0/temp") -> float | None:
     """Température CPU en °C (le fichier contient des milli-degrés)."""
-    raw = _read("/sys/class/thermal/thermal_zone0/temp").strip()
+    raw = _read(path)
+    if raw is None:
+        return None
     try:
-        return round(int(raw) / 1000, 1)
+        return round(int(raw.strip()) / 1000, 1)
     except ValueError:
         return None
 
 
-def _hwmon() -> dict[str, Path]:
+def _hwmon(root: str = "/sys/class/hwmon") -> dict[str, Path]:
     """Capteurs matériels indexés par nom : `cpu_thermal`, `nvme`, `pwmfan`, `rpi_volt`."""
     sensors: dict[str, Path] = {}
     try:
-        for entry in Path("/sys/class/hwmon").iterdir():
-            name = _read(str(entry / "name")).strip()
-            if name:
-                sensors[name] = entry
+        for entry in Path(root).iterdir():
+            name = _read(str(entry / "name"))
+            if name and name.strip():
+                sensors[name.strip()] = entry
     except OSError:
         pass
     return sensors
 
 
 def _int_from(path: Path) -> int | None:
-    raw = _read(str(path)).strip()
+    raw = _read(str(path))
+    if raw is None:
+        return None
     try:
-        return int(raw)
+        return int(raw.strip())
     except ValueError:
         return None
 
