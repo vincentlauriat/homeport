@@ -146,6 +146,44 @@
       </span>
     </div>
 
+    {% if health.softwareupdate is not none %}
+    <div class="health-card {{ 'state-warn' if health.softwareupdate.total else ('state-up' if health.softwareupdate.available else '') }}"
+         data-health="softwareupdate">
+      <span class="health-label">{{ t("health.softwareupdate") }}</span>
+      <span class="health-value" id="h-swu">
+        {% if not health.softwareupdate.available %}—{% else %}{{ t("health.softwareupdate_pending", count=health.softwareupdate.total) }}{% endif %}
+      </span>
+      <span class="health-note" id="h-swu-note">
+        {% if not health.softwareupdate.available %}{{ t("common.not_measured") }}
+        {% elif health.softwareupdate.packages %}{{ health.softwareupdate.packages | join(' · ') }}
+        {% else %}{{ t("common.none") }}{% endif %}
+      </span>
+    </div>
+    {% endif %}
+
+    {% if health.brew_outdated is not none %}
+    <div class="health-card {{ 'state-warn' if health.brew_outdated.total else ('state-up' if health.brew_outdated.available else '') }}"
+         data-health="brew">
+      <span class="health-label">{{ t("health.brew") }}</span>
+      <span class="health-value" id="h-brew">
+        {% if not health.brew_outdated.available %}—{% else %}{{ t("health.brew_outdated", count=health.brew_outdated.total) }}{% endif %}
+      </span>
+      <span class="health-note" id="h-brew-note">
+        {% if not health.brew_outdated.available %}{{ t("common.not_measured") }}
+        {% elif health.brew_outdated.packages %}{{ health.brew_outdated.packages | join(' · ') }}
+        {% else %}{{ t("common.none") }}{% endif %}
+      </span>
+    </div>
+    {% endif %}
+
+    {% if thermal_pressure is not none %}
+    <div class="health-card {{ 'state-down' if thermal_pressure in ('trapping', 'sleeping') else ('state-warn' if thermal_pressure == 'heavy' else '') }}"
+         data-health="thermal">
+      <span class="health-label">{{ t("health.thermal_pressure") }}</span>
+      <span class="health-value" id="h-thermal">{{ t("thermal." ~ thermal_pressure) }}</span>
+    </div>
+    {% endif %}
+
     <div class="health-card {{ 'state-down' if system.undervoltage else ('state-warn' if health.throttling and health.throttling.since_boot else ('state-up' if health.throttling and health.throttling.healthy else '')) }}"
          data-health="power">
       <span class="health-label">{{ t("health.power") }}</span>

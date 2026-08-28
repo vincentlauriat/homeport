@@ -126,6 +126,12 @@ async def build(hostname: str, lang: str | None = None) -> dict:
                        "images": [{"image": "demo/jellyfin:latest", "state": "outdated"}]},
             "images_measured_at": now - 600,
             "throttling": {"available": True, "healthy": True, "now": [], "since_boot": [], "raw": "0x0", "bits": 0},
+            # Absents sur un vrai Pi (binaires macOS introuvables) — inclus ici pour que la
+            # démo montre aussi ce que rend une instance macOS.
+            "softwareupdate": {"available": True, "total": 1, "packages": ["macOS Sequoia 15.2-24C101"]},
+            "softwareupdate_measured_at": now - 900,
+            "brew_outdated": {"available": True, "total": 2, "packages": ["ffmpeg", "node"]},
+            "brew_outdated_measured_at": now - 900,
             "alerts": [{"level": "warn", "text": "2 security update(s) pending"}],
         },
         "network": {
@@ -142,6 +148,9 @@ async def build(hostname: str, lang: str | None = None) -> dict:
         },
         "nvme": {"percent_used": 1, "written_gb": 1843, "power_on_hours": 2160,
                  "temperature_c": nvme_temp, "available": True},
+        # Absent sur un vrai Pi (fichier jamais écrit sans LaunchDaemon macOS) — inclus ici
+        # pour que la démo montre aussi ce que rend une instance macOS.
+        "thermal_pressure": "moderate",
         "wan": {"online": True, "latency_ms": round(_wave(now, 120, 18.0, 32.0), 1),
                 "outages_24h": 1, "last_outage_ts": now - 6 * 3600, "last_outage_minutes": 4},
         "public_ip": {"ip": "203.0.113.42", "changed_ts": now - 12 * 86400},
