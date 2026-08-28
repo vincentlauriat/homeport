@@ -45,7 +45,10 @@ async def collect(since: str = "24 hours ago", ignore: list[str] | None = None) 
         )
         stdout, _ = await asyncio.wait_for(process.communicate(), timeout=15.0)
     except Exception:
-        return {"available": False, "total": 0, "muted": 0, "by_source": [], "recent": [], "since": since}
+        return {
+            "available": False, "total": 0, "muted": 0, "counted": 0,
+            "by_source": [], "recent": [], "since": since,
+        }
 
     total = muted = 0
     by_source: dict[str, int] = {}
