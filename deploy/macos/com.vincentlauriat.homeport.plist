@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Gabarit LaunchAgent — service Homeport principal, sous l'utilisateur courant, SANS root.
+  Les jetons __XXX__ sont substitués par deploy/macos/install.sh ; ce fichier n'est jamais
+  installé tel quel (aucun chemin personnel en dur dans le dépôt public).
+
+  Port par défaut 8080, pas 80 comme sur les Pi : un LaunchAgent tourne sous l'utilisateur
+  connecté, qui ne peut pas se lier à un port privilégié (<1024) sans root — périmètre
+  "santé machine" d'une instance de poste de dev, pas un service exposé sur le LAN.
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.vincentlauriat.homeport</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>__APP_DIR__/venv/bin/uvicorn</string>
+        <string>homeport.main:app</string>
+        <string>--host</string>
+        <string>127.0.0.1</string>
+        <string>--port</string>
+        <string>__PORT__</string>
+    </array>
+    <key>WorkingDirectory</key>
+    <string>__APP_DIR__</string>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>HOMEPORT_CONFIG_DIR</key>
+        <string>__CONFIG_DIR__</string>
+        <key>HOMEPORT_DATA_DIR</key>
+        <string>__DATA_DIR__</string>
+        <key>HOMEPORT_THERMAL_PRESSURE_PATH</key>
+        <string>__DATA_DIR__/thermal_pressure.txt</string>
+    </dict>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+    <key>StandardOutPath</key>
+    <string>__LOG_DIR__/homeport.log</string>
+    <key>StandardErrorPath</key>
+    <string>__LOG_DIR__/homeport.err.log</string>
+</dict>
+</plist>
