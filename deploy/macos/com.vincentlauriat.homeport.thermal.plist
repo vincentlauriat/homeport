@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Gabarit LaunchDaemon — relevé de pression thermique en ROOT (powermetrics l'exige, voir
+  collectors/thermal_pressure.py). Un LaunchDaemon tourne en root par défaut (pas de clé
+  UserName) : c'est voulu, c'est l'unique raison d'être de ce démon séparé du service
+  principal. Jeton __THERMAL_PATH__ substitué par deploy/macos/install.sh.
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.vincentlauriat.homeport.thermal</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/local/bin/homeport-thermal.sh</string>
+        <string>__THERMAL_PATH__</string>
+    </array>
+    <key>StartInterval</key>
+    <integer>60</integer>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>StandardErrorPath</key>
+    <string>/var/log/homeport-thermal.err.log</string>
+</dict>
+</plist>
