@@ -49,6 +49,12 @@ states that `docker ps` hides.
   standard way to run and inspect the UI without a real server.
 - Everything degrades gracefully: no Docker, no Tailscale, no Raspberry Pi → the related
   tiles simply disappear. The UI must never present a missing integration as an error.
+- **macOS instance, machine health only (confirmed, 2026-08-28).** Homeport also runs on
+  macOS as a second, deliberately reduced instance next to the Pi — not a full instance.
+  No Docker/service supervision, no LAN scan, no Tailscale, no Starlink/Livebox on that
+  instance: redundant with the Pi, which already covers the same network. `temperature_c`/
+  `fan_rpm` stay `None` there (no numeric sensor on modern Macs); a separate
+  `thermal_pressure` field carries Apple's qualitative scale instead of a fabricated °C.
 
 ## Capabilities and Constraints
 

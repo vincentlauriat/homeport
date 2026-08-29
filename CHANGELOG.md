@@ -1,5 +1,29 @@
 # Changelog
 
+## v0.9.0
+
+- **A second, deliberately smaller instance for macOS.** Homeport now runs next to your
+  Pi on a Mac — machine health only: CPU load, memory, disk, macOS software updates,
+  Homebrew, and thermal pressure. No Docker, no supervised services, no LAN scan, no
+  Tailscale, no Starlink/Livebox on that instance — the Pi already watches the same
+  network, and a Mac has no `systemd` to supervise. See
+  [docs/getting-started-macos.md](docs/getting-started-macos.md).
+- **`temperature_c` and `fan_rpm` tell the truth instead of a zero.** `uptime()`, `memory()`
+  and `load()` used to render `0` when their `/proc` source didn't exist — true on macOS,
+  but also true the day `/proc` becomes briefly unreadable on a Pi. They report absent
+  fields instead, propagated to every view exactly like the existing temperature dash.
+  `load()` now reads `os.getloadavg()`, the same call `/proc/loadavg` itself is built on —
+  one implementation for both OSes instead of a platform branch.
+- **Thermal pressure, not a fabricated °C.** Current `powermetrics` reports no CPU
+  temperature or fan speed on modern Macs — only a qualitative pressure level (nominal
+  through sleeping). Rather than force that into `temperature_c`, it gets its own field,
+  fed by a small root `LaunchDaemon` (`powermetrics` requires root; the dashboard itself
+  never does) on the same read-only-file pattern as the Pi's NVMe wear timer.
+- **A journal-less machine no longer shows "undefined".** `journal.collect()`'s
+  unavailable path (no `journalctl`, true of every macOS box and any systemd-less Linux
+  one) was missing a key the success path always had — Contrôle rendered it literally,
+  Classic rendered a blank. Both paths return the same shape now.
+
 ## v0.8.0
 
 - **A versioned API, so the Mac app can read this Pi without scraping it.** `/api/v1/capabilities`,
