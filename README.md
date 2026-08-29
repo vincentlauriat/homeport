@@ -43,6 +43,21 @@ own documented step: read-only Docker access ([socket proxy](deploy/socket-proxy
 restart actions ([exact-command sudoers](deploy/sudoers.example)), NVMe wear
 ([root timer](deploy/nvme/)), MQTT / Home Assistant discovery.
 
+## Install on macOS (machine health only)
+
+A second, deliberately reduced instance to run next to your Pi(s) — not a full instance:
+no Docker, no supervised services, no LAN scan, no Tailscale, no Starlink/Livebox.
+
+```bash
+git clone https://github.com/vincentlauriat/homeport && cd homeport
+./deploy/macos/install.sh
+# open http://localhost:8080 — no sudo needed for this line
+```
+
+See [docs/getting-started-macos.md](docs/getting-started-macos.md) for what it watches,
+what's out of scope, and the one piece that does need `sudo` (a separate root `launchd`
+job reading thermal pressure — `powermetrics` requires it, the dashboard itself never does).
+
 ## What it watches
 
 - **Services** — each combines up to three sources of truth (Docker state, systemd state,
